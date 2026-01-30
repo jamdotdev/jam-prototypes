@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PIP Preview - Figma Design Comparison</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .preview-label {
+      color: #888;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ========== PIP Window Styles (from Figma) ========== */
+    .pip-container {
+      display: flex;
+      flex-direction: column;
+      width: 400px;
+      height: 336px;
+      background: #0B0C0F;
+      font-family: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      border: 1px solid #282828;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pip-video-wrap {
+      position: absolute;
+      top: 59px;
+      left: 26px;
+      width: 350px;
+      height: 197px;
+    }
+
+    .pip-video-frame {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 10.8px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 6px rgba(255,255,255,0.1);
+    }
+
+    .pip-video-frame video,
+    .pip-video-placeholder {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+
+    .pip-recording-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 9.6px;
+      height: 23px;
+    }
+
+    .pip-recording-indicator {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    .pip-recording-indicator svg {
+      width: 12px;
+      height: 12px;
+      display: block;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .pip-timer {
+      font-family: "Inter", sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #FFFFFF;
+      line-height: 1.4;
+      letter-spacing: -0.005em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pip-controls {
+      position: absolute;
+      top: 276px;
+      left: 26px;
+      width: 350px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pip-mute-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+      flex-shrink: 0;
+    }
+
+    .pip-mute-btn:hover {
+      background: rgba(255,255,255,0.12);
+    }
+
+    .pip-mute-btn:active {
+      transform: scale(.95);
+    }
+
+    .pip-mute-btn svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .pip-mute-btn.muted {
+      background: rgba(229,72,77,0.3);
+    }
+
+    .pip-mute-btn.muted:hover {
+      background: rgba(229,72,77,0.45);
+    }
+
+    .pip-stop-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: 9px;
+      background: #E5484D;
+      border: none;
+      color: #FFFFFF;
+      font-family: "Inter", sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.5;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    .pip-stop-btn:hover {
+      background: #dc3d42;
+    }
+
+    .pip-stop-btn:active {
+      transform: scale(.98);
+    }
+
+    .pip-stop-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pip-stop-icon svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-container">
+    <div class="preview-label">PIP Window Preview (400 x 336)</div>
+
+    <div class="pip-container">
+      <div class="pip-video-wrap">
+        <div class="pip-video-frame">
+          <!-- Placeholder for video -->
+          <div class="pip-video-placeholder"></div>
+
+          <!-- Recording badge (centered on video) -->
+          <div class="pip-recording-badge">
+            <div class="pip-recording-indicator">
+              <svg width="12" height="12" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="8.5" cy="8.5" r="7.2715" stroke="#DF0003" stroke-opacity="0.337255" stroke-width="2.4"/>
+                <circle cx="8.49995" cy="8.49995" r="4.8572" fill="#E5484D"/>
+              </svg>
+            </div>
+            <span class="pip-timer">0:03</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pip-controls">
+        <!-- Mute button (unmuted state) -->
+        <button class="pip-mute-btn" title="Mute microphone">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" fill="white" fill-opacity="0.01"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M20 11.75C18.3431 11.75 17 13.0931 17 14.75V20C17 21.6569 18.3431 23 20 23C21.6569 23 23 21.6569 23 20V14.75C23 13.0931 21.6569 11.75 20 11.75Z" fill="white" fill-opacity="0.6863"/>
+            <path d="M15.5 18.5C15.5 18.0858 15.1642 17.75 14.75 17.75C14.3358 17.75 14 18.0858 14 18.5V20C14 23.0602 16.291 25.5853 19.2514 25.9538C19.2505 25.9691 19.25 25.9845 19.25 26V26.75H17C16.5858 26.75 16.25 27.0858 16.25 27.5C16.25 27.9142 16.5858 28.25 17 28.25H23C23.4142 28.25 23.75 27.9142 23.75 27.5C23.75 27.0858 23.4142 26.75 23 26.75H20.75V26C20.75 25.9845 20.7495 25.9691 20.7486 25.9538C23.709 25.5853 26 23.0602 26 20V18.5C26 18.0858 25.6642 17.75 25.25 17.75C24.8358 17.75 24.5 18.0858 24.5 18.5V20C24.5 22.4853 22.4853 24.5 20 24.5C17.5147 24.5 15.5 22.4853 15.5 20V18.5Z" fill="white" fill-opacity="0.6863"/>
+            <path d="M0 9C0 4.02944 4.02944 0 9 0H31C35.9706 0 40 4.02944 40 9V31C40 35.9706 35.9706 40 31 40H9C4.02944 40 0 35.9706 0 31V9Z" fill="white" fill-opacity="0.0706"/>
+          </svg>
+        </button>
+
+        <!-- Stop recording button -->
+        <button class="pip-stop-btn">
+          <div class="pip-stop-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12.181 1.5H5.81903C5.2153 1.49999 4.71703 1.49998 4.31113 1.53315C3.88956 1.56759 3.50203 1.64151 3.13803 1.82698C2.57354 2.1146 2.1146 2.57354 1.82698 3.13803C1.64151 3.50203 1.56759 3.88956 1.53315 4.31113C1.49998 4.71703 1.49999 5.21529 1.5 5.81901V12.181C1.49999 12.7847 1.49998 13.283 1.53315 13.6889C1.56759 14.1104 1.64151 14.498 1.82698 14.862C2.1146 15.4265 2.57354 15.8854 3.13803 16.173C3.50203 16.3585 3.88956 16.4324 4.31113 16.4669C4.71702 16.5 5.21529 16.5 5.81901 16.5H12.181C12.7847 16.5 13.283 16.5 13.6889 16.4669C14.1104 16.4324 14.498 16.3585 14.862 16.173C15.4265 15.8854 15.8854 15.4265 16.173 14.862C16.3585 14.498 16.4324 14.1104 16.4669 13.6889C16.5 13.283 16.5 12.7847 16.5 12.181V5.81901C16.5 5.21529 16.5 4.71702 16.4669 4.31113C16.4324 3.88956 16.3585 3.50203 16.173 3.13803C15.8854 2.57354 15.4265 2.1146 14.862 1.82698C14.498 1.64151 14.1104 1.56759 13.6889 1.53315C13.283 1.49998 12.7847 1.49999 12.181 1.5Z" fill="white"/>
+            </svg>
+          </div>
+          <span>Stop recording</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="preview-label" style="margin-top: 40px;">Muted State (click mute button to toggle)</div>
+
+    <div class="pip-container">
+      <div class="pip-video-wrap">
+        <div class="pip-video-frame">
+          <div class="pip-video-placeholder"></div>
+          <div class="pip-recording-badge">
+            <div class="pip-recording-indicator">
+              <svg width="12" height="12" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="8.5" cy="8.5" r="7.2715" stroke="#DF0003" stroke-opacity="0.337255" stroke-width="2.4"/>
+                <circle cx="8.49995" cy="8.49995" r="4.8572" fill="#E5484D"/>
+              </svg>
+            </div>
+            <span class="pip-timer">0:03</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pip-controls">
+        <!-- Mute button (muted state - matches Figma) -->
+        <button class="pip-mute-btn muted" title="Unmute microphone">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" fill="white" fill-opacity="0.01"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M13.0303 11.9697C12.7374 11.6768 12.2626 11.6768 11.9697 11.9697C11.6768 12.2626 11.6768 12.7374 11.9697 13.0303L17 18.0607V20C17 21.6569 18.3431 23 20 23C20.556 23 21.0773 22.8483 21.5239 22.5845L22.6074 23.6681C21.8718 24.1919 20.9719 24.5 20 24.5C17.5147 24.5 15.5 22.4853 15.5 20V18.5C15.5 18.0858 15.1642 17.75 14.75 17.75C14.3358 17.75 14 18.0858 14 18.5V20C14 23.0597 16.2903 25.5845 19.25 25.9536V26.75H17C16.5858 26.75 16.25 27.0858 16.25 27.5C16.25 27.9142 16.5858 28.25 17 28.25H23C23.4142 28.25 23.75 27.9142 23.75 27.5C23.75 27.0858 23.4142 26.75 23 26.75H20.75V25.9536C21.8455 25.817 22.8493 25.385 23.6792 24.7399L26.9697 28.0303C27.2626 28.3232 27.7374 28.3232 28.0303 28.0303C28.3232 27.7374 28.3232 27.2626 28.0303 26.9697L24.7399 23.6792C25.5297 22.6632 26 21.3865 26 20V18.5C26 18.0858 25.6642 17.75 25.25 17.75C24.8358 17.75 24.5 18.0858 24.5 18.5V20C24.5 20.9719 24.1919 21.8718 23.6681 22.6074L20.116 19.0552C17.7542 16.6932 15.3924 14.3313 13.0303 11.9697Z" fill="white" fill-opacity="0.6863"/>
+            <path d="M23 19.818V14.75C23 13.0931 21.6569 11.75 20 11.75C18.627 11.75 17.4695 12.6723 17.1131 13.9311L23 19.818Z" fill="white" fill-opacity="0.6863"/>
+            <path d="M0 9C0 4.02944 4.02944 0 9 0H31C35.9706 0 40 4.02944 40 9V31C40 35.9706 35.9706 40 31 40H9C4.02944 40 0 35.9706 0 31V9Z" fill="white" fill-opacity="0.0706"/>
+          </svg>
+        </button>
+
+        <button class="pip-stop-btn">
+          <div class="pip-stop-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12.181 1.5H5.81903C5.2153 1.49999 4.71703 1.49998 4.31113 1.53315C3.88956 1.56759 3.50203 1.64151 3.13803 1.82698C2.57354 2.1146 2.1146 2.57354 1.82698 3.13803C1.64151 3.50203 1.56759 3.88956 1.53315 4.31113C1.49998 4.71703 1.49999 5.21529 1.5 5.81901V12.181C1.49999 12.7847 1.49998 13.283 1.53315 13.6889C1.56759 14.1104 1.64151 14.498 1.82698 14.862C2.1146 15.4265 2.57354 15.8854 3.13803 16.173C3.50203 16.3585 3.88956 16.4324 4.31113 16.4669C4.71702 16.5 5.21529 16.5 5.81901 16.5H12.181C12.7847 16.5 13.283 16.5 13.6889 16.4669C14.1104 16.4324 14.498 16.3585 14.862 16.173C15.4265 15.8854 15.8854 15.4265 16.173 14.862C16.3585 14.498 16.4324 14.1104 16.4669 13.6889C16.5 13.283 16.5 12.7847 16.5 12.181V5.81901C16.5 5.21529 16.5 4.71702 16.4669 4.31113C16.4324 3.88956 16.3585 3.50203 16.173 3.13803C15.8854 2.57354 15.4265 2.1146 14.862 1.82698C14.498 1.64151 14.1104 1.56759 13.6889 1.53315C13.283 1.49998 12.7847 1.49999 12.181 1.5Z" fill="white"/>
+            </svg>
+          </div>
+          <span>Stop recording</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

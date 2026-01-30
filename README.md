@@ -28,4 +28,5 @@ YYYY-MM-DD Prototype Name (Creator)
 
 | Folder | Description | Tech Stack |
 |--------|-------------|------------|
+| [2026-01-28 PIP Recording Window (Chris)](./2026-01-28%20PIP%20Recording%20Window%20(Chris)) | Floating Picture-in-Picture window for screen recording with audio waveform visualization | Vanilla JS, Document PIP API, Web Audio API |
 | [2026-01-30 Sharepage Layout (Martin)](./2026-01-30%20Sharepage%20Layout%20(Martin)) | Split-panel layout with DevTools, theming system | Next.js, Radix UI, styled-components |
