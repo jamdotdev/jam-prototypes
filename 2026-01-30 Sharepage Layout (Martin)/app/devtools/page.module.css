@@ -1,0 +1,30 @@
+.container {
+  background-color: var(--color-panel-solid);
+}
+
+.header {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-gray-alpha-4);
+  min-height: 64px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.dockIcon {
+  transform: scaleX(-1);
+}
+
+.content {
+  color: var(--color-text-secondary);
+}
+
+.separator {
+  width: 1px;
+  height: 16px;
+  background-color: var(--color-gray-alpha-4);
+  margin: 0 4px;
+}

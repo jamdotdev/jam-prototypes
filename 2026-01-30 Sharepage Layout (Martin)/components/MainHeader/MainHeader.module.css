@@ -1,0 +1,39 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-gray-alpha-4);
+  min-height: 64px;
+}
+
+.avatarButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-2);
+  cursor: pointer;
+}
+
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-2);
+  object-fit: cover;
+}
+
+.separator {
+  color: var(--color-gray-8);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.folderButton {
+  margin-left: var(--space-1);
+}

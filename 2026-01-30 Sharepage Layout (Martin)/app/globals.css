@@ -1,0 +1,180 @@
+@import '@radix-ui/themes/styles.css';
+
+:root {
+  /* Gray scale */
+  --color-gray-1: #fcfcfc;
+  --color-gray-2: #f9f9f9;
+  --color-gray-8: #bbbbbb;
+  --color-gray-11: #646464;
+  --color-gray-12: #202020;
+
+  /* Gray alpha */
+  --color-gray-alpha-1: rgba(0, 0, 0, 0.01);
+  --color-gray-alpha-2: rgba(0, 0, 0, 0.02);
+  --color-gray-alpha-3: rgba(0, 0, 0, 0.06);
+  --color-gray-alpha-4: rgba(0, 0, 0, 0.09);
+  --color-gray-alpha-7: rgba(0, 0, 0, 0.19);
+  --color-gray-alpha-8: rgba(0, 0, 0, 0.27);
+
+  /* Accent */
+  --color-accent-9: #7cedc7;
+  --color-accent-contrast: #1c2024;
+
+  /* Text */
+  --color-text-primary: #202020;
+  --color-text-secondary: #646464;
+  --color-text-tertiary: #838383;
+  --color-text-disabled: #bbbbbb;
+  --color-text-inverse: #ffffff;
+
+  /* Panel */
+  --color-panel-solid: #ffffff;
+  --color-panel-translucent: rgba(255, 255, 255, 0.8);
+
+  /* Spacing */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 24px;
+  --spacing-6: 32px;
+
+  /* Radius */
+  --radius-1: 4.5px;
+  --radius-2: 6px;
+  --radius-3: 9px;
+  --radius-4: 12px;
+  --radius-5: 18px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-2: 0px 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 0px 1px 0px rgba(0, 0, 0, 0.27), 0px 1px 2px 0px rgba(0, 0, 0, 0.09);
+  --shadow-3: 0px 1px 2px 0px rgba(0, 0, 0, 0.02), 0px 1px 3px 0px rgba(0, 0, 0, 0.09), 0px 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 0px 1px 0px rgba(0, 0, 0, 0.27);
+  --shadow-4: 0px 2px 4px -1px rgba(0, 0, 0, 0.09), 0px 4px 6px -1px rgba(0, 0, 0, 0.09), 0px 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 0px 1px 0px rgba(0, 0, 0, 0.27);
+
+  /* Typography */
+  --font-text: 'Inter Variable', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-code: 'CommitMono', 'SF Mono', Monaco, Consolas, monospace;
+
+  /* Component tokens */
+  --button-height-1: 24px;
+  --button-height-2: 32px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: var(--font-text);
+  background-color: var(--color-gray-1);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override Radix accent color to match Figma design */
+:root .radix-themes {
+  --accent-1: #f9fefc;
+  --accent-2: #f2fcf8;
+  --accent-3: #dbfaee;
+  --accent-4: #c5f6e3;
+  --accent-5: #aeeed6;
+  --accent-6: #96e2c6;
+  --accent-7: #76d2b2;
+  --accent-8: #3bbe98;
+  --accent-9: #7cedc7;
+  --accent-10: #71e3bd;
+  --accent-11: #007b5c;
+  --accent-12: #114435;
+
+  --accent-a1: #00d58006;
+  --accent-a2: #00c5760d;
+  --accent-a3: #00dc8724;
+  --accent-a4: #00d8843a;
+  --accent-a5: #00ca7e51;
+  --accent-a6: #00b97569;
+  --accent-a7: #00ac7089;
+  --accent-a8: #00ab79c4;
+  --accent-a9: #00dc9283;
+  --accent-a10: #00cd898e;
+  --accent-a11: #007b5c;
+  --accent-a12: #003727ee;
+
+  --accent-contrast: #0a281e;
+  --accent-surface: #effbf6cc;
+  --accent-indicator: #7cedc7;
+  --accent-track: #7cedc7;
+}
+
+/* Dark mode overrides */
+.dark, .dark-theme, :root.dark {
+  /* Gray scale - inverted for dark mode */
+  --color-gray-1: #111111;
+  --color-gray-2: #1a1a1a;
+  --color-gray-8: #555555;
+  --color-gray-11: #a0a0a0;
+  --color-gray-12: #ededed;
+
+  /* Gray alpha - for dark backgrounds */
+  --color-gray-alpha-1: rgba(255, 255, 255, 0.01);
+  --color-gray-alpha-2: rgba(255, 255, 255, 0.02);
+  --color-gray-alpha-3: rgba(255, 255, 255, 0.06);
+  --color-gray-alpha-4: rgba(255, 255, 255, 0.09);
+  --color-gray-alpha-7: rgba(255, 255, 255, 0.19);
+  --color-gray-alpha-8: rgba(255, 255, 255, 0.27);
+
+  /* Text colors */
+  --color-text-primary: #ededed;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #777777;
+  --color-text-disabled: #555555;
+  --color-text-inverse: #111111;
+
+  /* Panel colors */
+  --color-panel-solid: #1a1a1a;
+  --color-panel-translucent: rgba(26, 26, 26, 0.8);
+
+  /* Shadows - adjusted for dark mode */
+  --shadow-2: 0px 0px 0px 1px rgba(255, 255, 255, 0.05), 0px 0px 1px 0px rgba(0, 0, 0, 0.5), 0px 1px 2px 0px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 0px rgba(0, 0, 0, 0.4), 0px 0px 0px 1px rgba(255, 255, 255, 0.05), 0px 0px 1px 0px rgba(0, 0, 0, 0.5);
+  --shadow-4: 0px 2px 4px -1px rgba(0, 0, 0, 0.4), 0px 4px 6px -1px rgba(0, 0, 0, 0.4), 0px 0px 0px 1px rgba(255, 255, 255, 0.05), 0px 0px 1px 0px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode accent overrides for Radix Themes */
+.dark .radix-themes {
+  --accent-1: #0a1f1a;
+  --accent-2: #0f2d26;
+  --accent-3: #134032;
+  --accent-4: #185541;
+  --accent-5: #1e6a50;
+  --accent-6: #267f60;
+  --accent-7: #30957a;
+  --accent-8: #3bbe98;
+  --accent-9: #7cedc7;
+  --accent-10: #8ff0cf;
+  --accent-11: #7cedc7;
+  --accent-12: #c8f7e8;
+
+  --accent-a1: rgba(0, 220, 128, 0.024);
+  --accent-a2: rgba(0, 220, 128, 0.051);
+  --accent-a3: rgba(0, 220, 128, 0.094);
+  --accent-a4: rgba(0, 220, 128, 0.141);
+  --accent-a5: rgba(0, 220, 128, 0.196);
+  --accent-a6: rgba(0, 220, 128, 0.259);
+  --accent-a7: rgba(0, 220, 128, 0.345);
+  --accent-a8: rgba(0, 220, 128, 0.502);
+  --accent-a9: rgba(0, 220, 128, 0.769);
+  --accent-a10: rgba(0, 220, 128, 0.831);
+  --accent-a11: #7cedc7;
+  --accent-a12: rgba(200, 247, 232, 0.933);
+
+  --accent-contrast: #0a281e;
+  --accent-surface: rgba(15, 45, 38, 0.8);
+  --accent-indicator: #7cedc7;
+  --accent-track: #7cedc7;
+}

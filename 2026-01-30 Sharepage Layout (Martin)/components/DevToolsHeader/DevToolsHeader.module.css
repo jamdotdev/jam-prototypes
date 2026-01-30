@@ -1,0 +1,48 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-gray-alpha-4);
+  min-height: 64px;
+}
+
+.leading {
+  overflow: hidden;
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.separator {
+  width: 1px;
+  height: 16px;
+  background-color: var(--color-gray-alpha-4);
+  margin: 0 4px;
+}
+
+.menuItem {
+  min-width: 180px;
+}
+
+.checkmark {
+  color: var(--color-gray-alpha-12);
+  font-weight: 600;
+}
+
+.menuItemSelected {
+  background-color: var(--color-gray-alpha-3);
+  border-radius: var(--radius-2);
+}
+
+.rotateIcon {
+  transform: rotate(90deg);
+}

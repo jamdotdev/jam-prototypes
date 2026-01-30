@@ -1,0 +1,13 @@
+.copyButton {
+  border-radius: var(--radius-3) 0 0 var(--radius-3) !important;
+}
+
+.shareButton {
+  border-radius: 0 var(--radius-3) var(--radius-3) 0 !important;
+}
+
+.separator {
+  width: 1px;
+  background-color: var(--color-accent-alpha-5);
+  align-self: stretch;
+}
