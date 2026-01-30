@@ -14,7 +14,7 @@ YYYY-MM-DD Prototype Name (Creator)
 
 **Examples:**
 - `2026-01-30 Sharepage Layout (Martin)`
-- `2026-02-15 Dashboard Redesign (Alex)`
+- `2026-02-15 Dashboard Redesign (Chris)`
 
 ### Guidelines
 
