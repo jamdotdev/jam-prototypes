@@ -145,6 +145,15 @@ body {
   --shadow-4: 0px 2px 4px -1px rgba(0, 0, 0, 0.4), 0px 4px 6px -1px rgba(0, 0, 0, 0.4), 0px 0px 0px 1px rgba(255, 255, 255, 0.05), 0px 0px 1px 0px rgba(0, 0, 0, 0.5);
 }
 
+/* Override Radix Tabs - remove indicator and bottom border */
+.radix-themes .rt-BaseTabList {
+  box-shadow: none;
+}
+
+.radix-themes .rt-BaseTabListTrigger:where([data-state='active'], [data-active])::before {
+  display: none;
+}
+
 /* Dark mode accent overrides for Radix Themes */
 .dark .radix-themes {
   --accent-1: #0a1f1a;

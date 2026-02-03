@@ -4,8 +4,11 @@ import { useEffect } from 'react';
 import { Flex, Tooltip } from '@radix-ui/themes';
 import { Button, IconButton } from '@/components/ui';
 import { useDevToolsSync } from '@/hooks/useDevToolsSync';
-import { UndockIcon, SunIcon, MoonIcon } from '@/components/icons';
-import { useThemeContext } from '@/components/ThemeProvider/ThemeProvider';
+import { UndockIcon } from '@/components/icons/UndockIcon';
+import { SunIcon } from '@/components/icons/SunIcon';
+import { MoonIcon } from '@/components/icons/MoonIcon';
+import { useThemeContext } from '@/components/providers/ThemeProvider/ThemeProvider';
+import { DevToolsContent } from '@/components/features/devtools';
 import styles from './page.module.css';
 
 export default function DevToolsPage() {
@@ -34,7 +37,7 @@ export default function DevToolsPage() {
     <Flex direction="column" height="100vh" className={styles.container}>
       <Flex asChild align="center" justify="between" className={styles.header}>
         <header>
-          <h1 className={styles.title}>Devtools</h1>
+          <h1 className={styles.title}>Developer tools</h1>
           <Flex align="center" gap="0">
             <Tooltip content={resolvedTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
               <IconButton
@@ -62,10 +65,8 @@ export default function DevToolsPage() {
           </Flex>
         </header>
       </Flex>
-      <Flex asChild align="center" justify="center" flexGrow="1" className={styles.content}>
-        <main>
-          <p>Undocked dev tools content</p>
-        </main>
+      <Flex direction="column" flexGrow="1" className={styles.content}>
+        <DevToolsContent />
       </Flex>
     </Flex>
   );
