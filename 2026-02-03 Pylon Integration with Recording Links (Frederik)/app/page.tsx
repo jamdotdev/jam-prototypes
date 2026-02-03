@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Container,
@@ -13,607 +14,40 @@ import {
   TextField,
   Separator,
   Callout,
-  Dialog,
   Select,
   IconButton,
-  Link,
+  Checkbox,
 } from "@radix-ui/themes";
 import {
-  CopyIcon,
-  CheckIcon,
   Link2Icon,
   ChatBubbleIcon,
-  PersonIcon,
   ReloadIcon,
   ExclamationTriangleIcon,
   GearIcon,
+  MagnifyingGlassIcon,
   Cross2Icon,
 } from "@radix-ui/react-icons";
-import { useState, useEffect, useCallback } from "react";
 
-const DEFAULT_RECORDING_URL = "https://jam.dev/?jam-recording=8SmwyAu";
-const PYLON_BASE_URL = "https://app.usepylon.com/issues";
-const PYLON_API_URL = "https://api.usepylon.com";
+// Components
+import { CopyButton } from "./components/CopyButton";
+import { IssueCard } from "./components/IssueCard";
+import { SetupScreen } from "./components/SetupScreen";
+import { SettingsDialog } from "./components/SettingsDialog";
+import { Toast } from "./components/Toast";
 
-// Storage keys
-const STORAGE_KEYS = {
-  recordingUrl: "jam-pylon-recording-url",
-  apiToken: "jam-pylon-api-token",
-  selectedAgent: "jam-pylon-selected-agent",
-  folderId: "jam-pylon-folder-id",
-};
+// Lib
+import type { Issue, Agent } from "./lib/types";
+import {
+  DEFAULT_RECORDING_URL,
+  DEFAULT_MESSAGE_TEMPLATE,
+  STORAGE_KEYS,
+  mockAgents,
+  mockIssues,
+} from "./lib/constants";
+import { generateRecordingLink, generateMessage, formatTimeAgo } from "./lib/utils";
+import { fetchPylonIssues, fetchPylonAgents } from "./lib/api";
 
-// Normalized issue type for both mock and Pylon data
-interface Issue {
-  id: string;
-  number: number;
-  title: string;
-  customer: string;
-  status: string;
-  assigneeId?: string;
-  assigneeName?: string;
-}
-
-interface Agent {
-  id: string;
-  name: string;
-  email: string;
-}
-
-// Pylon API response types
-interface PylonIssue {
-  id: string;
-  number: number;
-  title: string;
-  state: string;
-  requester?: {
-    name?: string;
-    email?: string;
-  };
-  assignee?: {
-    id: string;
-    name?: string;
-    email?: string;
-  };
-}
-
-interface PylonUser {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface PylonSearchResponse {
-  data: PylonIssue[];
-  request_id: string;
-}
-
-interface PylonUsersResponse {
-  data: PylonUser[];
-  request_id: string;
-}
-
-// Mock data
-const mockAgents: Agent[] = [
-  { id: "usr_001", name: "Sarah Chen", email: "sarah@company.com" },
-  { id: "usr_002", name: "Mike Johnson", email: "mike@company.com" },
-  { id: "usr_003", name: "Emily Davis", email: "emily@company.com" },
-];
-
-const mockIssues: Issue[] = [
-  {
-    id: "iss_abc123",
-    number: 1042,
-    title: "Login page not loading",
-    customer: "Alice Smith",
-    status: "waiting_on_customer",
-    assigneeId: "usr_001",
-    assigneeName: "Sarah Chen",
-  },
-  {
-    id: "iss_def456",
-    number: 1043,
-    title: "Payment failed at checkout",
-    customer: "Bob Johnson",
-    status: "new",
-    assigneeId: "usr_002",
-    assigneeName: "Mike Johnson",
-  },
-  {
-    id: "iss_ghi789",
-    number: 1044,
-    title: "Mobile app crashes on startup",
-    customer: "Carol White",
-    status: "waiting_on_you",
-    assigneeId: "usr_001",
-    assigneeName: "Sarah Chen",
-  },
-  {
-    id: "iss_jkl012",
-    number: 1045,
-    title: "Unable to export reports",
-    customer: "David Lee",
-    status: "waiting_on_customer",
-    assigneeId: "usr_003",
-    assigneeName: "Emily Davis",
-  },
-  {
-    id: "iss_mno345",
-    number: 1046,
-    title: "Dashboard shows wrong data",
-    customer: "Eva Martinez",
-    status: "new",
-    assigneeId: "usr_002",
-    assigneeName: "Mike Johnson",
-  },
-];
-
-// Convert Pylon issue to our normalized format
-function normalizePylonIssue(pylonIssue: PylonIssue): Issue {
-  return {
-    id: pylonIssue.id,
-    number: pylonIssue.number,
-    title: pylonIssue.title,
-    customer:
-      pylonIssue.requester?.name || pylonIssue.requester?.email || "Unknown",
-    status: pylonIssue.state,
-    assigneeId: pylonIssue.assignee?.id,
-    assigneeName: pylonIssue.assignee?.name || pylonIssue.assignee?.email,
-  };
-}
-
-// Fetch issues from Pylon API
-async function fetchPylonIssues(
-  apiToken: string,
-  assigneeId?: string
-): Promise<Issue[]> {
-  const filters: Record<string, unknown> = {
-    field: "state",
-    operator: "in",
-    values: ["new", "waiting_on_you", "waiting_on_customer"],
-  };
-
-  // Add assignee filter if selected
-  const body: Record<string, unknown> = { limit: 50 };
-  if (assigneeId) {
-    body.filters = {
-      operator: "and",
-      filters: [
-        filters,
-        { field: "assignee_id", operator: "equals", value: assigneeId },
-      ],
-    };
-  } else {
-    body.filters = filters;
-  }
-
-  const response = await fetch(`${PYLON_API_URL}/issues/search`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || `API error: ${response.status}`);
-  }
-
-  const data: PylonSearchResponse = await response.json();
-  return data.data.map(normalizePylonIssue);
-}
-
-// Fetch users/agents from Pylon API
-async function fetchPylonAgents(apiToken: string): Promise<Agent[]> {
-  const response = await fetch(`${PYLON_API_URL}/users/search`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ limit: 100 }),
-  });
-
-  if (!response.ok) {
-    return [];
-  }
-
-  const data: PylonUsersResponse = await response.json();
-  return data.data.map((u) => ({ id: u.id, name: u.name, email: u.email }));
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case "new":
-      return "blue";
-    case "waiting_on_you":
-      return "orange";
-    case "waiting_on_customer":
-      return "yellow";
-    case "on_hold":
-      return "gray";
-    case "closed":
-      return "green";
-    default:
-      return "gray";
-  }
-}
-
-function getStatusLabel(status: string) {
-  switch (status) {
-    case "new":
-      return "New";
-    case "waiting_on_you":
-      return "Waiting on you";
-    case "waiting_on_customer":
-      return "Waiting on customer";
-    case "on_hold":
-      return "On hold";
-    case "closed":
-      return "Closed";
-    default:
-      return status;
-  }
-}
-
-function generateRecordingLink(issue: Issue, baseUrl: string, folderId?: string): string {
-  const params = new URLSearchParams();
-  params.set("jam-title", `[${issue.number}] ${issue.title}`);
-  params.set("jam-reference", `${PYLON_BASE_URL}/${issue.id}`);
-  if (folderId?.trim()) {
-    params.set("jam-folder", folderId.trim());
-  }
-
-  // Check if baseUrl already has query params
-  const separator = baseUrl.includes("?") ? "&" : "?";
-  return `${baseUrl}${separator}${params.toString()}`;
-}
-
-function generateMessage(issue: Issue, link: string): string {
-  return `Hi ${issue.customer.split(" ")[0]},
-
-To help us investigate this issue, could you please record what you're experiencing using this link:
-
-${link}
-
-It only takes a few seconds and will automatically capture all the technical details we need.
-
-Thanks!`;
-}
-
-function CopyButton({
-  text,
-  label,
-  variant = "soft",
-}: {
-  text: string;
-  label: string;
-  variant?: "soft" | "solid";
-}) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <Button
-      size="2"
-      variant={variant}
-      onClick={handleCopy}
-      style={{ cursor: "pointer", minWidth: 140 }}
-    >
-      {copied ? (
-        <>
-          <CheckIcon />
-          Copied!
-        </>
-      ) : (
-        <>
-          <CopyIcon />
-          {label}
-        </>
-      )}
-    </Button>
-  );
-}
-
-function IssueCard({
-  issue,
-  selected,
-  onClick,
-}: {
-  issue: Issue;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <Card
-      size="2"
-      onClick={onClick}
-      style={{
-        cursor: "pointer",
-        border: selected
-          ? "2px solid var(--accent-9)"
-          : "2px solid transparent",
-        transition: "all 0.15s ease",
-      }}
-    >
-      <Flex direction="column" gap="2">
-        <Flex justify="between" align="center">
-          <Text size="2" weight="bold" color="gray">
-            #{issue.number}
-          </Text>
-          <Badge color={getStatusColor(issue.status)} variant="soft" size="1">
-            {getStatusLabel(issue.status)}
-          </Badge>
-        </Flex>
-        <Text size="3" weight="medium">
-          {issue.title}
-        </Text>
-        <Flex align="center" gap="3">
-          <Flex align="center" gap="1">
-            <PersonIcon />
-            <Text size="2" color="gray">
-              {issue.customer}
-            </Text>
-          </Flex>
-          {issue.assigneeName && (
-            <Text size="1" color="gray">
-              → {issue.assigneeName}
-            </Text>
-          )}
-        </Flex>
-      </Flex>
-    </Card>
-  );
-}
-
-// Settings Dialog Component
-function SettingsDialog({
-  open,
-  onOpenChange,
-  recordingUrl,
-  setRecordingUrl,
-  folderId,
-  setFolderId,
-  apiToken,
-  setApiToken,
-  onSave,
-  onDisconnect,
-  isConnected,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  recordingUrl: string;
-  setRecordingUrl: (url: string) => void;
-  folderId: string;
-  setFolderId: (id: string) => void;
-  apiToken: string;
-  setApiToken: (token: string) => void;
-  onSave: () => void;
-  onDisconnect: () => void;
-  isConnected: boolean;
-}) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content style={{ maxWidth: 500 }}>
-        <Flex justify="between" align="center" mb="4">
-          <Dialog.Title>Settings</Dialog.Title>
-          <Dialog.Close>
-            <IconButton variant="ghost" color="gray">
-              <Cross2Icon />
-            </IconButton>
-          </Dialog.Close>
-        </Flex>
-
-        <Flex direction="column" gap="5">
-          {/* Recording Link */}
-          <Flex direction="column" gap="2">
-            <Text size="2" weight="medium">
-              Jam Recording Link
-            </Text>
-            <TextField.Root
-              size="2"
-              placeholder="https://jam.dev/?jam-recording=your-id"
-              value={recordingUrl}
-              onChange={(e) => setRecordingUrl(e.target.value)}
-            />
-            <Text size="1" color="gray">
-              Create your recording link at{" "}<Link href="https://jam.dev/s/recording-links" target="_blank">jam.dev/s/recording-links</Link>
-            </Text>
-          </Flex>
-
-          {/* Destination Folder */}
-          <Flex direction="column" gap="2">
-            <Text size="2" weight="medium">
-              Destination Folder ID <Text size="1" color="gray">(optional)</Text>
-            </Text>
-            <TextField.Root
-              size="2"
-              placeholder="e.g. ABC123"
-              value={folderId}
-              onChange={(e) => setFolderId(e.target.value)}
-            />
-            <Text size="1" color="gray">
-              Find folder IDs at the end of the Jam folder url (e.g. '/23sy')
-            </Text>
-          </Flex>
-
-          <Separator size="4" />
-
-          {/* Pylon API Token */}
-          <Flex direction="column" gap="2">
-            <Flex align="center" gap="2">
-              <Text size="2" weight="medium">
-                Pylon API Token
-              </Text>
-              {isConnected && (
-                <Badge color="green" variant="soft" size="1">
-                  Connected
-                </Badge>
-              )}
-            </Flex>
-            <TextField.Root
-              size="2"
-              type="password"
-              placeholder="pylon_api_token_..."
-              value={apiToken}
-              onChange={(e) => setApiToken(e.target.value)}
-            />
-            <Text size="1" color="gray">
-              Get your API token from Pylon → Settings → API (Admin only)
-            </Text>
-          </Flex>
-
-          <Separator size="4" />
-
-          <Flex gap="2" justify="end">
-            {isConnected && (
-              <Button
-                variant="outline"
-                color="red"
-                onClick={() => {
-                  onDisconnect();
-                  onOpenChange(false);
-                }}
-                style={{ cursor: "pointer" }}
-              >
-                Disconnect
-              </Button>
-            )}
-            <Button
-              variant="solid"
-              onClick={() => {
-                onSave();
-                onOpenChange(false);
-              }}
-              style={{ cursor: "pointer" }}
-            >
-              Save & Connect
-            </Button>
-          </Flex>
-        </Flex>
-      </Dialog.Content>
-    </Dialog.Root>
-  );
-}
-
-// Setup Screen Component
-function SetupScreen({
-  recordingUrl,
-  setRecordingUrl,
-  apiToken,
-  setApiToken,
-  onConnect,
-  isLoading,
-  error,
-}: {
-  recordingUrl: string;
-  setRecordingUrl: (url: string) => void;
-  apiToken: string;
-  setApiToken: (token: string) => void;
-  onConnect: () => void;
-  isLoading: boolean;
-  error: string | null;
-}) {
-  return (
-    <Box style={{ minHeight: "100vh", background: "var(--gray-1)" }}>
-      <Container size="1" py="9">
-        <Flex direction="column" gap="6" align="center">
-          <Flex direction="column" gap="2" align="center">
-            <Flex
-              align="center"
-              justify="center"
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 12,
-                background: "linear-gradient(135deg, #7c3aed, #ec4899)",
-              }}
-            >
-              <Link2Icon width={28} height={28} color="white" />
-            </Flex>
-            <Heading size="7" align="center">
-              Jam + Pylon
-            </Heading>
-            <Text size="3" color="gray" align="center">
-              Generate Jam recording links for support conversations
-            </Text>
-          </Flex>
-
-          <Card size="3" style={{ width: "100%", maxWidth: 400 }}>
-            <Flex direction="column" gap="4">
-              <Flex direction="column" gap="2">
-                <Text size="2" weight="medium">
-                  Jam Recording Link
-                </Text>
-                <TextField.Root
-                  size="3"
-                  placeholder="https://jam.dev/?jam-recording=your-id"
-                  value={recordingUrl}
-                  onChange={(e) => setRecordingUrl(e.target.value)}
-                />
-                <Text size="1" color="gray">
-                  Create your recording link at{" "}<Link href="https://jam.dev/s/recording-links" target="_blank">jam.dev/s/recording-links</Link>
-                </Text>
-              </Flex>
-
-              <Flex direction="column" gap="2">
-                <Text size="2" weight="medium">
-                  Pylon API Token
-                </Text>
-                <TextField.Root
-                  size="3"
-                  type="password"
-                  placeholder="pylon_api_token_..."
-                  value={apiToken}
-                  onChange={(e) => setApiToken(e.target.value)}
-                />
-                <Text size="1" color="gray">
-                  Get from Pylon → Settings → API (Admin only)
-                </Text>
-              </Flex>
-
-              {error && (
-                <Callout.Root color="red" size="1">
-                  <Callout.Icon>
-                    <ExclamationTriangleIcon />
-                  </Callout.Icon>
-                  <Callout.Text>{error}</Callout.Text>
-                </Callout.Root>
-              )}
-
-              <Button
-                size="3"
-                onClick={onConnect}
-                disabled={isLoading || !recordingUrl.trim()}
-                style={{ cursor: "pointer" }}
-              >
-                {isLoading ? (
-                  <>
-                    <ReloadIcon className="animate-spin" />
-                    Connecting...
-                  </>
-                ) : (
-                  "Get Started"
-                )}
-              </Button>
-
-              <Text size="1" color="gray" align="center">
-                Leave API token empty to use demo data
-              </Text>
-            </Flex>
-          </Card>
-        </Flex>
-      </Container>
-    </Box>
-  );
-}
+const ALL_STATUSES = ["new", "waiting_on_you", "waiting_on_customer"];
 
 export default function Home() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -622,6 +56,7 @@ export default function Home() {
 
   const [baseRecordingUrl, setBaseRecordingUrl] = useState(DEFAULT_RECORDING_URL);
   const [folderId, setFolderId] = useState("");
+  const [messageTemplate, setMessageTemplate] = useState(DEFAULT_MESSAGE_TEMPLATE);
   const [pylonApiToken, setPylonApiToken] = useState("");
   const [selectedAgentId, setSelectedAgentId] = useState<string>("all");
 
@@ -633,22 +68,31 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  // Search & filtering
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilters, setStatusFilters] = useState<string[]>(ALL_STATUSES);
+
+  // UX polish
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVisible, setToastVisible] = useState(false);
+
   // Load settings from localStorage on mount
   useEffect(() => {
     const savedUrl = localStorage.getItem(STORAGE_KEYS.recordingUrl);
     const savedFolderId = localStorage.getItem(STORAGE_KEYS.folderId);
+    const savedTemplate = localStorage.getItem(STORAGE_KEYS.messageTemplate);
     const savedToken = localStorage.getItem(STORAGE_KEYS.apiToken);
     const savedAgent = localStorage.getItem(STORAGE_KEYS.selectedAgent);
 
     if (savedUrl) setBaseRecordingUrl(savedUrl);
     if (savedFolderId) setFolderId(savedFolderId);
+    if (savedTemplate) setMessageTemplate(savedTemplate);
     if (savedToken) setPylonApiToken(savedToken);
     if (savedAgent) setSelectedAgentId(savedAgent);
 
-    // If we have a saved URL, consider setup complete
     if (savedUrl && savedUrl !== DEFAULT_RECORDING_URL) {
       setIsSetupComplete(true);
-      // Auto-connect if we have a token
       if (savedToken) {
         setIsConnected(true);
       }
@@ -661,10 +105,11 @@ export default function Home() {
   const saveSettings = useCallback(() => {
     localStorage.setItem(STORAGE_KEYS.recordingUrl, baseRecordingUrl);
     localStorage.setItem(STORAGE_KEYS.folderId, folderId);
+    localStorage.setItem(STORAGE_KEYS.messageTemplate, messageTemplate);
     if (pylonApiToken) {
       localStorage.setItem(STORAGE_KEYS.apiToken, pylonApiToken);
     }
-  }, [baseRecordingUrl, folderId, pylonApiToken]);
+  }, [baseRecordingUrl, folderId, messageTemplate, pylonApiToken]);
 
   // Save selected agent to localStorage
   useEffect(() => {
@@ -693,7 +138,6 @@ export default function Home() {
           }
           setIsConnected(true);
         } else {
-          // Use mock data with filter
           const filtered =
             agentFilter && agentFilter !== "all"
               ? mockIssues.filter((i) => i.assigneeId === agentFilter)
@@ -702,6 +146,7 @@ export default function Home() {
           setAgents(mockAgents);
           setIsConnected(false);
         }
+        setLastUpdated(new Date());
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch data");
         setIssues(mockIssues);
@@ -741,11 +186,44 @@ export default function Home() {
     await fetchData(selectedAgentId);
   };
 
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
+  const toggleStatus = (status: string) => {
+    setStatusFilters((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilters(ALL_STATUSES);
+  };
+
+  // Filter issues based on search and status
+  const filteredIssues = issues.filter((issue) => {
+    const matchesSearch =
+      !searchQuery ||
+      issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      issue.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(issue.number).includes(searchQuery);
+    const matchesStatus =
+      statusFilters.length === 0 || statusFilters.includes(issue.status);
+    return matchesSearch && matchesStatus;
+  });
+
+  const hasActiveFilters = searchQuery || statusFilters.length !== ALL_STATUSES.length;
+
   const recordingLink = selectedIssue
     ? generateRecordingLink(selectedIssue, baseRecordingUrl, folderId)
     : "";
+  const selectedAgentName = agents.find((a) => a.id === selectedAgentId)?.name;
   const message = selectedIssue
-    ? generateMessage(selectedIssue, recordingLink)
+    ? generateMessage(selectedIssue, recordingLink, messageTemplate, selectedAgentName)
     : "";
 
   // Show loading state while initializing
@@ -811,6 +289,11 @@ export default function Home() {
             </Flex>
 
             <Flex align="center" gap="2">
+              {lastUpdated && (
+                <Text size="1" color="gray">
+                  {formatTimeAgo(lastUpdated)}
+                </Text>
+              )}
               <Button
                 size="2"
                 variant="ghost"
@@ -831,26 +314,107 @@ export default function Home() {
             </Flex>
           </Flex>
 
-          {/* Agent Filter */}
+          {/* Search & Filters */}
+          <Flex gap="3" wrap="wrap" align="center">
+            <Box style={{ flex: 1, minWidth: 200 }}>
+              <TextField.Root
+                size="2"
+                placeholder="Search issues..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              >
+                <TextField.Slot>
+                  <MagnifyingGlassIcon height="16" width="16" />
+                </TextField.Slot>
+                {searchQuery && (
+                  <TextField.Slot>
+                    <IconButton
+                      size="1"
+                      variant="ghost"
+                      onClick={() => setSearchQuery("")}
+                    >
+                      <Cross2Icon height="14" width="14" />
+                    </IconButton>
+                  </TextField.Slot>
+                )}
+              </TextField.Root>
+            </Box>
+
+            <Flex gap="3" align="center">
+              <Flex gap="2" align="center">
+                <Text as="label" size="2">
+                  <Flex gap="1" align="center">
+                    <Checkbox
+                      size="1"
+                      checked={statusFilters.includes("new")}
+                      onCheckedChange={() => toggleStatus("new")}
+                    />
+                    <Badge color="blue" variant="soft" size="1">
+                      New
+                    </Badge>
+                  </Flex>
+                </Text>
+                <Text as="label" size="2">
+                  <Flex gap="1" align="center">
+                    <Checkbox
+                      size="1"
+                      checked={statusFilters.includes("waiting_on_you")}
+                      onCheckedChange={() => toggleStatus("waiting_on_you")}
+                    />
+                    <Badge color="orange" variant="soft" size="1">
+                      On you
+                    </Badge>
+                  </Flex>
+                </Text>
+                <Text as="label" size="2">
+                  <Flex gap="1" align="center">
+                    <Checkbox
+                      size="1"
+                      checked={statusFilters.includes("waiting_on_customer")}
+                      onCheckedChange={() => toggleStatus("waiting_on_customer")}
+                    />
+                    <Badge color="yellow" variant="soft" size="1">
+                      On customer
+                    </Badge>
+                  </Flex>
+                </Text>
+              </Flex>
+
+              <Select.Root
+                value={selectedAgentId}
+                onValueChange={setSelectedAgentId}
+              >
+                <Select.Trigger placeholder="Filter by agent" />
+                <Select.Content>
+                  <Select.Item value="all">All agents</Select.Item>
+                  <Select.Separator />
+                  {agents.map((agent) => (
+                    <Select.Item key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            </Flex>
+          </Flex>
+
+          {/* Results count & clear */}
           <Flex justify="between" align="center">
-            <Text size="2" weight="medium" color="gray">
-              Conversations
+            <Text size="2" color="gray">
+              {filteredIssues.length === issues.length
+                ? `${issues.length} conversations`
+                : `Showing ${filteredIssues.length} of ${issues.length}`}
             </Text>
-            <Select.Root
-              value={selectedAgentId}
-              onValueChange={setSelectedAgentId}
-            >
-              <Select.Trigger placeholder="Filter by agent" />
-              <Select.Content>
-                <Select.Item value="all">All agents</Select.Item>
-                <Select.Separator />
-                {agents.map((agent) => (
-                  <Select.Item key={agent.id} value={agent.id}>
-                    {agent.name}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
+            {hasActiveFilters && (
+              <Button
+                size="1"
+                variant="ghost"
+                onClick={clearFilters}
+                style={{ cursor: "pointer" }}
+              >
+                Clear filters
+              </Button>
+            )}
           </Flex>
 
           {error && (
@@ -864,16 +428,72 @@ export default function Home() {
 
           {/* Issue List */}
           {isLoading ? (
+            <Box
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                gap: 12,
+              }}
+            >
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} size="2">
+                  <Flex direction="column" gap="2">
+                    <Flex justify="between" align="center">
+                      <Box
+                        style={{
+                          width: 60,
+                          height: 16,
+                          background: "var(--gray-4)",
+                          borderRadius: 4,
+                        }}
+                      />
+                      <Box
+                        style={{
+                          width: 80,
+                          height: 20,
+                          background: "var(--gray-4)",
+                          borderRadius: 4,
+                        }}
+                      />
+                    </Flex>
+                    <Box
+                      style={{
+                        width: "100%",
+                        height: 20,
+                        background: "var(--gray-4)",
+                        borderRadius: 4,
+                      }}
+                    />
+                    <Box
+                      style={{
+                        width: "60%",
+                        height: 16,
+                        background: "var(--gray-4)",
+                        borderRadius: 4,
+                      }}
+                    />
+                  </Flex>
+                </Card>
+              ))}
+            </Box>
+          ) : filteredIssues.length === 0 ? (
             <Card size="3">
-              <Flex align="center" justify="center" py="6" gap="2">
-                <ReloadIcon className="animate-spin" />
-                <Text color="gray">Loading conversations...</Text>
-              </Flex>
-            </Card>
-          ) : issues.length === 0 ? (
-            <Card size="3">
-              <Flex align="center" justify="center" py="6">
-                <Text color="gray">No open conversations found</Text>
+              <Flex align="center" justify="center" py="6" direction="column" gap="2">
+                <Text color="gray">
+                  {hasActiveFilters
+                    ? "No conversations match your filters"
+                    : "No open conversations found"}
+                </Text>
+                {hasActiveFilters && (
+                  <Button
+                    size="1"
+                    variant="soft"
+                    onClick={clearFilters}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
               </Flex>
             </Card>
           ) : (
@@ -884,7 +504,7 @@ export default function Home() {
                 gap: 12,
               }}
             >
-              {issues.map((issue) => (
+              {filteredIssues.map((issue) => (
                 <IssueCard
                   key={issue.id}
                   issue={issue}
@@ -922,7 +542,11 @@ export default function Home() {
                     {recordingLink}
                   </Box>
                   <Flex gap="2">
-                    <CopyButton text={recordingLink} label="Copy Link" />
+                    <CopyButton
+                      text={recordingLink}
+                      label="Copy Link"
+                      onCopy={() => showToast("Link copied!")}
+                    />
                     <Button
                       size="2"
                       variant="outline"
@@ -960,6 +584,7 @@ export default function Home() {
                     text={message}
                     label="Copy Message"
                     variant="solid"
+                    onCopy={() => showToast("Message copied!")}
                   />
                 </Flex>
               </Card>
@@ -967,7 +592,7 @@ export default function Home() {
           )}
 
           {/* Empty State */}
-          {!selectedIssue && !isLoading && issues.length > 0 && (
+          {!selectedIssue && !isLoading && filteredIssues.length > 0 && (
             <Card size="3">
               <Flex
                 direction="column"
@@ -993,11 +618,20 @@ export default function Home() {
         setRecordingUrl={setBaseRecordingUrl}
         folderId={folderId}
         setFolderId={setFolderId}
+        messageTemplate={messageTemplate}
+        setMessageTemplate={setMessageTemplate}
         apiToken={pylonApiToken}
         setApiToken={setPylonApiToken}
         onSave={handleSettingsSave}
         onDisconnect={handleDisconnect}
         isConnected={isConnected}
+      />
+
+      {/* Toast */}
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onHide={() => setToastVisible(false)}
       />
     </Box>
   );
