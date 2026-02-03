@@ -24,7 +24,10 @@ export async function fetchPylonIssues(
     values: ["new", "waiting_on_you", "waiting_on_customer"],
   };
 
-  const body: Record<string, unknown> = { limit: 50 };
+  const body: Record<string, unknown> = {
+    limit: 50,
+    sorts: [{ field: "updated_at", direction: "desc" }],
+  };
   if (assigneeId) {
     body.filters = {
       operator: "and",
@@ -71,4 +74,21 @@ export async function fetchPylonAgents(apiToken: string): Promise<Agent[]> {
 
   const data: PylonUsersResponse = await response.json();
   return data.data.map((u) => ({ id: u.id, name: u.name, email: u.email }));
+}
+
+export async function fetchPylonMe(
+  apiToken: string
+): Promise<{ name: string } | null> {
+  const response = await fetch(`${PYLON_API_URL}/me`, {
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = await response.json();
+  return { name: data.data?.name || data.name || "Connected" };
 }

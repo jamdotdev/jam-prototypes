@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import {
   Flex,
   Text,
@@ -45,6 +46,15 @@ export function SettingsDialog({
   onDisconnect,
   isConnected,
 }: SettingsDialogProps) {
+  const templateRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (templateRef.current) {
+      templateRef.current.style.height = "auto";
+      templateRef.current.style.height = `${templateRef.current.scrollHeight}px`;
+    }
+  }, [messageTemplate]);
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Content style={{ maxWidth: 500 }}>
@@ -102,11 +112,18 @@ export function SettingsDialog({
               Message Template
             </Text>
             <TextArea
+              ref={templateRef}
               size="2"
               placeholder="Enter your message template..."
               value={messageTemplate}
               onChange={(e) => setMessageTemplate(e.target.value)}
-              style={{ minHeight: 120, fontFamily: "inherit" }}
+              style={{
+                minHeight: 100,
+                maxHeight: 300,
+                overflow: "auto",
+                fontFamily: "inherit",
+                resize: "none",
+              }}
             />
             <Text size="1" color="gray">
               Variables: {"{firstName}"}, {"{customerName}"}, {"{link}"},{" "}

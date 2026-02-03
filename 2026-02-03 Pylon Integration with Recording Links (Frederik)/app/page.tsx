@@ -10,9 +10,7 @@ import {
   Button,
   Card,
   Badge,
-  TextArea,
   TextField,
-  Separator,
   Callout,
   Select,
   IconButton,
@@ -20,7 +18,6 @@ import {
 } from "@radix-ui/themes";
 import {
   Link2Icon,
-  ChatBubbleIcon,
   ReloadIcon,
   ExclamationTriangleIcon,
   GearIcon,
@@ -29,11 +26,12 @@ import {
 } from "@radix-ui/react-icons";
 
 // Components
-import { CopyButton } from "./components/CopyButton";
 import { IssueCard } from "./components/IssueCard";
 import { SetupScreen } from "./components/SetupScreen";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { Toast } from "./components/Toast";
+import { SlideOverPanel } from "./components/SlideOverPanel";
+import { OutputPanel } from "./components/OutputPanel";
 
 // Lib
 import type { Issue, Agent } from "./lib/types";
@@ -45,7 +43,7 @@ import {
   mockIssues,
 } from "./lib/constants";
 import { generateRecordingLink, generateMessage, formatTimeAgo } from "./lib/utils";
-import { fetchPylonIssues, fetchPylonAgents } from "./lib/api";
+import { fetchPylonIssues, fetchPylonAgents, fetchPylonMe } from "./lib/api";
 
 const ALL_STATUSES = ["new", "waiting_on_you", "waiting_on_customer"];
 
@@ -67,6 +65,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState<string | null>(null);
 
   // Search & filtering
   const [searchQuery, setSearchQuery] = useState("");
@@ -125,17 +124,19 @@ export default function Home() {
 
       try {
         if (pylonApiToken) {
-          const [fetchedIssues, fetchedAgents] = await Promise.all([
+          const [fetchedIssues, fetchedAgents, meData] = await Promise.all([
             fetchPylonIssues(
               pylonApiToken,
               agentFilter && agentFilter !== "all" ? agentFilter : undefined
             ),
             fetchPylonAgents(pylonApiToken),
+            fetchPylonMe(pylonApiToken),
           ]);
           setIssues(fetchedIssues);
           if (fetchedAgents.length > 0) {
             setAgents(fetchedAgents);
           }
+          setWorkspaceName(meData?.name || null);
           setIsConnected(true);
         } else {
           const filtered =
@@ -145,6 +146,7 @@ export default function Home() {
           setIssues(filtered);
           setAgents(mockAgents);
           setIsConnected(false);
+          setWorkspaceName(null);
         }
         setLastUpdated(new Date());
       } catch (err) {
@@ -152,6 +154,7 @@ export default function Home() {
         setIssues(mockIssues);
         setAgents(mockAgents);
         setIsConnected(false);
+        setWorkspaceName(null);
       } finally {
         setIsLoading(false);
       }
@@ -254,12 +257,101 @@ export default function Home() {
     );
   }
 
+  // Issue grid content
+  const issueGridContent = isLoading ? (
+    <Box
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+        gap: 12,
+      }}
+    >
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <Card key={i} size="2">
+          <Flex direction="column" gap="2">
+            <Flex justify="between" align="center">
+              <Box
+                style={{
+                  width: 60,
+                  height: 16,
+                  background: "var(--gray-4)",
+                  borderRadius: 4,
+                }}
+              />
+              <Box
+                style={{
+                  width: 80,
+                  height: 20,
+                  background: "var(--gray-4)",
+                  borderRadius: 4,
+                }}
+              />
+            </Flex>
+            <Box
+              style={{
+                width: "100%",
+                height: 20,
+                background: "var(--gray-4)",
+                borderRadius: 4,
+              }}
+            />
+            <Box
+              style={{
+                width: "60%",
+                height: 16,
+                background: "var(--gray-4)",
+                borderRadius: 4,
+              }}
+            />
+          </Flex>
+        </Card>
+      ))}
+    </Box>
+  ) : filteredIssues.length === 0 ? (
+    <Card size="3">
+      <Flex align="center" justify="center" py="6" direction="column" gap="2">
+        <Text color="gray">
+          {hasActiveFilters
+            ? "No conversations match your filters"
+            : "No open conversations found"}
+        </Text>
+        {hasActiveFilters && (
+          <Button
+            size="1"
+            variant="soft"
+            onClick={clearFilters}
+            style={{ cursor: "pointer" }}
+          >
+            Clear filters
+          </Button>
+        )}
+      </Flex>
+    </Card>
+  ) : (
+    <Box
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+        gap: 12,
+      }}
+    >
+      {filteredIssues.map((issue) => (
+        <IssueCard
+          key={issue.id}
+          issue={issue}
+          selected={selectedIssue?.id === issue.id}
+          onClick={() => setSelectedIssue(issue)}
+        />
+      ))}
+    </Box>
+  );
+
   // Main app view
   return (
     <Box style={{ minHeight: "100vh", background: "var(--gray-1)" }}>
-      <Container size="3" py="4">
-        <Flex direction="column" gap="4">
-          {/* Header */}
+      {/* Header */}
+      <Box style={{ borderBottom: "1px solid var(--gray-4)", background: "var(--gray-1)" }}>
+        <Container size="4" py="3">
           <Flex justify="between" align="center">
             <Flex align="center" gap="3">
               <Flex
@@ -279,7 +371,7 @@ export default function Home() {
               </Box>
               {isConnected ? (
                 <Badge color="green" variant="soft" size="1">
-                  Connected
+                  {workspaceName || "Connected"}
                 </Badge>
               ) : (
                 <Badge color="gray" variant="soft" size="1">
@@ -313,181 +405,116 @@ export default function Home() {
               </IconButton>
             </Flex>
           </Flex>
+        </Container>
+      </Box>
 
-          {/* Search & Filters */}
-          <Flex gap="3" wrap="wrap" align="center">
-            <Box style={{ flex: 1, minWidth: 200 }}>
-              <TextField.Root
-                size="2"
-                placeholder="Search issues..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              >
-                <TextField.Slot>
-                  <MagnifyingGlassIcon height="16" width="16" />
-                </TextField.Slot>
-                {searchQuery && (
-                  <TextField.Slot>
-                    <IconButton
-                      size="1"
-                      variant="ghost"
-                      onClick={() => setSearchQuery("")}
-                    >
-                      <Cross2Icon height="14" width="14" />
-                    </IconButton>
-                  </TextField.Slot>
-                )}
-              </TextField.Root>
-            </Box>
+      {/* Main content with side-by-side layout */}
+      <Flex style={{ minHeight: "calc(100vh - 65px)" }}>
+        {/* Left: Issues */}
+        <Box
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: 16,
+          }}
+        >
+          <Container size="4">
+            <Flex direction="column" gap="4">
+              {/* Search & Filters */}
+              <Flex gap="3" wrap="wrap" align="center">
+                <Box style={{ flex: 1, minWidth: 200 }}>
+                  <TextField.Root
+                    size="2"
+                    placeholder="Search issues..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  >
+                    <TextField.Slot>
+                      <MagnifyingGlassIcon height="16" width="16" />
+                    </TextField.Slot>
+                    {searchQuery && (
+                      <TextField.Slot>
+                        <IconButton
+                          size="1"
+                          variant="ghost"
+                          onClick={() => setSearchQuery("")}
+                        >
+                          <Cross2Icon height="14" width="14" />
+                        </IconButton>
+                      </TextField.Slot>
+                    )}
+                  </TextField.Root>
+                </Box>
 
-            <Flex gap="3" align="center">
-              <Flex gap="2" align="center">
-                <Text as="label" size="2">
-                  <Flex gap="1" align="center">
-                    <Checkbox
-                      size="1"
-                      checked={statusFilters.includes("new")}
-                      onCheckedChange={() => toggleStatus("new")}
-                    />
-                    <Badge color="blue" variant="soft" size="1">
-                      New
-                    </Badge>
+                <Flex gap="3" align="center">
+                  <Flex gap="2" align="center">
+                    <Text as="label" size="2">
+                      <Flex gap="1" align="center">
+                        <Checkbox
+                          size="1"
+                          checked={statusFilters.includes("new")}
+                          onCheckedChange={() => toggleStatus("new")}
+                        />
+                        <Badge color="blue" variant="soft" size="1">
+                          New
+                        </Badge>
+                      </Flex>
+                    </Text>
+                    <Text as="label" size="2">
+                      <Flex gap="1" align="center">
+                        <Checkbox
+                          size="1"
+                          checked={statusFilters.includes("waiting_on_you")}
+                          onCheckedChange={() => toggleStatus("waiting_on_you")}
+                        />
+                        <Badge color="orange" variant="soft" size="1">
+                          On you
+                        </Badge>
+                      </Flex>
+                    </Text>
+                    <Text as="label" size="2">
+                      <Flex gap="1" align="center">
+                        <Checkbox
+                          size="1"
+                          checked={statusFilters.includes("waiting_on_customer")}
+                          onCheckedChange={() => toggleStatus("waiting_on_customer")}
+                        />
+                        <Badge color="yellow" variant="soft" size="1">
+                          On customer
+                        </Badge>
+                      </Flex>
+                    </Text>
                   </Flex>
-                </Text>
-                <Text as="label" size="2">
-                  <Flex gap="1" align="center">
-                    <Checkbox
-                      size="1"
-                      checked={statusFilters.includes("waiting_on_you")}
-                      onCheckedChange={() => toggleStatus("waiting_on_you")}
-                    />
-                    <Badge color="orange" variant="soft" size="1">
-                      On you
-                    </Badge>
-                  </Flex>
-                </Text>
-                <Text as="label" size="2">
-                  <Flex gap="1" align="center">
-                    <Checkbox
-                      size="1"
-                      checked={statusFilters.includes("waiting_on_customer")}
-                      onCheckedChange={() => toggleStatus("waiting_on_customer")}
-                    />
-                    <Badge color="yellow" variant="soft" size="1">
-                      On customer
-                    </Badge>
-                  </Flex>
-                </Text>
+
+                  <Select.Root
+                    value={selectedAgentId}
+                    onValueChange={setSelectedAgentId}
+                  >
+                    <Select.Trigger placeholder="Filter by agent" />
+                    <Select.Content>
+                      <Select.Item value="all">All agents</Select.Item>
+                      <Select.Separator />
+                      {agents.map((agent) => (
+                        <Select.Item key={agent.id} value={agent.id}>
+                          {agent.name}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                </Flex>
               </Flex>
 
-              <Select.Root
-                value={selectedAgentId}
-                onValueChange={setSelectedAgentId}
-              >
-                <Select.Trigger placeholder="Filter by agent" />
-                <Select.Content>
-                  <Select.Item value="all">All agents</Select.Item>
-                  <Select.Separator />
-                  {agents.map((agent) => (
-                    <Select.Item key={agent.id} value={agent.id}>
-                      {agent.name}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
-            </Flex>
-          </Flex>
-
-          {/* Results count & clear */}
-          <Flex justify="between" align="center">
-            <Text size="2" color="gray">
-              {filteredIssues.length === issues.length
-                ? `${issues.length} conversations`
-                : `Showing ${filteredIssues.length} of ${issues.length}`}
-            </Text>
-            {hasActiveFilters && (
-              <Button
-                size="1"
-                variant="ghost"
-                onClick={clearFilters}
-                style={{ cursor: "pointer" }}
-              >
-                Clear filters
-              </Button>
-            )}
-          </Flex>
-
-          {error && (
-            <Callout.Root color="red" size="1">
-              <Callout.Icon>
-                <ExclamationTriangleIcon />
-              </Callout.Icon>
-              <Callout.Text>{error}</Callout.Text>
-            </Callout.Root>
-          )}
-
-          {/* Issue List */}
-          {isLoading ? (
-            <Box
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: 12,
-              }}
-            >
-              {[1, 2, 3, 4].map((i) => (
-                <Card key={i} size="2">
-                  <Flex direction="column" gap="2">
-                    <Flex justify="between" align="center">
-                      <Box
-                        style={{
-                          width: 60,
-                          height: 16,
-                          background: "var(--gray-4)",
-                          borderRadius: 4,
-                        }}
-                      />
-                      <Box
-                        style={{
-                          width: 80,
-                          height: 20,
-                          background: "var(--gray-4)",
-                          borderRadius: 4,
-                        }}
-                      />
-                    </Flex>
-                    <Box
-                      style={{
-                        width: "100%",
-                        height: 20,
-                        background: "var(--gray-4)",
-                        borderRadius: 4,
-                      }}
-                    />
-                    <Box
-                      style={{
-                        width: "60%",
-                        height: 16,
-                        background: "var(--gray-4)",
-                        borderRadius: 4,
-                      }}
-                    />
-                  </Flex>
-                </Card>
-              ))}
-            </Box>
-          ) : filteredIssues.length === 0 ? (
-            <Card size="3">
-              <Flex align="center" justify="center" py="6" direction="column" gap="2">
-                <Text color="gray">
-                  {hasActiveFilters
-                    ? "No conversations match your filters"
-                    : "No open conversations found"}
+              {/* Results count & clear */}
+              <Flex justify="between" align="center">
+                <Text size="2" color="gray">
+                  {filteredIssues.length === issues.length
+                    ? `${issues.length} conversations`
+                    : `Showing ${filteredIssues.length} of ${issues.length}`}
                 </Text>
                 {hasActiveFilters && (
                   <Button
                     size="1"
-                    variant="soft"
+                    variant="ghost"
                     onClick={clearFilters}
                     style={{ cursor: "pointer" }}
                   >
@@ -495,120 +522,108 @@ export default function Home() {
                   </Button>
                 )}
               </Flex>
-            </Card>
-          ) : (
-            <Box
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: 12,
-              }}
-            >
-              {filteredIssues.map((issue) => (
-                <IssueCard
-                  key={issue.id}
-                  issue={issue}
-                  selected={selectedIssue?.id === issue.id}
-                  onClick={() => setSelectedIssue(issue)}
-                />
-              ))}
-            </Box>
-          )}
 
-          {/* Generated Output */}
-          {selectedIssue && (
-            <Flex direction="column" gap="4">
-              <Separator size="4" />
+              {error && (
+                <Callout.Root color="red" size="1">
+                  <Callout.Icon>
+                    <ExclamationTriangleIcon />
+                  </Callout.Icon>
+                  <Callout.Text>{error}</Callout.Text>
+                </Callout.Root>
+              )}
 
-              {/* Recording Link */}
-              <Card size="3">
-                <Flex direction="column" gap="3">
-                  <Flex align="center" gap="2">
-                    <Link2Icon />
-                    <Text size="2" weight="medium">
-                      Recording Link for #{selectedIssue.number}
-                    </Text>
-                  </Flex>
-                  <Box
-                    style={{
-                      padding: "12px 16px",
-                      background: "var(--gray-3)",
-                      borderRadius: 8,
-                      wordBreak: "break-all",
-                      fontFamily: "monospace",
-                      fontSize: 13,
-                    }}
-                  >
-                    {recordingLink}
-                  </Box>
-                  <Flex gap="2">
-                    <CopyButton
-                      text={recordingLink}
-                      label="Copy Link"
-                      onCopy={() => showToast("Link copied!")}
-                    />
-                    <Button
-                      size="2"
-                      variant="outline"
-                      asChild
-                      style={{ cursor: "pointer" }}
-                    >
-                      <a href={recordingLink} target="_blank" rel="noopener">
-                        Open Link
-                      </a>
-                    </Button>
-                  </Flex>
-                </Flex>
-              </Card>
-
-              {/* Message Template */}
-              <Card size="3">
-                <Flex direction="column" gap="3">
-                  <Flex align="center" gap="2">
-                    <ChatBubbleIcon />
-                    <Text size="2" weight="medium">
-                      Message for {selectedIssue.customer}
-                    </Text>
-                  </Flex>
-                  <TextArea
-                    size="2"
-                    value={message}
-                    readOnly
-                    style={{
-                      minHeight: 160,
-                      fontFamily: "inherit",
-                      resize: "vertical",
-                    }}
-                  />
-                  <CopyButton
-                    text={message}
-                    label="Copy Message"
-                    variant="solid"
-                    onCopy={() => showToast("Message copied!")}
-                  />
-                </Flex>
-              </Card>
+              {/* Issue Grid */}
+              {issueGridContent}
             </Flex>
-          )}
+          </Container>
+        </Box>
 
-          {/* Empty State */}
-          {!selectedIssue && !isLoading && filteredIssues.length > 0 && (
-            <Card size="3">
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                gap="2"
-                py="4"
+        {/* Right: Output Panel (Desktop only) */}
+        <Box
+          className="desktop-panel"
+          style={{
+            width: 420,
+            borderLeft: "1px solid var(--gray-6)",
+            background: "var(--gray-2)",
+            overflowY: "auto",
+            padding: 16,
+          }}
+        >
+          {selectedIssue ? (
+            <Flex direction="column" gap="3">
+              <Flex justify="between" align="center">
+                <Text size="3" weight="medium">
+                  #{selectedIssue.number}
+                </Text>
+                <IconButton
+                  size="1"
+                  variant="ghost"
+                  onClick={() => setSelectedIssue(null)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <Cross2Icon />
+                </IconButton>
+              </Flex>
+              <OutputPanel
+                issue={selectedIssue}
+                recordingLink={recordingLink}
+                message={message}
+                onCopyLink={() => showToast("Link copied!")}
+                onCopyMessage={() => showToast("Message copied!")}
+              />
+            </Flex>
+          ) : (
+            <Flex
+              direction="column"
+              align="center"
+              justify="center"
+              gap="3"
+              style={{ height: "100%", minHeight: 300 }}
+            >
+              <Box
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 12,
+                  background: "var(--gray-4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <Text size="2" color="gray">
-                  Select a conversation to generate a recording link
+                <Link2Icon width={24} height={24} />
+              </Box>
+              <Flex direction="column" align="center" gap="1">
+                <Text size="3" weight="medium">
+                  Select a conversation
+                </Text>
+                <Text size="2" color="gray" align="center">
+                  Click on a conversation to generate a recording link
                 </Text>
               </Flex>
-            </Card>
+            </Flex>
           )}
-        </Flex>
-      </Container>
+        </Box>
+      </Flex>
+
+      {/* Mobile: Slide-over Panel */}
+      <Box className="mobile-panel">
+        <SlideOverPanel
+          open={!!selectedIssue}
+          onClose={() => setSelectedIssue(null)}
+          title={selectedIssue ? `#${selectedIssue.number}` : undefined}
+        >
+          {selectedIssue && (
+            <OutputPanel
+              issue={selectedIssue}
+              recordingLink={recordingLink}
+              message={message}
+              onCopyLink={() => showToast("Link copied!")}
+              onCopyMessage={() => showToast("Message copied!")}
+            />
+          )}
+        </SlideOverPanel>
+      </Box>
 
       {/* Settings Dialog */}
       <SettingsDialog

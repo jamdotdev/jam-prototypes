@@ -8,6 +8,7 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  color-scheme: light dark;
 }
 
 @keyframes spin {
@@ -21,4 +22,30 @@ body {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Desktop: side-by-side layout */
+@media (min-width: 1024px) {
+  .desktop-panel {
+    display: flex;
+  }
+  .mobile-panel {
+    display: none;
+  }
+  .slide-over-backdrop {
+    display: none !important;
+  }
+  .slide-over-panel {
+    display: none !important;
+  }
+}
+
+/* Mobile/Tablet: slide-over panel */
+@media (max-width: 1023px) {
+  .desktop-panel {
+    display: none;
+  }
+  .mobile-panel {
+    display: block;
+  }
 }
