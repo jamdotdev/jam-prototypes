@@ -1,6 +1,6 @@
-# Pylon Integration Test
+# Pylon Integration with Recording Links
 
-A prototype for testing Pylon integration with Next.js.
+Generate Jam recording links pre-filled with Pylon issue context for support conversations.
 
 ## Tech Stack
 

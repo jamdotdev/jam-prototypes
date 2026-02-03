@@ -4,8 +4,8 @@ import { Theme } from "@radix-ui/themes";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pylon Integration Test",
-  description: "Testing Pylon integration with Next.js",
+  title: "Pylon Integration with Recording Links",
+  description: "Generate Jam recording links pre-filled with Pylon issue context",
 };
 
 export default function RootLayout({
