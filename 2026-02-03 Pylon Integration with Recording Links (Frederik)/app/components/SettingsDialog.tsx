@@ -97,12 +97,12 @@ export function SettingsDialog({
             </Text>
             <TextField.Root
               size="2"
-              placeholder="e.g. ABC123"
+              placeholder="12ab"
               value={folderId}
               onChange={(e) => setFolderId(e.target.value)}
             />
             <Text size="1" color="gray">
-              Find folder IDs at the end of the Jam folder url (e.g. '/23sy')
+              Find folder IDs at the end of the Jam folder url
             </Text>
           </Flex>
 
