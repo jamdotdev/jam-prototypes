@@ -1,0 +1,18 @@
+.jamLabContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+}
+
+.popoverContent {
+  width: 320px;
+  max-height: 560px;
+  overflow: hidden;
+  border-radius: var(--radius-4);
+  box-shadow:
+    var(--shadow-3),
+    0 16px 48px var(--gray-a6),
+    0 4px 12px var(--gray-a4),
+    0 0 0 1px var(--gray-a3);
+}

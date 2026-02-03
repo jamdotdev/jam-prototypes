@@ -1,0 +1,48 @@
+.commentInputWrapper {
+  position: sticky;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  padding-left: var(--spacing-4);
+  padding-right: var(--spacing-4);
+}
+
+.inputContainer {
+  width: 100%;
+  max-width: 720px;
+  background-color: var(--color-panel-solid);
+  padding: var(--spacing-2);
+  border-radius: var(--radius-4);
+  box-shadow:
+    0px 0px 0px 1px var(--color-gray-alpha-1),
+    0px 0px 1px 0px var(--color-gray-alpha-8),
+    0px 2px 4px -1px var(--color-gray-alpha-4),
+    0px 4px 6px -1px var(--color-gray-alpha-4);
+  pointer-events: auto;
+}
+
+.inputField {
+  width: 100%;
+  min-height: 24px;
+  max-height: 200px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: var(--font-size-3);
+  line-height: var(--line-height-3);
+  color: var(--color-text-primary);
+  padding: 0 var(--spacing-1);
+  resize: none;
+  overflow-y: auto;
+}
+
+.inputField::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.actions {
+  flex-shrink: 0;
+}

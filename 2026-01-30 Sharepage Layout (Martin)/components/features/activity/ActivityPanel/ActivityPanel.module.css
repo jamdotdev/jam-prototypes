@@ -1,0 +1,10 @@
+.activityPanel {
+  width: 100%;
+  padding-left: var(--spacing-5);
+  padding-right: var(--spacing-5);
+  padding-bottom: var(--spacing-6);
+}
+
+.sectionHeader {
+  width: 100%;
+}

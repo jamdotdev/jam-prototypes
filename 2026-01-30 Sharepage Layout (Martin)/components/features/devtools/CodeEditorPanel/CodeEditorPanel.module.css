@@ -1,0 +1,46 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-gray-2);
+}
+
+.panel.bottomLayout {
+  /* No special styles needed */
+}
+
+.tabBarContainer {
+  flex: 0 0 auto;
+}
+
+.emptyTabBar {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--spacing-3);
+}
+
+.editorWrapper {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: var(--color-gray-1);
+}
+
+.parseWarning {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-2);
+  background: var(--color-amber-alpha-3);
+  border-bottom: 1px solid var(--color-amber-alpha-5);
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: var(--color-gray-1);
+}

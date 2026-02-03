@@ -1,0 +1,40 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-panel-solid);
+  max-height: 560px;
+}
+
+.header {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--gray-a4);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--gray-12);
+}
+
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.scrollArea::-webkit-scrollbar {
+  display: none;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--gray-a4);
+}

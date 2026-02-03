@@ -1,0 +1,27 @@
+.fab {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: var(--color-panel-solid);
+  border: 1px solid var(--gray-a6);
+  box-shadow: var(--shadow-3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.fab:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-4);
+}
+
+.fab:active {
+  transform: scale(0.99);
+}
+
+.fab:focus-visible {
+  outline: 1px solid var(--gray-4);
+  outline-offset: 1px;
+}

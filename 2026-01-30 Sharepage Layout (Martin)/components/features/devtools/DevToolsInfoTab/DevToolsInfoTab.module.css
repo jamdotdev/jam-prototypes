@@ -1,0 +1,146 @@
+/*
+ * Two-column layout that stacks vertically under 400px
+ * Structure:
+ *   .container (flex row or column based on width)
+ *   ├── .metadataPane
+ *   ├── .divider
+ *   └── .editorPane
+ */
+
+.container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.container.stacked {
+  flex-direction: column;
+}
+
+.container.dragging {
+  user-select: none;
+}
+
+/* Metadata Pane - left/top */
+.metadataPane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.container:not(.stacked) .metadataPane {
+  min-width: 150px;
+}
+
+.container.stacked .metadataPane {
+  min-height: 100px;
+}
+
+.scrollArea {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding-bottom: var(--spacing-4);
+}
+
+/* Editor Pane - right/bottom */
+.editorPane {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.container:not(.stacked) .editorPane {
+  min-width: 200px;
+  border-left: 1px solid var(--color-gray-alpha-4);
+}
+
+.container.stacked .editorPane {
+  min-height: 150px;
+  border-top: 1px solid var(--color-gray-alpha-4);
+}
+
+/* Divider - vertical in row layout, horizontal in stacked layout */
+.divider {
+  position: relative;
+  flex: 0 0 auto;
+  z-index: 10;
+}
+
+/* Vertical divider (side-by-side) */
+.container:not(.stacked) .divider {
+  width: 0;
+  height: 100%;
+  cursor: col-resize;
+}
+
+.container:not(.stacked) .divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 8px;
+  height: 100%;
+}
+
+.container:not(.stacked) .dividerHandle {
+  position: absolute;
+  top: 0;
+  left: -1px;
+  width: 2px;
+  height: 100%;
+  background-color: transparent;
+  transition: background-color 0.15s;
+}
+
+/* Horizontal divider (stacked) */
+.container.stacked .divider {
+  width: 100%;
+  height: 0;
+  cursor: row-resize;
+}
+
+.container.stacked .divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -4px;
+  width: 100%;
+  height: 8px;
+}
+
+.container.stacked .dividerHandle {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: 100%;
+  height: 2px;
+  background-color: transparent;
+  transition: background-color 0.15s;
+}
+
+/* Divider hover/active states */
+.divider:hover .dividerHandle,
+.container.dragging .dividerHandle {
+  background-color: var(--color-gray-alpha-4);
+}
+
+.divider:active .dividerHandle,
+.container.dragging .divider .dividerHandle {
+  background-color: var(--color-accent-9);
+}

@@ -1,0 +1,93 @@
+.commentItem {
+  width: 100%;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-4);
+  min-width: 0;
+  background: var(--color-gray-alpha-2);
+  transition: background-color 0.15s ease;
+}
+
+.commentItem:hover:not(.commentItemEditing) {
+  background: var(--color-gray-alpha-3);
+}
+
+.commentItemEditing {
+  background: var(--color-surface);
+  box-shadow:
+    0px 0px 0px 1px var(--color-gray-alpha-1),
+    0px 0px 1px 0px var(--color-gray-alpha-8),
+    0px 1px 2px 0px var(--color-gray-alpha-4);
+}
+
+.header {
+  width: 100%;
+}
+
+.avatarWrapper {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Force Radix Avatar to be 20x20 */
+.avatarWrapper :global(.rt-AvatarRoot) {
+  width: 20px;
+  height: 20px;
+}
+
+.metadata {
+  flex: 1;
+  min-width: 0;
+}
+
+.trailing {
+  flex-shrink: 0;
+  min-width: 24px;
+  height: 24px;
+  padding-right: var(--spacing-1);
+}
+
+.trailingActions {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.commentWrapper {
+  /* Align with text after 20px avatar + 4px gap */
+  padding-left: 24px;
+}
+
+.commentWrapperEditing {
+  padding-bottom: var(--spacing-4);
+}
+
+.commentText {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.editTextarea {
+  width: 100%;
+  min-height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  resize: none;
+  font-family: inherit;
+  font-size: var(--font-size-3);
+  line-height: var(--line-height-3);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.editTextarea::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
