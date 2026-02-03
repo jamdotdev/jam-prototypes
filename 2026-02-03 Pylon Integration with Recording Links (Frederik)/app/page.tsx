@@ -507,8 +507,6 @@ function SettingsDialog({
 function SetupScreen({
   recordingUrl,
   setRecordingUrl,
-  folderId,
-  setFolderId,
   apiToken,
   setApiToken,
   onConnect,
@@ -517,8 +515,6 @@ function SetupScreen({
 }: {
   recordingUrl: string;
   setRecordingUrl: (url: string) => void;
-  folderId: string;
-  setFolderId: (id: string) => void;
   apiToken: string;
   setApiToken: (token: string) => void;
   onConnect: () => void;
@@ -566,24 +562,6 @@ function SetupScreen({
                   Create your recording link at{" "}<Link href="https://jam.dev/s/recording-links" target="_blank">jam.dev/s/recording-links</Link>
                 </Text>
               </Flex>
-
-              {/* Destination Folder */}
-              <Flex direction="column" gap="2">
-                <Text size="2" weight="medium">
-                  Destination Folder ID <Text size="1" color="gray">(optional)</Text>
-                </Text>
-                <TextField.Root
-                  size="3"
-                  placeholder="e.g. ABC123"
-                  value={folderId}
-                  onChange={(e) => setFolderId(e.target.value)}
-                />
-                <Text size="1" color="gray">
-                  Find folder IDs at the end of the Jam folder url (e.g. '/23sy')
-                </Text>
-              </Flex>
-
-              <Separator size="4" />
 
               <Flex direction="column" gap="2">
                 <Text size="2" weight="medium">
@@ -789,8 +767,6 @@ export default function Home() {
       <SetupScreen
         recordingUrl={baseRecordingUrl}
         setRecordingUrl={setBaseRecordingUrl}
-        folderId={folderId}
-        setFolderId={setFolderId}
         apiToken={pylonApiToken}
         setApiToken={setPylonApiToken}
         onConnect={handleConnect}
