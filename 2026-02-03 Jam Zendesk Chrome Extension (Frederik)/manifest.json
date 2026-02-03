@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Jam + Zendesk",
+  "description": "Generate Jam recording links with Zendesk ticket context",
+  "version": "1.0.0",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://*.zendesk.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.zendesk.com/*", "https://www.google.com/*"],
+      "js": ["lib/utils.js", "content/content.js"],
+      "css": ["content/content.css"]
+    }
+  ]
+}
