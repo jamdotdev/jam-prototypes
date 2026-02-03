@@ -31,7 +31,7 @@ import {
 } from "@radix-ui/react-icons";
 import { useState, useEffect, useCallback } from "react";
 
-const DEFAULT_RECORDING_URL = "https://recorder.jam.dev/LQXaWWU";
+const DEFAULT_RECORDING_URL = "https://jam.dev/?jam-recording=8SmwyAu";
 const PYLON_BASE_URL = "https://app.usepylon.com/issues";
 const PYLON_API_URL = "https://api.usepylon.com";
 
@@ -40,6 +40,7 @@ const STORAGE_KEYS = {
   recordingUrl: "jam-pylon-recording-url",
   apiToken: "jam-pylon-api-token",
   selectedAgent: "jam-pylon-selected-agent",
+  folderId: "jam-pylon-folder-id",
 };
 
 // Normalized issue type for both mock and Pylon data
@@ -257,11 +258,17 @@ function getStatusLabel(status: string) {
   }
 }
 
-function generateRecordingLink(issue: Issue, baseUrl: string): string {
+function generateRecordingLink(issue: Issue, baseUrl: string, folderId?: string): string {
   const params = new URLSearchParams();
-  params.set("jam-title", `Bug report for #${issue.number}: ${issue.title}`);
+  params.set("jam-title", `[${issue.number}] ${issue.title}`);
   params.set("jam-reference", `${PYLON_BASE_URL}/${issue.id}`);
-  return `${baseUrl}?${params.toString()}`;
+  if (folderId?.trim()) {
+    params.set("jam-folder", folderId.trim());
+  }
+
+  // Check if baseUrl already has query params
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${separator}${params.toString()}`;
 }
 
 function generateMessage(issue: Issue, link: string): string {
@@ -372,6 +379,8 @@ function SettingsDialog({
   onOpenChange,
   recordingUrl,
   setRecordingUrl,
+  folderId,
+  setFolderId,
   apiToken,
   setApiToken,
   onSave,
@@ -382,6 +391,8 @@ function SettingsDialog({
   onOpenChange: (open: boolean) => void;
   recordingUrl: string;
   setRecordingUrl: (url: string) => void;
+  folderId: string;
+  setFolderId: (id: string) => void;
   apiToken: string;
   setApiToken: (token: string) => void;
   onSave: () => void;
@@ -408,12 +419,28 @@ function SettingsDialog({
             </Text>
             <TextField.Root
               size="2"
-              placeholder="https://recorder.jam.dev/your-link-id"
+              placeholder="https://jam.dev/?jam-recording=your-id"
               value={recordingUrl}
               onChange={(e) => setRecordingUrl(e.target.value)}
             />
             <Text size="1" color="gray">
               Create your recording link at{" "}<Link href="https://jam.dev/s/recording-links" target="_blank">jam.dev/s/recording-links</Link>
+            </Text>
+          </Flex>
+
+          {/* Destination Folder */}
+          <Flex direction="column" gap="2">
+            <Text size="2" weight="medium">
+              Destination Folder ID <Text size="1" color="gray">(optional)</Text>
+            </Text>
+            <TextField.Root
+              size="2"
+              placeholder="e.g. ABC123"
+              value={folderId}
+              onChange={(e) => setFolderId(e.target.value)}
+            />
+            <Text size="1" color="gray">
+              Find folder IDs at the end of the Jam folder url (e.g. '/23sy')
             </Text>
           </Flex>
 
@@ -480,6 +507,8 @@ function SettingsDialog({
 function SetupScreen({
   recordingUrl,
   setRecordingUrl,
+  folderId,
+  setFolderId,
   apiToken,
   setApiToken,
   onConnect,
@@ -488,6 +517,8 @@ function SetupScreen({
 }: {
   recordingUrl: string;
   setRecordingUrl: (url: string) => void;
+  folderId: string;
+  setFolderId: (id: string) => void;
   apiToken: string;
   setApiToken: (token: string) => void;
   onConnect: () => void;
@@ -527,12 +558,28 @@ function SetupScreen({
                 </Text>
                 <TextField.Root
                   size="3"
-                  placeholder="https://recorder.jam.dev/your-link-id"
+                  placeholder="https://jam.dev/?jam-recording=your-id"
                   value={recordingUrl}
                   onChange={(e) => setRecordingUrl(e.target.value)}
                 />
                 <Text size="1" color="gray">
                   Create your recording link at{" "}<Link href="https://jam.dev/s/recording-links" target="_blank">jam.dev/s/recording-links</Link>
+                </Text>
+              </Flex>
+
+              {/* Destination Folder */}
+              <Flex direction="column" gap="2">
+                <Text size="2" weight="medium">
+                  Destination Folder ID <Text size="1" color="gray">(optional)</Text>
+                </Text>
+                <TextField.Root
+                  size="3"
+                  placeholder="e.g. ABC123"
+                  value={folderId}
+                  onChange={(e) => setFolderId(e.target.value)}
+                />
+                <Text size="1" color="gray">
+                  Find folder IDs at the end of the Jam folder url (e.g. '/23sy')
                 </Text>
               </Flex>
 
@@ -596,6 +643,7 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const [baseRecordingUrl, setBaseRecordingUrl] = useState(DEFAULT_RECORDING_URL);
+  const [folderId, setFolderId] = useState("");
   const [pylonApiToken, setPylonApiToken] = useState("");
   const [selectedAgentId, setSelectedAgentId] = useState<string>("all");
 
@@ -610,10 +658,12 @@ export default function Home() {
   // Load settings from localStorage on mount
   useEffect(() => {
     const savedUrl = localStorage.getItem(STORAGE_KEYS.recordingUrl);
+    const savedFolderId = localStorage.getItem(STORAGE_KEYS.folderId);
     const savedToken = localStorage.getItem(STORAGE_KEYS.apiToken);
     const savedAgent = localStorage.getItem(STORAGE_KEYS.selectedAgent);
 
     if (savedUrl) setBaseRecordingUrl(savedUrl);
+    if (savedFolderId) setFolderId(savedFolderId);
     if (savedToken) setPylonApiToken(savedToken);
     if (savedAgent) setSelectedAgentId(savedAgent);
 
@@ -632,10 +682,11 @@ export default function Home() {
   // Save settings to localStorage
   const saveSettings = useCallback(() => {
     localStorage.setItem(STORAGE_KEYS.recordingUrl, baseRecordingUrl);
+    localStorage.setItem(STORAGE_KEYS.folderId, folderId);
     if (pylonApiToken) {
       localStorage.setItem(STORAGE_KEYS.apiToken, pylonApiToken);
     }
-  }, [baseRecordingUrl, pylonApiToken]);
+  }, [baseRecordingUrl, folderId, pylonApiToken]);
 
   // Save selected agent to localStorage
   useEffect(() => {
@@ -713,7 +764,7 @@ export default function Home() {
   };
 
   const recordingLink = selectedIssue
-    ? generateRecordingLink(selectedIssue, baseRecordingUrl)
+    ? generateRecordingLink(selectedIssue, baseRecordingUrl, folderId)
     : "";
   const message = selectedIssue
     ? generateMessage(selectedIssue, recordingLink)
@@ -738,6 +789,8 @@ export default function Home() {
       <SetupScreen
         recordingUrl={baseRecordingUrl}
         setRecordingUrl={setBaseRecordingUrl}
+        folderId={folderId}
+        setFolderId={setFolderId}
         apiToken={pylonApiToken}
         setApiToken={setPylonApiToken}
         onConnect={handleConnect}
@@ -962,6 +1015,8 @@ export default function Home() {
         onOpenChange={setSettingsOpen}
         recordingUrl={baseRecordingUrl}
         setRecordingUrl={setBaseRecordingUrl}
+        folderId={folderId}
+        setFolderId={setFolderId}
         apiToken={pylonApiToken}
         setApiToken={setPylonApiToken}
         onSave={handleSettingsSave}
