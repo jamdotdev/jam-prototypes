@@ -27,7 +27,7 @@ export async function fetchPylonIssues(
   };
 
   const body: Record<string, unknown> = {
-    limit: 50,
+    limit: 200,
     sorts: [{ field: "updated_at", direction: "desc" }],
   };
   if (assigneeId) {
