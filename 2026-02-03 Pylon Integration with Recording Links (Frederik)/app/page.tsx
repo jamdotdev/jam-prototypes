@@ -250,11 +250,13 @@ export default function Home() {
 
   // Filter issues based on search and status
   const filteredIssues = issues.filter((issue) => {
+    const query = searchQuery.toLowerCase();
+    const queryWithoutHash = query.replace(/^#/, ""); // Strip leading # for ticket number search
     const matchesSearch =
       !searchQuery ||
-      issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      issue.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(issue.number).includes(searchQuery);
+      issue.title.toLowerCase().includes(query) ||
+      issue.customer.toLowerCase().includes(query) ||
+      String(issue.number).includes(queryWithoutHash);
     const matchesStatus =
       statusFilters.length === 0 || statusFilters.includes(issue.status);
     return matchesSearch && matchesStatus;
