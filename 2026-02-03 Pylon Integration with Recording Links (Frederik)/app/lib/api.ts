@@ -1,5 +1,7 @@
 import type { Issue, Agent, PylonIssue, PylonSearchResponse, PylonUsersResponse } from "./types";
-import { PYLON_API_URL } from "./constants";
+
+// Use our proxy API route to avoid CORS issues
+const PROXY_API_URL = "/api/pylon";
 
 function normalizePylonIssue(pylonIssue: PylonIssue): Issue {
   return {
@@ -40,18 +42,18 @@ export async function fetchPylonIssues(
     body.filters = filters;
   }
 
-  const response = await fetch(`${PYLON_API_URL}/issues/search`, {
+  const response = await fetch(PROXY_API_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ endpoint: "/issues/search", body }),
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || `API error: ${response.status}`);
+    throw new Error(error.error || `API error: ${response.status}`);
   }
 
   const data: PylonSearchResponse = await response.json();
@@ -59,13 +61,13 @@ export async function fetchPylonIssues(
 }
 
 export async function fetchPylonAgents(apiToken: string): Promise<Agent[]> {
-  const response = await fetch(`${PYLON_API_URL}/users/search`, {
+  const response = await fetch(PROXY_API_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ limit: 100 }),
+    body: JSON.stringify({ endpoint: "/users/search", body: { limit: 100 } }),
   });
 
   if (!response.ok) {
@@ -79,7 +81,7 @@ export async function fetchPylonAgents(apiToken: string): Promise<Agent[]> {
 export async function fetchPylonMe(
   apiToken: string
 ): Promise<{ name: string } | null> {
-  const response = await fetch(`${PYLON_API_URL}/me`, {
+  const response = await fetch(`${PROXY_API_URL}?endpoint=/me`, {
     headers: {
       Authorization: `Bearer ${apiToken}`,
     },
