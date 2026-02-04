@@ -193,8 +193,7 @@ export default function Home() {
         // Tab is in background - poll less frequently
         startPolling(BACKGROUND_POLL_INTERVAL);
       } else {
-        // Tab is active - poll more frequently and fetch immediately
-        fetchData(selectedAgentId);
+        // Tab is active - poll more frequently
         startPolling(ACTIVE_POLL_INTERVAL);
       }
     };
