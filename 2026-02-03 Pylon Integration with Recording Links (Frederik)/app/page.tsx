@@ -47,6 +47,10 @@ import { fetchPylonIssues, fetchPylonAgents, fetchPylonMe } from "./lib/api";
 
 const ALL_STATUSES = ["new", "waiting_on_you", "waiting_on_customer"];
 
+// Polling intervals (in ms)
+const ACTIVE_POLL_INTERVAL = 30 * 1000; // 30 seconds when tab is active
+const BACKGROUND_POLL_INTERVAL = 3 * 60 * 1000; // 3 minutes when tab is in background
+
 export default function Home() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
@@ -168,6 +172,44 @@ export default function Home() {
       fetchData(selectedAgentId);
     }
   }, [selectedAgentId, isSetupComplete, isInitialized, fetchData]);
+
+  // Background polling with visibility-aware intervals
+  useEffect(() => {
+    if (!isSetupComplete || !isInitialized || !pylonApiToken) {
+      return; // Only poll when connected to Pylon API
+    }
+
+    let pollInterval: NodeJS.Timeout | null = null;
+
+    const startPolling = (interval: number) => {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(() => {
+        fetchData(selectedAgentId);
+      }, interval);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab is in background - poll less frequently
+        startPolling(BACKGROUND_POLL_INTERVAL);
+      } else {
+        // Tab is active - poll more frequently and fetch immediately
+        fetchData(selectedAgentId);
+        startPolling(ACTIVE_POLL_INTERVAL);
+      }
+    };
+
+    // Start with appropriate interval based on current visibility
+    startPolling(document.hidden ? BACKGROUND_POLL_INTERVAL : ACTIVE_POLL_INTERVAL);
+
+    // Listen for visibility changes
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isSetupComplete, isInitialized, pylonApiToken, selectedAgentId, fetchData]);
 
   const handleConnect = async () => {
     saveSettings();
