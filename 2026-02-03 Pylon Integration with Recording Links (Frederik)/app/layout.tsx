@@ -20,7 +20,7 @@ export default function RootLayout({
         <Theme appearance="inherit" accentColor="blue" grayColor="slate" radius="medium">
           {children}
         </Theme>
-        <Analytics />
+        <Analytics debug={true} />
       </body>
     </html>
   );
