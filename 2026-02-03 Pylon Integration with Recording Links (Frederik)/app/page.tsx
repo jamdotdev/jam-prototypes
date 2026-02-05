@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { track } from "@vercel/analytics";
 import {
   Box,
   Container,
@@ -214,6 +215,7 @@ export default function Home() {
     saveSettings();
     setIsSetupComplete(true);
     await fetchData(selectedAgentId);
+    track("pylon_connected");
   };
 
   const handleDisconnect = () => {
@@ -228,6 +230,7 @@ export default function Home() {
   const handleSettingsSave = async () => {
     saveSettings();
     await fetchData(selectedAgentId);
+    track("settings_saved");
   };
 
   const showToast = (message: string) => {
@@ -383,7 +386,10 @@ export default function Home() {
           key={issue.id}
           issue={issue}
           selected={selectedIssue?.id === issue.id}
-          onClick={() => setSelectedIssue(issue)}
+          onClick={() => {
+            track("issue_selected", { issueNumber: issue.number, status: issue.status });
+            setSelectedIssue(issue);
+          }}
         />
       ))}
     </Box>
@@ -611,8 +617,14 @@ export default function Home() {
                 issue={selectedIssue}
                 recordingLink={recordingLink}
                 message={message}
-                onCopyLink={() => showToast("Link copied!")}
-                onCopyMessage={() => showToast("Message copied!")}
+                onCopyLink={() => {
+                  track("link_copied", { issueNumber: selectedIssue.number });
+                  showToast("Link copied!");
+                }}
+                onCopyMessage={() => {
+                  track("message_copied", { issueNumber: selectedIssue.number });
+                  showToast("Message copied!");
+                }}
               />
             </Flex>
           ) : (
@@ -661,8 +673,14 @@ export default function Home() {
               issue={selectedIssue}
               recordingLink={recordingLink}
               message={message}
-              onCopyLink={() => showToast("Link copied!")}
-              onCopyMessage={() => showToast("Message copied!")}
+              onCopyLink={() => {
+                track("link_copied", { issueNumber: selectedIssue.number });
+                showToast("Link copied!");
+              }}
+              onCopyMessage={() => {
+                track("message_copied", { issueNumber: selectedIssue.number });
+                showToast("Message copied!");
+              }}
             />
           )}
         </SlideOverPanel>
