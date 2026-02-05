@@ -1,7 +1,7 @@
 import "@radix-ui/themes/styles.css";
 import "./globals.css";
 import { Theme } from "@radix-ui/themes";
-import { Analytics } from "@vercel/analytics/react";
+import { AnalyticsProvider } from "./components/AnalyticsProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function RootLayout({
         <Theme appearance="inherit" accentColor="blue" grayColor="slate" radius="medium">
           {children}
         </Theme>
-        <Analytics debug={true} />
+        <AnalyticsProvider />
       </body>
     </html>
   );
