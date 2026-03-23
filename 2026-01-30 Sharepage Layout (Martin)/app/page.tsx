@@ -5,6 +5,7 @@ import { SharePageLayout } from '@/components/layout/SharePageLayout/SharePageLa
 import { ActivityPanel, CommentInput } from '@/components/features/activity';
 import { DevToolsContent } from '@/components/features/devtools';
 import { TheaterModeIcon } from '@/components/icons/TheaterModeIcon';
+import { VideoScrubber } from '@/components/features/video/VideoScrubber';
 import { useSettings } from '@/stores/settingsStore';
 import { useDevToolsStore } from '@/stores/devToolsStore';
 import { useGeneratedData } from '@/data/useGeneratedData';
@@ -53,18 +54,21 @@ function MainContent() {
             <Text size="2">Video Player</Text>
           </Flex>
 
-          {/* Theater Mode Toggle - forced dark mode for visibility on video */}
+          {/* Video Controls - forced dark mode for visibility on video */}
           <Theme appearance="dark" hasBackground={false} asChild>
             <div className={styles.videoControls}>
-              <Tooltip content={isTheaterMode ? 'Exit theater mode' : 'Theater mode'}>
-                <IconButton
-                  variant="ghost"
-                  size="1"
-                  onClick={toggleTheaterMode}
-                >
-                  <TheaterModeIcon />
-                </IconButton>
-              </Tooltip>
+              {settings.jamType === 'video' && <VideoScrubber />}
+              <div className={styles.videoControlsRight}>
+                <Tooltip content={isTheaterMode ? 'Exit theater mode' : 'Theater mode'}>
+                  <IconButton
+                    variant="ghost"
+                    size="1"
+                    onClick={toggleTheaterMode}
+                  >
+                    <TheaterModeIcon />
+                  </IconButton>
+                </Tooltip>
+              </div>
             </div>
           </Theme>
         </Box>
