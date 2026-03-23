@@ -8,10 +8,13 @@ import { TitleControl } from '../controls/TitleControl';
 import { DescriptionControl } from '../controls/DescriptionControl';
 import { CommentsControl } from '../controls/CommentsControl';
 import { IntegrationsControl } from '../controls/IntegrationsControl';
+import { NavigationControl } from '../controls/NavigationControl';
+import { CustomMetadataStateControl } from '../controls/CustomMetadataStateControl';
 import styles from './JamLabPanel.module.css';
 
 export function JamLabPanel() {
   const reset = useSettingsStore((s) => s.reset);
+  const jamType = useSettingsStore((s) => s.jamType);
 
   return (
     <div className={styles.panel}>
@@ -34,6 +37,14 @@ export function JamLabPanel() {
           <CommentsControl />
           <Separator size="4" />
           <IntegrationsControl />
+          {jamType === 'video' && (
+            <>
+              <Separator size="4" />
+              <NavigationControl />
+              <Separator size="4" />
+              <CustomMetadataStateControl />
+            </>
+          )}
         </div>
       </ScrollArea>
 
