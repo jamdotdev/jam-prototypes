@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import { Flex, Text } from '@radix-ui/themes';
 import { DevToolsTabBar } from '../DevToolsTabBar';
-import { DevToolsInfoTab, MetadataItem } from '../DevToolsInfoTab';
+import { DevToolsInfoTab, type MetadataItem } from '../DevToolsInfoTab';
 import styles from './DevToolsContent.module.css';
 
 interface DevToolsContentProps {
   defaultTab?: string;
   onTabChange?: (tab: string) => void;
-  metadata?: MetadataItem[];
   customProperties?: MetadataItem[];
   timestamp?: Date;
   timezone?: string;
@@ -19,7 +18,6 @@ interface DevToolsContentProps {
 export function DevToolsContent({
   defaultTab = 'info',
   onTabChange,
-  metadata,
   customProperties,
   timestamp,
   timezone,
@@ -42,7 +40,6 @@ export function DevToolsContent({
       <div className={styles.tabContent}>
         {activeTab === 'info' && (
           <DevToolsInfoTab
-            metadata={metadata}
             customProperties={customProperties}
             timestamp={timestamp}
             timezone={timezone}

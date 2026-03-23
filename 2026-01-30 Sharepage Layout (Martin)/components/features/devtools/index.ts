@@ -13,3 +13,7 @@ export {
 export { CodeEditorPanel } from './CodeEditorPanel';
 export { CodeEditorTabs } from './CodeEditorTabs';
 export type { OpenTab } from './CodeEditorTabs';
+export { NavigationSection } from './NavigationSection';
+export { NavigationEventRow } from './NavigationEventRow';
+export { JamMetaDataSection } from './JamMetaDataSection';
+export { CustomMetaDataSection } from './CustomMetaDataSection';

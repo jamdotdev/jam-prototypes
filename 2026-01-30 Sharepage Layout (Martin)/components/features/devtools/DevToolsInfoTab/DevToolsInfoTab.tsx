@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { ScrollArea } from '@radix-ui/themes';
 import { MetadataSection } from '../MetadataSection';
 import {
@@ -11,17 +11,24 @@ import {
 } from '../PropertyItem';
 import { CodeEditorPanel } from '../CodeEditorPanel';
 import { OpenTab } from '../CodeEditorTabs';
+import { JamMetaDataSection } from '../JamMetaDataSection';
+import { CustomMetaDataSection } from '../CustomMetaDataSection';
+import { NavigationSection } from '../NavigationSection';
+import { IntercomMetaDataSection } from '../IntercomMetaDataSection';
 import { AppleIcon } from '@/components/icons/AppleIcon';
 import { ChromeIcon } from '@/components/icons/ChromeIcon';
 import {
-  DEFAULT_METADATA,
+  generateDeviceMetadata,
   DEFAULT_CUSTOM_PROPERTIES,
+  INTERCOM_METADATA,
   type MetadataItem,
 } from '@/data/constants/devToolsDefaults';
+import { useSettings } from '@/stores/settingsStore';
+import { useVideoPlaybackStore } from '@/stores/videoPlaybackStore';
+import { generateNavigationData } from '@/data/factories/navigationFactory';
 import styles from './DevToolsInfoTab.module.css';
 
 interface DevToolsInfoTabProps {
-  metadata?: MetadataItem[];
   customProperties?: MetadataItem[];
   timestamp?: Date;
   timezone?: string;
@@ -37,10 +44,9 @@ function getIcon(icon: MetadataItem['icon']): React.ReactNode {
 const BREAKPOINT_WIDTH = 400;
 const MIN_PANE_PERCENT = 20;
 const MAX_PANE_PERCENT = 80;
-const DEFAULT_SPLIT = 50; // metadata pane takes 50% by default
+const DEFAULT_SPLIT = 50;
 
 export function DevToolsInfoTab({
-  metadata = DEFAULT_METADATA,
   customProperties = DEFAULT_CUSTOM_PROPERTIES,
   timestamp = new Date(),
   timezone,
@@ -54,6 +60,39 @@ export function DevToolsInfoTab({
   const [isDragging, setIsDragging] = useState(false);
   const [openTabs, setOpenTabs] = useState<OpenTab[]>([]);
   const [activeTabName, setActiveTabName] = useState<string | null>(null);
+
+  // Settings & video playback
+  const settings = useSettings();
+  const currentTime = useVideoPlaybackStore((s) => s.currentTime);
+  const setCurrentTime = useVideoPlaybackStore((s) => s.setCurrentTime);
+
+  // Dynamic device metadata based on origin and jam type
+  const deviceMetadata = useMemo(
+    () => generateDeviceMetadata(settings.origin, settings.jamType),
+    [settings.origin, settings.jamType]
+  );
+
+  // Generate navigation data for video jams (not iOS — no URL tracking on mobile)
+  const navigationData = useMemo(
+    () =>
+      settings.jamType === 'video' && settings.origin !== 'ios'
+        ? generateNavigationData(settings)
+        : null,
+    [settings.jamType, settings.origin, settings.tabCount, settings.urlChangesPerTab]
+  );
+
+  // Resolve active navigation event (auto-sync with video time)
+  const activeEvent = useMemo(() => {
+    if (!navigationData) return null;
+    const candidate = navigationData.events
+      .filter((e) => e.timestamp <= currentTime)
+      .at(-1);
+    return candidate ?? navigationData.events[0];
+  }, [navigationData, currentTime]);
+
+  // Determine which custom properties to display
+  const displayedCustomProperties =
+    activeEvent?.customProperties ?? customProperties;
 
   // Detect container width for responsive layout
   useEffect(() => {
@@ -79,11 +118,9 @@ export function DevToolsInfoTab({
 
     let ratio: number;
     if (isStacked) {
-      // Vertical drag - calculate height ratio
       const mouseY = e.clientY - containerRect.top;
       ratio = (mouseY / containerRect.height) * 100;
     } else {
-      // Horizontal drag - calculate width ratio
       const mouseX = e.clientX - containerRect.left;
       ratio = (mouseX / containerRect.width) * 100;
     }
@@ -118,36 +155,36 @@ export function DevToolsInfoTab({
     };
   }, [handleMouseMove, handleMouseUp]);
 
+  const handleEventClick = useCallback((event: { timestamp: number }) => {
+    setTimeout(() => setCurrentTime(event.timestamp), 0);
+  }, [setCurrentTime]);
+
   const handleOpenProperty = useCallback((name: string, rawValue: string) => {
-    // Check if already open
-    const existing = openTabs.find((tab) => tab.name === name);
-    if (existing) {
-      // Focus existing tab
+    setTimeout(() => {
+      const existing = openTabs.find((tab) => tab.name === name);
+      if (existing) {
+        setActiveTabName(name);
+        return;
+      }
+
+      let parsedValue: any;
+      let parseError = false;
+
+      try {
+        parsedValue = JSON.parse(rawValue);
+      } catch {
+        parsedValue = rawValue;
+        parseError = true;
+      }
+
+      setOpenTabs((prev) => [...prev, { name, value: parsedValue, parseError }]);
       setActiveTabName(name);
-      return;
-    }
-
-    // Try to parse JSON
-    let parsedValue: any;
-    let parseError = false;
-
-    try {
-      parsedValue = JSON.parse(rawValue);
-    } catch {
-      // Display raw string if JSON is invalid/truncated
-      parsedValue = rawValue;
-      parseError = true;
-    }
-
-    // Add new tab and focus it
-    setOpenTabs((prev) => [...prev, { name, value: parsedValue, parseError }]);
-    setActiveTabName(name);
+    }, 0);
   }, [openTabs]);
 
   const handleCloseTab = useCallback((name: string) => {
     setOpenTabs((prev) => {
       const newTabs = prev.filter((tab) => tab.name !== name);
-      // If closing active tab, switch to last tab or null
       if (activeTabName === name) {
         setActiveTabName(newTabs.length > 0 ? newTabs[newTabs.length - 1].name : null);
       }
@@ -196,7 +233,6 @@ export function DevToolsInfoTab({
 
   const containerClass = `${styles.container} ${isStacked ? styles.stacked : ''} ${isDragging ? styles.dragging : ''}`;
 
-  // Calculate pane sizes based on layout
   const metadataPaneStyle = isStacked
     ? { height: `${splitRatio}%` }
     : { width: `${splitRatio}%` };
@@ -210,20 +246,39 @@ export function DevToolsInfoTab({
       <div className={styles.metadataPane} style={metadataPaneStyle}>
         <ScrollArea className={styles.scrollArea}>
           <div className={styles.content}>
-            <MetadataSection title="Metadata" onMenuClick={() => {}}>
+            {/* 1. JamMetaDataSection card (Navigation + Custom Metadata) — video jams only, not iOS */}
+            {navigationData && activeEvent && (
+              <JamMetaDataSection>
+                <NavigationSection
+                  navigationData={navigationData}
+                  activeEvent={activeEvent}
+                  onEventClick={handleEventClick}
+                />
+                <CustomMetaDataSection
+                  state={settings.customMetadataState}
+                  customProperties={displayedCustomProperties}
+                  selectedPropertyName={activeTabName}
+                  onPropertyClick={handleOpenProperty}
+                />
+                {/* Intercom-specific metadata inside the card */}
+                {settings.origin === 'intercom' && (
+                  <IntercomMetaDataSection
+                    metadata={INTERCOM_METADATA}
+                    onPropertyClick={handleOpenProperty}
+                  />
+                )}
+              </JamMetaDataSection>
+            )}
+
+            {/* 2. Device section (outside the card) */}
+            <MetadataSection>
               <PropertyItemTimestamp
                 timestamp={timestamp}
                 timezone={timezone}
                 onTimezoneChange={onTimezoneChange}
               />
-              {metadata.map((item, index) => renderMetadataItem(item, index))}
+              {deviceMetadata.map((item, index) => renderMetadataItem(item, index))}
             </MetadataSection>
-
-            {customProperties.length > 0 && (
-              <MetadataSection title="Custom Properties">
-                {customProperties.map((item, index) => renderMetadataItem(item, index))}
-              </MetadataSection>
-            )}
           </div>
         </ScrollArea>
       </div>
