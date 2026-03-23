@@ -17,6 +17,7 @@ interface ActivityItemProps {
 function getActivityIcon(data: ActivityData): React.ReactNode {
   switch (data.kind) {
     case 'jam_created':
+    case 'recording_link_request':
       return <JamIcon />;
     case 'integration':
       return getIntegrationIcon(data.integration);
@@ -43,8 +44,17 @@ function getIntegrationIcon(integration: IntegrationType): React.ReactNode {
 // Get action text based on activity data
 function getActionText(data: ActivityData): string {
   switch (data.kind) {
-    case 'jam_created':
-      return 'created the Jam';
+    case 'jam_created': {
+      const originMessages: Record<string, string> = {
+        extension: 'created this Jam via Browser Extension',
+        ios: 'created this Jam via iOS',
+        intercom: 'received from a customer via Intercom conversation',
+        recording_link: 'created this Jam via Recording Link',
+      };
+      return originMessages[data.origin] ?? 'created the Jam';
+    }
+    case 'recording_link_request':
+      return 'requested from recording link';
     case 'integration':
       return `created a ${capitalizeFirst(data.integration)} issue`;
     case 'status_change':
@@ -60,6 +70,9 @@ function getActionText(data: ActivityData): string {
 function getActivityLink(data: ActivityData): { text: string; href: string } | undefined {
   if (data.kind === 'integration') {
     return { text: data.issueId, href: data.issueUrl };
+  }
+  if (data.kind === 'recording_link_request') {
+    return { text: data.referenceLabel, href: '#' };
   }
   return undefined;
 }

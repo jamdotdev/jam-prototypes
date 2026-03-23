@@ -2,6 +2,13 @@ import type { User } from '@/types/user.types';
 
 const AVATAR_SERVICE = 'https://i.pravatar.cc/150';
 
+const ANONYMOUS_USER: User = {
+  id: 'anonymous',
+  name: 'Anonymous',
+  email: '',
+  avatar: '',
+};
+
 const PRESET_USERS: User[] = [
   {
     id: 'user-1',
@@ -40,7 +47,12 @@ export function getPresetUsers(): User[] {
 }
 
 export function getUserById(id: string): User | undefined {
+  if (id === 'anonymous') return ANONYMOUS_USER;
   return PRESET_USERS.find((u) => u.id === id);
+}
+
+export function getAnonymousUser(): User {
+  return ANONYMOUS_USER;
 }
 
 export function getCreator(): User {
