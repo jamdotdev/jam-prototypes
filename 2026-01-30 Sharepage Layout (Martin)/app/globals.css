@@ -8,6 +8,12 @@
   --color-gray-11: #646464;
   --color-gray-12: #202020;
 
+  /* Blue */
+  --color-blue-11: #0d74ce;
+
+  /* Green */
+  --color-green-9: #2B9A66;
+
   /* Gray alpha */
   --color-gray-alpha-1: rgba(0, 0, 0, 0.01);
   --color-gray-alpha-2: rgba(0, 0, 0, 0.02);
@@ -127,6 +133,12 @@ body {
   --color-gray-alpha-4: rgba(255, 255, 255, 0.09);
   --color-gray-alpha-7: rgba(255, 255, 255, 0.19);
   --color-gray-alpha-8: rgba(255, 255, 255, 0.27);
+
+  /* Blue */
+  --color-blue-11: #70b8ff;
+
+  /* Green */
+  --color-green-9: #30a46c;
 
   /* Text colors */
   --color-text-primary: #ededed;
