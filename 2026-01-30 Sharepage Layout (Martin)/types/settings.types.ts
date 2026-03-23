@@ -11,6 +11,9 @@ export interface JamLabSettings {
   commentCount: number;
   hasIntegrations: boolean;
   integrations: IntegrationType[];
+  tabCount: number;
+  urlChangesPerTab: number;
+  customMetadataState: 'configured' | 'default' | 'error';
 }
 
 export const DEFAULT_SETTINGS: JamLabSettings = {
@@ -24,4 +27,7 @@ export const DEFAULT_SETTINGS: JamLabSettings = {
   commentCount: 4,
   hasIntegrations: false,
   integrations: ['linear'],
+  tabCount: 1,
+  urlChangesPerTab: 2,
+  customMetadataState: 'configured',
 };

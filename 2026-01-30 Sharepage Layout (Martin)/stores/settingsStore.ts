@@ -13,6 +13,9 @@ interface SettingsStore extends JamLabSettings {
   setComments: (enabled: boolean, count?: number) => void;
   setIntegrations: (enabled: boolean) => void;
   toggleIntegration: (integration: IntegrationType) => void;
+  setTabCount: (count: number) => void;
+  setUrlChangesPerTab: (count: number) => void;
+  setCustomMetadataState: (state: 'configured' | 'default' | 'error') => void;
   reset: () => void;
 }
 
@@ -43,6 +46,9 @@ export const useSettingsStore = create<SettingsStore>()(
             ? state.integrations.filter((i) => i !== integration)
             : [...state.integrations, integration],
         })),
+      setTabCount: (tabCount) => set({ tabCount }),
+      setUrlChangesPerTab: (urlChangesPerTab) => set({ urlChangesPerTab }),
+      setCustomMetadataState: (customMetadataState) => set({ customMetadataState }),
       reset: () => set(DEFAULT_SETTINGS),
     }),
     { name: 'jam-lab-settings' }
@@ -62,5 +68,8 @@ export const useSettings = () =>
       commentCount: state.commentCount,
       hasIntegrations: state.hasIntegrations,
       integrations: state.integrations,
+      tabCount: state.tabCount,
+      urlChangesPerTab: state.urlChangesPerTab,
+      customMetadataState: state.customMetadataState,
     }))
   );

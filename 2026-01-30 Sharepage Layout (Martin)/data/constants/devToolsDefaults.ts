@@ -1,3 +1,5 @@
+import type { JamOrigin, JamType } from '@/types/jam.types';
+
 export interface MetadataItem {
   type: 'simple' | 'icon' | 'timestamp' | 'code';
   label: string;
@@ -7,13 +9,45 @@ export interface MetadataItem {
   expandable?: boolean;
 }
 
-export const DEFAULT_METADATA: MetadataItem[] = [
-  { type: 'simple', label: 'Location', value: 'Germany' },
-  { type: 'icon', label: 'OS', value: 'macOS (arm)', version: '15.2.0', icon: 'apple' },
-  { type: 'icon', label: 'Browser', value: 'Chrome', version: '136.0.7103.113', icon: 'chrome' },
-  { type: 'simple', label: 'Window size', value: '1780x1296' },
-  { type: 'simple', label: 'Screenshot size', value: '906x674' },
+// Dynamic device metadata based on origin and jam type
+export function generateDeviceMetadata(origin: JamOrigin, jamType: JamType): MetadataItem[] {
+  if (origin === 'ios') {
+    return [
+      { type: 'simple', label: 'Location', value: 'Germany' },
+      { type: 'icon', label: 'OS', value: 'iOS', version: '18.4.1', icon: 'apple' },
+      { type: 'simple', label: 'Device', value: 'iPhone 16' },
+      { type: 'simple', label: 'Battery', value: '55% Unplugged · Low power mode on' },
+      { type: 'simple', label: 'Storage space', value: '127,42 GB · 3,41 GB available' },
+    ];
+  }
+
+  const items: MetadataItem[] = [
+    { type: 'simple', label: 'Location', value: 'Germany' },
+    { type: 'icon', label: 'OS', value: 'macOS (arm)', version: '15.2.0', icon: 'apple' },
+    { type: 'icon', label: 'Browser', value: 'Chrome', version: '136.0.7103.113', icon: 'chrome' },
+    { type: 'simple', label: 'Window size', value: '1780x1296' },
+  ];
+
+  if (jamType === 'screenshot') {
+    items.push({ type: 'simple', label: 'Screenshot size', value: '906x674' });
+  }
+
+  return items;
+}
+
+// Intercom-specific metadata shown in the JamMetaDataSection card
+export const INTERCOM_METADATA: MetadataItem[] = [
+  { type: 'simple', label: 'Email address', value: 'user@intercom.io' },
+  {
+    type: 'code',
+    label: 'IntercomAgentID',
+    value: JSON.stringify('d8d035c1-5df3-422f-90c7-b81986b531d8'),
+    expandable: false,
+  },
 ];
+
+// Keep DEFAULT_METADATA for backwards compatibility
+export const DEFAULT_METADATA: MetadataItem[] = generateDeviceMetadata('extension', 'video');
 
 export const DEFAULT_CUSTOM_PROPERTIES: MetadataItem[] = [
   { type: 'simple', label: 'URL', value: 'buggle.com/longurl/ide830fk3a4ml' },

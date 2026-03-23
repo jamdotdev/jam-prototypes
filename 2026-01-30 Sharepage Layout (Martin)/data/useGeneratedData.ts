@@ -12,6 +12,7 @@ export function useGeneratedData(settings: JamLabSettings) {
       metadata: generateJamMetadata(settings),
       activities: generateActivities({
         integrations: settings.integrations,
+        origin: settings.origin,
         includeCreation: true,
       }),
       comments: settings.hasComments
