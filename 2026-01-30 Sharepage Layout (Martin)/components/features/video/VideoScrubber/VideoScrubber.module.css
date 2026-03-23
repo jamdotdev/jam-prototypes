@@ -1,0 +1,18 @@
+.scrubber {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.4));
+}
+
+.slider {
+  flex: 1;
+}
+
+.time {
+  white-space: nowrap;
+  min-width: 70px;
+  text-align: right;
+}

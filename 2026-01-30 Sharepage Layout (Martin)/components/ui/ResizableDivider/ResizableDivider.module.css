@@ -1,0 +1,36 @@
+.divider {
+  position: relative;
+  width: 0;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 8px;
+  height: 100%;
+  background: transparent;
+}
+
+.handle {
+  position: absolute;
+  top: 0;
+  left: -1px;
+  width: 2px;
+  height: 100%;
+  background-color: transparent;
+  transition: background-color 0.15s;
+}
+
+.divider:hover .handle,
+.divider:active .handle {
+  background-color: var(--color-gray-alpha-4);
+}
+
+.divider:active .handle {
+  background-color: var(--color-accent-9);
+}

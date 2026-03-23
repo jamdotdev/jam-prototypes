@@ -1,0 +1,8 @@
+.tabsCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.chevronExpanded {
+  transform: rotate(180deg);
+}

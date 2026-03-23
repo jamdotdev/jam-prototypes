@@ -1,0 +1,111 @@
+.propertyItem {
+  min-height: 32px;
+  width: 100%;
+  padding: var(--spacing-1);
+  border-radius: var(--radius-2);
+  overflow: hidden;
+}
+
+.propertyItem:hover {
+  background-color: var(--color-gray-alpha-3);
+}
+
+/* Selected state (property currently open in code editor) */
+.selected {
+  background: var(--color-background);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.01),
+    0 0 1px rgba(0, 0, 0, 0.27),
+    0 1px 2px rgba(0, 0, 0, 0.09);
+}
+
+.selected:hover {
+  background: var(--color-background);
+}
+
+.label {
+  min-width: 96px;
+  max-width: 100px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
+  min-height: 24px;
+  align-items: center;
+}
+
+.valueText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.iconValue {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.codeValue {
+  font-family: var(--font-code);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.codeWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.copyButton {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.propertyItem:hover .copyButton {
+  opacity: 1;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.expanded {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.timestampValue {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  cursor: pointer;
+}
+
+.timestampValue:hover {
+  background-color: var(--color-gray-alpha-2);
+  border-radius: var(--radius-2);
+}
+
+.chevron {
+  flex-shrink: 0;
+}
