@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { DropdownMenu, Flex, Tooltip } from '@radix-ui/themes';
-import { Button, IconButton } from '@/components/ui';
+import { IconButton } from '@/components/ui';
 import { ChevronDownIcon } from '@/components/icons/ChevronDownIcon';
 import { CodeIcon } from '@/components/icons/CodeIcon';
 import { LargeContentIcon } from '@/components/icons/LargeContentIcon';
@@ -180,10 +180,11 @@ export function DevToolsHeader({
 
         <div className={styles.separator} />
 
-        <Button variant="ghost" size="2" color="gray" onClick={onClose}>
-          <CodeIcon />
-          Hide Devtools
-        </Button>
+        <Tooltip content="Hide Devtools">
+          <IconButton variant="ghost" size="2" color="gray" data-active="" onClick={onClose}>
+            <CodeIcon />
+          </IconButton>
+        </Tooltip>
       </Flex>
     </header>
   );
