@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Flex } from '@radix-ui/themes';
+import { Flex, Tooltip } from '@radix-ui/themes';
 import { Button, IconButton } from '@/components/ui';
 import { HomeSmileIcon } from '@/components/icons/HomeSmileIcon';
 import { GridIcon } from '@/components/icons/GridIcon';
@@ -64,15 +64,16 @@ export function MainHeader({
         <ShareSplitButton />
 
         {showDevToolsToggle && (
-          <Button
-            variant="ghost"
-            color="gray"
-            size="2"
-            onClick={isUndocked ? onFocusDevTools : onOpenDevTools}
-          >
-            <CodeIcon />
-            Show Devtools
-          </Button>
+          <Tooltip content="Show Devtools">
+            <IconButton
+              variant="ghost"
+              color="gray"
+              size="2"
+              onClick={isUndocked ? onFocusDevTools : onOpenDevTools}
+            >
+              <CodeIcon />
+            </IconButton>
+          </Tooltip>
         )}
       </Flex>
     </header>

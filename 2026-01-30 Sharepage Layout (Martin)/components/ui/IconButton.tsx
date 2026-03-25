@@ -45,5 +45,9 @@ const StyledIconButton = styled(RadixIconButton)`
     &:hover:not(:disabled) {
       background-color: var(--gray-a3);
     }
+
+    &[data-active] {
+      background-color: var(--gray-a3);
+    }
   }
 `;
