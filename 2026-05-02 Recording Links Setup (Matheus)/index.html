@@ -338,51 +338,163 @@
       gap: 12px;
     }
 
-    /* ───────────────────────────── Tabs (variant B with icons) ───────────────────────────── */
-    .fw-tabs {
+    /* ───────────────────────────── Chooser (chip layout above step card) ───────────────────────────── */
+    .chooser {
       display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px;
-      background: var(--surface-muted);
-      border-radius: 11px;
-      width: fit-content;
-      box-shadow: inset 0 0 0 1px var(--border-subtle);
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 4px;
     }
 
-    .fw-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 11px 5px 7px;
-      border-radius: 8px;
+    .chooser-label {
       font-size: 13px;
       font-weight: 500;
       color: var(--text-secondary);
-      transition: background 0.12s, color 0.12s, box-shadow 0.12s;
-      white-space: nowrap;
     }
 
-    .fw-tab:hover { color: var(--text-primary); }
+    .fw-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
 
-    .fw-tab.is-active {
+    .fw-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 12px 5px 5px;
+      border-radius: 999px;
       background: #ffffff;
+      box-shadow: 0 0 0 1px var(--border-subtle);
+      font-size: 13px;
+      font-weight: 500;
       color: var(--text-primary);
-      box-shadow: var(--shadow-button), 0 0 0 1px var(--border-subtle);
+      transition: background 0.12s, box-shadow 0.12s, color 0.12s;
     }
 
-    .fw-tab-mark {
-      width: 18px;
-      height: 18px;
-      border-radius: 5px;
+    .fw-chip:hover { box-shadow: 0 0 0 1px var(--border-strong); }
+
+    .fw-chip.is-active {
+      background: #1e2624;
+      color: #ffffff;
+      box-shadow: 0 0 0 1px #1e2624;
+    }
+
+    .fw-chip-mark {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 600;
       color: #ffffff;
       letter-spacing: -0.02em;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .fw-chip-mark--bare { background: transparent !important; }
+
+    .fw-chip-mark svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+
+    .fw-chip-mark--bare svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .fw-chip .chevron {
+      width: 12px;
+      height: 12px;
+      color: var(--text-secondary);
+      margin-left: -2px;
+      transition: transform 0.15s;
+    }
+
+    .fw-chip.is-active .chevron { color: #ffffff; }
+    .fw-chip[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+    /* ───────────────────────────── Other dropdown ───────────────────────────── */
+    .other-wrap { position: relative; display: inline-flex; }
+
+    .other-popover {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 320px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: var(--shadow-popover);
+      padding: 6px;
+      z-index: 30;
+      display: none;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .other-popover.is-open { display: block; }
+
+    .other-popover-header {
+      padding: 6px 8px 4px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .other-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.1s;
+      width: 100%;
+      text-align: left;
+    }
+
+    .other-item:hover, .other-item.is-highlighted { background: var(--hover-bg); }
+
+    .other-item .other-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .other-item .other-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .other-item .other-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .other-item .other-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     /* ───────────────────────────── Sub-toggle (Next.js App/Pages) ───────────────────────────── */
@@ -831,6 +943,9 @@
   <template id="iconChevronRight">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
   </template>
+  <template id="iconChevronDown">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+  </template>
   <template id="iconSparkle">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"></path></svg>
   </template>
@@ -1132,19 +1247,45 @@ export class AppComponent implements OnInit {
 })();
 <\/script>`;
 
-    // ───────────────────────── Tab definitions ─────────────────────────
-    // Each tab has its own renderer because content varies significantly.
+    // ───────────────────────── Tab + Other definitions ─────────────────────────
+    // The 4 main chips have evidence-based unique snippets.
+    // OTHERS share the canonical HTML snippet, only the recommended file path differs.
+
+    // Official-ish GTM mark — blue diamond, two-tone for depth
+    const GTM_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2 L22 12 L12 22 L2 12 Z" fill="#246FDB"/>
+      <path d="M12 2 L22 12 L12 12 Z" fill="#669DF6"/>
+      <circle cx="12" cy="14" r="2.5" fill="#FFFFFF"/>
+    </svg>`;
+
     const TABS = [
-      { id: "html",    name: "HTML",    mark: "HT", color: "#5a6070" },
-      { id: "next",    name: "Next.js", mark: "N",  color: "#1e2624" },
-      { id: "angular", name: "Angular", mark: "A",  color: "#dd0031" },
-      { id: "gtm",     name: "GTM",     mark: "G",  color: "#246fdb" },
+      { id: "html",    name: "HTML",                mark: { type: "text", value: "HT", color: "#5a6070" }, file: "<head>" },
+      { id: "next",    name: "Next.js",             mark: { type: "text", value: "N",  color: "#1e2624" }, file: "app/layout.tsx" },
+      { id: "angular", name: "Angular",             mark: { type: "text", value: "A",  color: "#dd0031" }, file: "src/app/app.component.ts" },
+      { id: "gtm",     name: "Google Tag Manager",  mark: { type: "svg",  value: GTM_SVG },                file: "Custom HTML Tag" },
+    ];
+
+    // OTHERS — canonical HTML snippet, only file path differs
+    const OTHERS = [
+      { id: "vue",        name: "Vue",         mark: { type: "text", value: "V",  color: "#41b883" }, file: "index.html",                             desc: "head" },
+      { id: "vite",       name: "Vite",        mark: { type: "text", value: "V",  color: "#646cff" }, file: "index.html",                             desc: "head" },
+      { id: "cra",        name: "Create React App", mark: { type: "text", value: "CR", color: "#61dafb" }, file: "public/index.html",                  desc: "head" },
+      { id: "remix",      name: "Remix",       mark: { type: "text", value: "R",  color: "#121212" }, file: "app/root.tsx",                           desc: "Layout component" },
+      { id: "sveltekit",  name: "SvelteKit",   mark: { type: "text", value: "S",  color: "#ff3e00" }, file: "src/app.html",                           desc: "head" },
+      { id: "astro",      name: "Astro",       mark: { type: "text", value: "A",  color: "#ff5d01" }, file: "src/layouts/Layout.astro",               desc: "head" },
+      { id: "nuxt",       name: "Nuxt",        mark: { type: "text", value: "Nx", color: "#00dc82" }, file: "nuxt.config.ts",                         desc: "config (use head.script and head.meta)" },
+      { id: "wordpress",  name: "WordPress",   mark: { type: "text", value: "W",  color: "#21759b" }, file: "header.php",                             desc: "theme" },
+      { id: "webflow",    name: "Webflow",     mark: { type: "text", value: "W",  color: "#4353ff" }, file: "Project Settings → Custom Code → Head",  desc: "" },
+      { id: "shopify",    name: "Shopify",     mark: { type: "text", value: "S",  color: "#95bf47" }, file: "layout/theme.liquid",                    desc: "" },
+      { id: "rails",      name: "Server-rendered (Rails / Django / Laravel)", mark: { type: "text", value: "S", color: "#cc0000" }, file: "main HTML layout template", desc: "" },
     ];
 
     // ───────────────────────── State ─────────────────────────
     const state = {
       tabId: loadFromStorage("jamProtoTab",     "html"),
       nextRouter: loadFromStorage("jamProtoNextRouter", "app"), // "app" | "pages"
+      otherId: loadFromStorage("jamProtoOtherId", "vue"),
+      otherOpen: false,
       angularFallbackOpen: false,
       nextFallbackOpen: false,
       gtmFallbackOpen: false,
@@ -1169,17 +1310,77 @@ export class AppComponent implements OnInit {
       else if (state.tabId === "next")    renderNextTab();
       else if (state.tabId === "angular") renderAngularTab();
       else if (state.tabId === "gtm")     renderGtmTab();
+      else if (state.tabId === "other")   renderOtherTab();
     }
 
     // ───────────────────────── Shared bits ─────────────────────────
-    function tabsHTML() {
-      return TABS.map(t => `
-        <button class="fw-tab ${t.id === state.tabId ? "is-active" : ""}"
-                data-tab="${t.id}" role="tab" aria-selected="${t.id === state.tabId}">
-          <span class="fw-tab-mark" style="background:${t.color}">${esc(t.mark)}</span>
+    function markHTML(mark) {
+      if (mark.type === "svg") {
+        return `<span class="fw-chip-mark fw-chip-mark--bare">${mark.value}</span>`;
+      }
+      return `<span class="fw-chip-mark" style="background:${mark.color}">${esc(mark.value)}</span>`;
+    }
+
+    function smallMarkHTML(mark) {
+      // Used inside the "Other" dropdown items
+      if (mark.type === "svg") {
+        return `<span class="other-mark" style="background:transparent">${mark.value}</span>`;
+      }
+      return `<span class="other-mark" style="background:${mark.color}">${esc(mark.value)}</span>`;
+    }
+
+    function chooserHTML() {
+      const isOnOther = state.tabId === "other";
+      const selectedOther = OTHERS.find(o => o.id === state.otherId) || OTHERS[0];
+
+      const mainChips = TABS.map(t => `
+        <button class="fw-chip ${t.id === state.tabId ? "is-active" : ""}"
+                data-tab="${t.id}" role="radio" aria-checked="${t.id === state.tabId}">
+          ${markHTML(t.mark)}
           <span>${esc(t.name)}</span>
         </button>
       `).join("");
+
+      const otherChip = `
+        <span class="other-wrap">
+          <button class="fw-chip ${isOnOther ? "is-active" : ""}" id="otherChipBtn"
+                  aria-haspopup="listbox" aria-expanded="${state.otherOpen ? "true" : "false"}">
+            ${isOnOther ? markHTML(selectedOther.mark) : `<span class="fw-chip-mark" style="background:#838383">···</span>`}
+            <span>${isOnOther ? esc(selectedOther.name) : "Other"}</span>
+            <span class="chevron">${iconHTML("iconChevronDown")}</span>
+          </button>
+          ${otherPopoverHTML()}
+        </span>
+      `;
+
+      return `
+        <div class="chooser">
+          <div class="chooser-label">What are you using?</div>
+          <div class="fw-chips" role="radiogroup">
+            ${mainChips}
+            ${otherChip}
+          </div>
+        </div>
+      `;
+    }
+
+    function otherPopoverHTML() {
+      const items = OTHERS.map(o => `
+        <button class="other-item ${o.id === state.otherId ? "is-highlighted" : ""}"
+                data-other="${o.id}" role="option">
+          ${smallMarkHTML(o.mark)}
+          <span class="other-info">
+            <span class="other-name">${esc(o.name)}</span>
+            <span class="other-hint">${esc(o.file)}</span>
+          </span>
+        </button>
+      `).join("");
+      return `
+        <div class="other-popover ${state.otherOpen ? "is-open" : ""}" id="otherPopover" role="listbox">
+          <div class="other-popover-header">Pick your stack</div>
+          ${items}
+        </div>
+      `;
     }
 
     function copyButton(plainText, label = "Copy snippet") {
@@ -1231,6 +1432,7 @@ export class AppComponent implements OnInit {
     // ───────────────────────── HTML tab ─────────────────────────
     function renderHtmlTab() {
       step1Host.innerHTML = `
+        ${chooserHTML()}
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-number is-active">1</div>
@@ -1245,7 +1447,6 @@ export class AppComponent implements OnInit {
             ${aiButton()}
           </div>
           <div class="step-body">
-            <div class="fw-tabs" role="tablist">${tabsHTML()}</div>
             ${codeBlock(htmlSnippet(), htmlPlain)}
             ${gotchasList([
               gotcha(`Scripts must be in the <strong style="color:var(--text-primary)">static HTML response</strong> — injecting from JavaScript won't be detected by verification.`),
@@ -1268,6 +1469,7 @@ export class AppComponent implements OnInit {
       const sdkPlain     = isApp ? nextAppSdkPlain   : nextPagesSdkPlain;
 
       step1Host.innerHTML = `
+        ${chooserHTML()}
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-number is-active">1</div>
@@ -1282,8 +1484,6 @@ export class AppComponent implements OnInit {
             ${aiButton()}
           </div>
           <div class="step-body">
-            <div class="fw-tabs" role="tablist">${tabsHTML()}</div>
-
             <div class="sub-toggle" role="tablist" aria-label="Next.js router">
               <button data-router="app" class="${isApp ? "is-active" : ""}" role="tab" aria-selected="${isApp}">App Router</button>
               <button data-router="pages" class="${!isApp ? "is-active" : ""}" role="tab" aria-selected="${!isApp}">Pages Router</button>
@@ -1328,6 +1528,7 @@ export class AppComponent implements OnInit {
     // ───────────────────────── Angular tab ─────────────────────────
     function renderAngularTab() {
       step1Host.innerHTML = `
+        ${chooserHTML()}
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-number is-active">1</div>
@@ -1345,8 +1546,6 @@ export class AppComponent implements OnInit {
             ${aiButton()}
           </div>
           <div class="step-body">
-            <div class="fw-tabs" role="tablist">${tabsHTML()}</div>
-
             <div class="code-block">
               <pre>${tok("comment", "$ npm install @jam.dev/recording-links")}</pre>
             </div>
@@ -1388,6 +1587,7 @@ export class AppComponent implements OnInit {
     // ───────────────────────── GTM tab ─────────────────────────
     function renderGtmTab() {
       step1Host.innerHTML = `
+        ${chooserHTML()}
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-number is-active">1</div>
@@ -1402,8 +1602,6 @@ export class AppComponent implements OnInit {
             ${aiButton()}
           </div>
           <div class="step-body">
-            <div class="fw-tabs" role="tablist">${tabsHTML()}</div>
-
             ${codeBlock(gtmSnippet(), gtmPlain, "GTM → New Tag → Custom HTML")}
 
             <div class="why-text">
@@ -1471,10 +1669,51 @@ export class AppComponent implements OnInit {
       wireFallback("gtm");
     }
 
+    // ───────────────────────── Other tab (canonical HTML, custom file path) ─────────────────────────
+    function renderOtherTab() {
+      const o = OTHERS.find(x => x.id === state.otherId) || OTHERS[0];
+      const descTail = o.desc ? ` ${esc(o.desc)}` : "";
+      step1Host.innerHTML = `
+        ${chooserHTML()}
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number is-active">1</div>
+            <div class="step-header-copy">
+              <div class="step-title">Add code snippets</div>
+              <div class="step-desc">
+                Add the snippet to your
+                <span class="inline-code">${esc(o.file)}</span>${descTail}
+              </div>
+            </div>
+            ${aiButton()}
+          </div>
+          <div class="step-body">
+            ${codeBlock(htmlSnippet(), htmlPlain)}
+            ${gotchasList([
+              gotcha(`Scripts must be in the <strong style="color:var(--text-primary)">static HTML response</strong> — injecting from JavaScript won't be detected by verification.`),
+              gotcha(`Must be present on <strong style="color:var(--text-primary)">every page</strong> — login, marketing, redirect targets all need the snippet loaded.`),
+              ...(o.id === "nuxt" ? [gotcha(`Nuxt: convert this snippet to <code>app.head.meta</code> and <code>app.head.script</code> in <code>nuxt.config.ts</code>. Don't paste the raw HTML.`, { warning: true })] : []),
+            ])}
+          </div>
+        </div>
+      `;
+      wireCommon();
+    }
+
     // ───────────────────────── Wiring ─────────────────────────
     function selectTab(id) {
       state.tabId = id;
+      state.otherOpen = false;
       saveToStorage("jamProtoTab", id);
+      render();
+    }
+
+    function selectOther(id) {
+      state.tabId = "other";
+      state.otherId = id;
+      state.otherOpen = false;
+      saveToStorage("jamProtoTab", "other");
+      saveToStorage("jamProtoOtherId", id);
       render();
     }
 
@@ -1485,10 +1724,41 @@ export class AppComponent implements OnInit {
     }
 
     function wireCommon() {
-      // Tabs
-      const tabs = document.querySelectorAll(".fw-tab");
-      for (const tab of tabs) {
-        tab.addEventListener("click", () => selectTab(tab.dataset.tab));
+      // Main chips (data-tab) — exclude the Other dropdown trigger which has special handling
+      const chips = document.querySelectorAll(".fw-chip[data-tab]");
+      for (const chip of chips) {
+        chip.addEventListener("click", () => selectTab(chip.dataset.tab));
+      }
+
+      // Other dropdown trigger
+      const otherBtn = document.getElementById("otherChipBtn");
+      if (otherBtn) {
+        otherBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          state.otherOpen = !state.otherOpen;
+          render();
+        });
+      }
+
+      // Other items inside popover
+      const otherItems = document.querySelectorAll(".other-item[data-other]");
+      for (const item of otherItems) {
+        item.addEventListener("click", () => selectOther(item.dataset.other));
+      }
+
+      // Click outside the popover closes it
+      if (state.otherOpen) {
+        const closeOnOutside = (e) => {
+          const pop = document.getElementById("otherPopover");
+          const btn = document.getElementById("otherChipBtn");
+          if (pop && btn && !pop.contains(e.target) && !btn.contains(e.target)) {
+            state.otherOpen = false;
+            document.removeEventListener("mousedown", closeOnOutside);
+            render();
+          }
+        };
+        // Defer so the trigger click doesn't immediately close it
+        setTimeout(() => document.addEventListener("mousedown", closeOnOutside), 0);
       }
 
       // Copy buttons (any element with data-copy)
