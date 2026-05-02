@@ -497,6 +497,102 @@
       text-overflow: ellipsis;
     }
 
+    /* ───────────────────────────── Method toggle (Script | SDK) ───────────────────────────── */
+    .method-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 6px 8px 6px 12px;
+      background: var(--surface-code);
+      border-radius: 9px;
+    }
+
+    .method-toggle-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.01em;
+    }
+
+    .method-segments {
+      display: inline-flex;
+      padding: 2px;
+      border-radius: 7px;
+      background: var(--surface-muted);
+      box-shadow: inset 0 0 0 1px var(--border-subtle);
+    }
+
+    .method-segments button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+    }
+
+    .method-segments button:hover { color: var(--text-primary); }
+
+    .method-segments button.is-active {
+      background: #ffffff;
+      color: var(--text-primary);
+      box-shadow: 0 0 0 1px var(--border-subtle), var(--shadow-button);
+    }
+
+    .method-segments button .recommended-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--tok-string);
+      flex-shrink: 0;
+    }
+
+    /* SDK benefits block (shown when method=sdk) */
+    .sdk-benefits {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 12px;
+      background: rgba(13, 116, 206, 0.04);
+      border: 1px solid rgba(13, 116, 206, 0.15);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 18px;
+    }
+
+    .sdk-benefits-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+
+    .sdk-benefits ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sdk-benefits li {
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .sdk-benefits li::before {
+      content: "•";
+      position: absolute;
+      left: 4px;
+      color: var(--tok-var);
+    }
+
     /* ───────────────────────────── Sub-toggle (Next.js App/Pages) ───────────────────────────── */
     .sub-toggle {
       display: inline-flex;
@@ -1265,19 +1361,20 @@ export class AppComponent implements OnInit {
       { id: "gtm",     name: "Google Tag Manager",  mark: { type: "svg",  value: GTM_SVG },                file: "Custom HTML Tag" },
     ];
 
-    // OTHERS — canonical HTML snippet, only file path differs
+    // OTHERS — most share the canonical HTML snippet for script method
+    // hasSdk: true means SDK toggle appears (npm-based stacks)
     const OTHERS = [
-      { id: "vue",        name: "Vue",         mark: { type: "text", value: "V",  color: "#41b883" }, file: "index.html",                             desc: "head" },
-      { id: "vite",       name: "Vite",        mark: { type: "text", value: "V",  color: "#646cff" }, file: "index.html",                             desc: "head" },
-      { id: "cra",        name: "Create React App", mark: { type: "text", value: "CR", color: "#61dafb" }, file: "public/index.html",                  desc: "head" },
-      { id: "remix",      name: "Remix",       mark: { type: "text", value: "R",  color: "#121212" }, file: "app/root.tsx",                           desc: "Layout component" },
-      { id: "sveltekit",  name: "SvelteKit",   mark: { type: "text", value: "S",  color: "#ff3e00" }, file: "src/app.html",                           desc: "head" },
-      { id: "astro",      name: "Astro",       mark: { type: "text", value: "A",  color: "#ff5d01" }, file: "src/layouts/Layout.astro",               desc: "head" },
-      { id: "nuxt",       name: "Nuxt",        mark: { type: "text", value: "Nx", color: "#00dc82" }, file: "nuxt.config.ts",                         desc: "config (use head.script and head.meta)" },
-      { id: "wordpress",  name: "WordPress",   mark: { type: "text", value: "W",  color: "#21759b" }, file: "header.php",                             desc: "theme" },
-      { id: "webflow",    name: "Webflow",     mark: { type: "text", value: "W",  color: "#4353ff" }, file: "Project Settings → Custom Code → Head",  desc: "" },
-      { id: "shopify",    name: "Shopify",     mark: { type: "text", value: "S",  color: "#95bf47" }, file: "layout/theme.liquid",                    desc: "" },
-      { id: "rails",      name: "Server-rendered (Rails / Django / Laravel)", mark: { type: "text", value: "S", color: "#cc0000" }, file: "main HTML layout template", desc: "" },
+      { id: "vue",        name: "Vue",              mark: { type: "text", value: "V",  color: "#41b883" }, file: "index.html",                            desc: "head", hasSdk: true,  sdkFile: "src/main.ts",          sdkDesc: "entry file" },
+      { id: "vite",       name: "Vite",             mark: { type: "text", value: "V",  color: "#646cff" }, file: "index.html",                            desc: "head", hasSdk: true,  sdkFile: "src/main.ts",          sdkDesc: "entry file" },
+      { id: "cra",        name: "Create React App", mark: { type: "text", value: "CR", color: "#61dafb" }, file: "public/index.html",                     desc: "head", hasSdk: true,  sdkFile: "src/index.tsx",        sdkDesc: "entry file" },
+      { id: "remix",      name: "Remix",            mark: { type: "text", value: "R",  color: "#121212" }, file: "app/root.tsx",                          desc: "Layout component", hasSdk: true, sdkFile: "app/entry.client.tsx", sdkDesc: "client entry" },
+      { id: "sveltekit",  name: "SvelteKit",        mark: { type: "text", value: "S",  color: "#ff3e00" }, file: "src/app.html",                          desc: "head", hasSdk: true,  sdkFile: "src/routes/+layout.svelte", sdkDesc: "root layout" },
+      { id: "astro",      name: "Astro",            mark: { type: "text", value: "A",  color: "#ff5d01" }, file: "src/layouts/Layout.astro",              desc: "head", hasSdk: true,  sdkFile: "src/layouts/Layout.astro",  sdkDesc: "client script block" },
+      { id: "nuxt",       name: "Nuxt",             mark: { type: "text", value: "Nx", color: "#00dc82" }, file: "nuxt.config.ts",                        desc: "config (use head.script and head.meta)", hasSdk: true, sdkFile: "plugins/jam.client.ts", sdkDesc: "client plugin" },
+      { id: "wordpress",  name: "WordPress",        mark: { type: "text", value: "W",  color: "#21759b" }, file: "header.php",                            desc: "theme", hasSdk: false },
+      { id: "webflow",    name: "Webflow",          mark: { type: "text", value: "W",  color: "#4353ff" }, file: "Project Settings → Custom Code → Head", desc: "",     hasSdk: false },
+      { id: "shopify",    name: "Shopify",          mark: { type: "text", value: "S",  color: "#95bf47" }, file: "layout/theme.liquid",                   desc: "",     hasSdk: false },
+      { id: "rails",      name: "Server-rendered (Rails / Django / Laravel)", mark: { type: "text", value: "S", color: "#cc0000" }, file: "main HTML layout template", desc: "", hasSdk: false },
     ];
 
     // ───────────────────────── State ─────────────────────────
@@ -1286,9 +1383,11 @@ export class AppComponent implements OnInit {
       nextRouter: loadFromStorage("jamProtoNextRouter", "app"), // "app" | "pages"
       otherId: loadFromStorage("jamProtoOtherId", "vue"),
       otherOpen: false,
-      angularFallbackOpen: false,
-      nextFallbackOpen: false,
-      gtmFallbackOpen: false,
+      // Method per group: "script" | "sdk". Defaults reflect per-tab recommendation.
+      methodNext:    loadFromStorage("jamProtoMethodNext", "script"),
+      methodAngular: loadFromStorage("jamProtoMethodAngular", "sdk"),
+      methodOther:   loadFromStorage("jamProtoMethodOther", "script"),
+      gtmFallbackOpen: false, // 2-tag variant for GTM only
     };
 
     function loadFromStorage(key, fallback) {
@@ -1429,6 +1528,48 @@ export class AppComponent implements OnInit {
       `;
     }
 
+    // Method toggle (Script | SDK) — `groupKey` is "Next" | "Angular" | "Other"
+    // `recommended` is "script" or "sdk" — adds a small dot to the recommended option
+    function methodToggle(groupKey, currentMethod, recommended) {
+      const groups = { Next: "next", Angular: "angular", Other: "other" };
+      const tabKey = groups[groupKey];
+      const isScript = currentMethod === "script";
+      const isSdk    = currentMethod === "sdk";
+      const recDot = (m) => recommended === m ? `<span class="recommended-dot" title="Recommended"></span>` : "";
+      return `
+        <div class="method-toggle">
+          <span class="method-toggle-label">Install method</span>
+          <div class="method-segments" role="tablist" aria-label="Install method">
+            <button data-method-group="${tabKey}" data-method="script"
+                    class="${isScript ? "is-active" : ""}" role="tab" aria-selected="${isScript}">
+              ${recDot("script")}
+              <span>Script tags</span>
+            </button>
+            <button data-method-group="${tabKey}" data-method="sdk"
+                    class="${isSdk ? "is-active" : ""}" role="tab" aria-selected="${isSdk}">
+              ${recDot("sdk")}
+              <span>SDK (npm)</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // SDK benefits block — shown when method=sdk to communicate why pick SDK
+    function sdkBenefits() {
+      return `
+        <div class="sdk-benefits">
+          <div class="sdk-benefits-title">Why the SDK</div>
+          <ul>
+            <li>Configure team ID from environment variables (dev/staging/prod)</li>
+            <li>Multiple domains or runtime team switching from a single codebase</li>
+            <li>Lazy-load the recorder only when a Recording Link is opened</li>
+            <li>TypeScript types and lifecycle event subscriptions</li>
+          </ul>
+        </div>
+      `;
+    }
+
     // ───────────────────────── HTML tab ─────────────────────────
     function renderHtmlTab() {
       step1Host.innerHTML = `
@@ -1461,12 +1602,22 @@ export class AppComponent implements OnInit {
     // ───────────────────────── Next.js tab ─────────────────────────
     function renderNextTab() {
       const isApp = state.nextRouter === "app";
-      const snippetFn = isApp ? nextAppSnippet : nextPagesSnippet;
-      const plain     = isApp ? nextAppPlain   : nextPagesPlain;
-      const filename  = isApp ? "app/layout.tsx" : "pages/_document.tsx";
+      const isSdk = state.methodNext === "sdk";
 
+      // Script-method content
+      const scriptSnippetFn = isApp ? nextAppSnippet : nextPagesSnippet;
+      const scriptPlain     = isApp ? nextAppPlain   : nextPagesPlain;
+      const scriptFile      = isApp ? "app/layout.tsx" : "pages/_document.tsx";
+
+      // SDK-method content
       const sdkSnippetFn = isApp ? nextAppSdkSnippet : nextPagesSdkSnippet;
       const sdkPlain     = isApp ? nextAppSdkPlain   : nextPagesSdkPlain;
+      const sdkFile      = isApp ? "app/jam-provider.tsx" : "pages/_app.tsx";
+
+      const filename = isSdk ? sdkFile : scriptFile;
+      const descTail = isSdk
+        ? (isApp ? "(import in your root layout)" : "")
+        : (isApp ? "root layout" : "(not _app.tsx)");
 
       step1Host.innerHTML = `
         ${chooserHTML()}
@@ -1478,110 +1629,106 @@ export class AppComponent implements OnInit {
               <div class="step-desc">
                 Add to your
                 <span class="inline-code">${esc(filename)}</span>
-                ${isApp ? "root layout" : "(not _app.tsx)"}
+                ${descTail}
               </div>
             </div>
             ${aiButton()}
           </div>
           <div class="step-body">
+            ${methodToggle("Next", state.methodNext, "script")}
+
+            ${isSdk ? sdkBenefits() : ""}
+
             <div class="sub-toggle" role="tablist" aria-label="Next.js router">
               <button data-router="app" class="${isApp ? "is-active" : ""}" role="tab" aria-selected="${isApp}">App Router</button>
               <button data-router="pages" class="${!isApp ? "is-active" : ""}" role="tab" aria-selected="${!isApp}">Pages Router</button>
             </div>
 
-            ${codeBlock(snippetFn(), plain, filename)}
-
-            ${gotchasList([
-              gotcha(`<strong style="color:var(--text-primary)">Don't add <code>defer</code></strong> — racing with <code>type="module"</code> is what broke real customers (TeachingStrategies, Kittl).`, { warning: true }),
-              gotcha(`<strong style="color:var(--text-primary)">Mount in the root layout</strong>, not a nested one — login, marketing, and redirect targets all need the scripts loaded.`, { warning: true }),
-              gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
-            ])}
-
-            <div class="fallback ${state.nextFallbackOpen ? "is-open" : ""}" id="nextFallback">
-              <button class="fallback-toggle ${state.nextFallbackOpen ? "is-open" : ""}" data-fallback="next">
-                <span class="chevron">${iconHTML("iconChevronRight")}</span>
-                <span>Want lazy loading and TypeScript types? Use the SDK</span>
-              </button>
-              <div class="fallback-content">
-                <div class="why-text">
-                  Bypasses the <code>&lt;Script&gt;</code> defer/module race entirely. SDK auto-detects
-                  <code>?jam-recording=...</code> URL params and lazy-loads the recorder.
-                </div>
-                <div class="code-block">
-                  <pre>${tok("comment", "$ npm install @jam.dev/recording-links")}</pre>
-                </div>
-                ${codeBlock(sdkSnippetFn(), sdkPlain, isApp ? "app/jam-provider.tsx" : "pages/_app.tsx")}
-                ${isApp ? `<div class="why-text">
-                  Then import <code>&lt;JamProvider /&gt;</code> in your root layout. Two files keep
-                  the layout server-rendered (avoids marking it as <code>"use client"</code>).
-                </div>` : ""}
+            ${isSdk ? `
+              <div class="code-block">
+                <pre>${tok("comment", "$ npm install @jam.dev/recording-links")}</pre>
               </div>
-            </div>
+              ${codeBlock(sdkSnippetFn(), sdkPlain, sdkFile)}
+              ${isApp ? `<div class="why-text">
+                Then import <code>&lt;JamProvider /&gt;</code> in your root layout. Two files keep
+                the layout server-rendered (avoids marking it as <code>"use client"</code>).
+              </div>` : ""}
+              ${gotchasList([
+                gotcha(`<strong style="color:var(--text-primary)">Mount at the root</strong> — login, marketing, and redirect targets all need the SDK initialized.`),
+                gotcha(`Server-side rendering: <code>useEffect</code> runs only in the browser. The SDK is initialized after hydration, which is fine for capture.`),
+                gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
+              ])}
+            ` : `
+              ${codeBlock(scriptSnippetFn(), scriptPlain, scriptFile)}
+              ${gotchasList([
+                gotcha(`<strong style="color:var(--text-primary)">Don't add <code>defer</code></strong> — racing with <code>type="module"</code> is what broke real customers (TeachingStrategies, Kittl).`, { warning: true }),
+                gotcha(`<strong style="color:var(--text-primary)">Mount in the root layout</strong>, not a nested one — login, marketing, and redirect targets all need the scripts loaded.`, { warning: true }),
+                gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
+              ])}
+            `}
           </div>
         </div>
       `;
       wireCommon();
       wireSubToggle();
-      wireFallback("next");
     }
 
     // ───────────────────────── Angular tab ─────────────────────────
     function renderAngularTab() {
+      const isSdk = state.methodAngular === "sdk";
+      const filename = isSdk ? "src/app/app.component.ts" : "src/index.html";
+      const descTail = isSdk
+        ? "— loads the recorder when needed and avoids Zone.js performance issues"
+        : "— see warning below";
+
       step1Host.innerHTML = `
         ${chooserHTML()}
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-number is-active">1</div>
             <div class="step-header-copy">
-              <div class="step-title">
-                Install via SDK
-                <span class="recommended-badge">recommended for Angular</span>
-              </div>
+              <div class="step-title">Add code snippets</div>
               <div class="step-desc">
                 Add to
-                <span class="inline-code">src/app/app.component.ts</span>
-                — loads the recorder when needed and avoids Zone.js performance issues
+                <span class="inline-code">${esc(filename)}</span>
+                ${descTail}
               </div>
             </div>
             ${aiButton()}
           </div>
           <div class="step-body">
-            <div class="code-block">
-              <pre>${tok("comment", "$ npm install @jam.dev/recording-links")}</pre>
-            </div>
+            ${methodToggle("Angular", state.methodAngular, "sdk")}
 
-            ${codeBlock(angularSdkSnippet(), angularSdkPlain, "src/app/app.component.ts")}
-
-            <div class="why-text">
-              <strong>Why <code>runOutsideAngular</code>?</strong> capture.js patches
-              <code>fetch</code>/<code>XHR</code>. Without this wrapper, every captured request
-              triggers Angular change detection → noticeable lag.
-            </div>
-
-            ${gotchasList([
-              gotcha(`Mount in <code>AppComponent</code> (root) — not a nested feature module.`),
-              gotcha(`For server-side rendering (Angular Universal), the SDK is browser-only — wrap in a platform check.`),
-              gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
-            ])}
-
-            <div class="fallback ${state.angularFallbackOpen ? "is-open" : ""}" id="angularFallback">
-              <button class="fallback-toggle ${state.angularFallbackOpen ? "is-open" : ""}" data-fallback="angular">
-                <span class="chevron">${iconHTML("iconChevronRight")}</span>
-                <span>Need to install without npm? Use script tags</span>
-              </button>
-              <div class="fallback-content">
-                <div class="fallback-warning">
-                  <span class="icon">⚠</span>
-                  <span><strong>Not recommended for Angular.</strong> Customers have reported significant performance issues with this approach. Use the SDK above unless you have no build access.</span>
-                </div>
-                ${codeBlock(angularFallbackSnippet(), angularFallbackPlain, "src/index.html")}
+            ${isSdk ? `
+              ${sdkBenefits()}
+              <div class="code-block">
+                <pre>${tok("comment", "$ npm install @jam.dev/recording-links")}</pre>
               </div>
-            </div>
+              ${codeBlock(angularSdkSnippet(), angularSdkPlain, "src/app/app.component.ts")}
+              <div class="why-text">
+                <strong>Why <code>runOutsideAngular</code>?</strong> capture.js patches
+                <code>fetch</code>/<code>XHR</code>. Without this wrapper, every captured request
+                triggers Angular change detection → noticeable lag.
+              </div>
+              ${gotchasList([
+                gotcha(`Mount in <code>AppComponent</code> (root) — not a nested feature module.`),
+                gotcha(`For server-side rendering (Angular Universal), the SDK is browser-only — wrap in a platform check.`),
+                gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
+              ])}
+            ` : `
+              <div class="fallback-warning">
+                <span class="icon">⚠</span>
+                <span><strong>Not recommended for Angular.</strong> Customers have reported significant performance issues — Zone.js triggers change detection on every capture.js network patch. Switch to <strong>SDK</strong> above and use <code>NgZone.runOutsideAngular</code>.</span>
+              </div>
+              ${codeBlock(angularFallbackSnippet(), angularFallbackPlain, "src/index.html")}
+              ${gotchasList([
+                gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
+              ])}
+            `}
           </div>
         </div>
       `;
       wireCommon();
-      wireFallback("angular");
     }
 
     // ───────────────────────── GTM tab ─────────────────────────
@@ -1669,10 +1816,42 @@ export class AppComponent implements OnInit {
       wireFallback("gtm");
     }
 
-    // ───────────────────────── Other tab (canonical HTML, custom file path) ─────────────────────────
+    // Generic SDK snippet for Other entries (npm-based stacks)
+    function otherSdkSnippet() {
+      return [
+        tok("keyword", "import") + " " + tok("punct", "* ") + tok("keyword", "as") + " " +
+          tok("var", "jam") + " " + tok("keyword", "from") + " " +
+          tok("string", "'@jam.dev/recording-links/sdk'") + tok("punct", ";"),
+        "",
+        tok("var", "jam") + tok("punct", ".") + tok("var", "initialize") +
+          tok("punct", "({ ") + tok("attr", "teamId") + tok("punct", ": ") +
+          tok("string", `'${TEAM_ID}'`) + tok("punct", " });"),
+      ].join("\n");
+    }
+    const otherSdkPlain = `import * as jam from '@jam.dev/recording-links/sdk';
+
+jam.initialize({ teamId: '${TEAM_ID}' });`;
+
+    // ───────────────────────── Other tab (canonical HTML or SDK, per-entry file path) ─────────────────────────
     function renderOtherTab() {
       const o = OTHERS.find(x => x.id === state.otherId) || OTHERS[0];
-      const descTail = o.desc ? ` ${esc(o.desc)}` : "";
+      const canSdk = o.hasSdk === true;
+      const isSdk = canSdk && state.methodOther === "sdk";
+
+      const filename = isSdk ? o.sdkFile : o.file;
+      const descTail = isSdk
+        ? (o.sdkDesc ? ` ${esc(o.sdkDesc)}` : "")
+        : (o.desc ? ` ${esc(o.desc)}` : "");
+
+      const lifecycleNote = (() => {
+        if (!isSdk) return "";
+        if (["remix"].includes(o.id))      return `<div class="why-text">Wrap <code>jam.initialize()</code> in <code>useEffect</code> inside your root component — runs only on the client.</div>`;
+        if (["sveltekit"].includes(o.id))  return `<div class="why-text">Wrap <code>jam.initialize()</code> in <code>onMount</code> in your root <code>+layout.svelte</code>.</div>`;
+        if (["astro"].includes(o.id))      return `<div class="why-text">Place inside a <code>&lt;script&gt;</code> block in your layout — Astro hydrates it on the client.</div>`;
+        if (["nuxt"].includes(o.id))       return `<div class="why-text">Use a client-only plugin (<code>jam.client.ts</code>) so it runs only in the browser.</div>`;
+        return ""; // Vue / Vite / CRA — top-level call in entry file is fine
+      })();
+
       step1Host.innerHTML = `
         ${chooserHTML()}
         <div class="step-card">
@@ -1681,19 +1860,34 @@ export class AppComponent implements OnInit {
             <div class="step-header-copy">
               <div class="step-title">Add code snippets</div>
               <div class="step-desc">
-                Add the snippet to your
-                <span class="inline-code">${esc(o.file)}</span>${descTail}
+                Add to your
+                <span class="inline-code">${esc(filename)}</span>${descTail}
               </div>
             </div>
             ${aiButton()}
           </div>
           <div class="step-body">
-            ${codeBlock(htmlSnippet(), htmlPlain)}
-            ${gotchasList([
-              gotcha(`Scripts must be in the <strong style="color:var(--text-primary)">static HTML response</strong> — injecting from JavaScript won't be detected by verification.`),
-              gotcha(`Must be present on <strong style="color:var(--text-primary)">every page</strong> — login, marketing, redirect targets all need the snippet loaded.`),
-              ...(o.id === "nuxt" ? [gotcha(`Nuxt: convert this snippet to <code>app.head.meta</code> and <code>app.head.script</code> in <code>nuxt.config.ts</code>. Don't paste the raw HTML.`, { warning: true })] : []),
-            ])}
+            ${canSdk ? methodToggle("Other", state.methodOther, "script") : ""}
+
+            ${isSdk ? `
+              ${sdkBenefits()}
+              <div class="code-block">
+                <pre>${tok("comment", "$ npm install @jam.dev/recording-links")}</pre>
+              </div>
+              ${codeBlock(otherSdkSnippet(), otherSdkPlain, o.sdkFile)}
+              ${lifecycleNote}
+              ${gotchasList([
+                gotcha(`Initialize <strong style="color:var(--text-primary)">once at app startup</strong>, not in a feature component — the recorder needs to be available before the first user interaction.`),
+                gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
+              ])}
+            ` : `
+              ${codeBlock(htmlSnippet(), htmlPlain)}
+              ${gotchasList([
+                gotcha(`Scripts must be in the <strong style="color:var(--text-primary)">static HTML response</strong> — injecting from JavaScript won't be detected by verification.`),
+                gotcha(`Must be present on <strong style="color:var(--text-primary)">every page</strong> — login, marketing, redirect targets all need the snippet loaded.`),
+                ...(o.id === "nuxt" ? [gotcha(`Nuxt: convert this snippet to <code>app.head.meta</code> and <code>app.head.script</code> in <code>nuxt.config.ts</code>. Don't paste the raw HTML.`, { warning: true })] : []),
+              ])}
+            `}
           </div>
         </div>
       `;
@@ -1723,11 +1917,26 @@ export class AppComponent implements OnInit {
       render();
     }
 
+    function selectMethod(group, method) {
+      // group: "next" | "angular" | "other", method: "script" | "sdk"
+      const stateKey = "method" + group.charAt(0).toUpperCase() + group.slice(1);
+      const storageKey = "jamProtoMethod" + group.charAt(0).toUpperCase() + group.slice(1);
+      state[stateKey] = method;
+      saveToStorage(storageKey, method);
+      render();
+    }
+
     function wireCommon() {
       // Main chips (data-tab) — exclude the Other dropdown trigger which has special handling
       const chips = document.querySelectorAll(".fw-chip[data-tab]");
       for (const chip of chips) {
         chip.addEventListener("click", () => selectTab(chip.dataset.tab));
+      }
+
+      // Method toggle buttons
+      const methodBtns = document.querySelectorAll("[data-method-group][data-method]");
+      for (const btn of methodBtns) {
+        btn.addEventListener("click", () => selectMethod(btn.dataset.methodGroup, btn.dataset.method));
       }
 
       // Other dropdown trigger
