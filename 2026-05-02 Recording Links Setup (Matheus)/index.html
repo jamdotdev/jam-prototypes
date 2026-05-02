@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jam – Recording Links Setup (Matheus)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* ───────────────────────────── Tokens (from Martin's prototype) ───────────────────────────── */
+    :root {
+      --text-primary: #202020;
+      --text-secondary: #646464;
+      --text-tertiary: #838383;
+      --surface-page: #f4f4f4;
+      --surface-card: #ffffff;
+      --surface-subtle: rgba(0, 0, 0, 0.01);
+      --surface-code: #f0f0f0;
+      --surface-muted: #e8e8e8;
+      --border-subtle: rgba(0, 0, 0, 0.09);
+      --border-input: rgba(0, 0, 0, 0.15);
+      --border-strong: rgba(0, 0, 0, 0.19);
+      --hover-bg: rgba(0, 0, 0, 0.04);
+      --pressed-bg: rgba(0, 0, 0, 0.06);
+      --selected-bg: rgba(0, 0, 0, 0.09);
+
+      --warning-bg: rgba(217, 119, 6, 0.08);
+      --warning-border: rgba(217, 119, 6, 0.25);
+      --warning-text: #92400e;
+
+      --radius-card: 12px;
+      --radius-button: 9px;
+      --radius-chip: 6px;
+
+      --tok-comment: #838383;
+      --tok-attr: #8145b5;
+      --tok-string: #218358;
+      --tok-keyword: #c2298a;
+      --tok-var: #0d74ce;
+      --tok-punct: #202020;
+      --tok-brace: #9e6c00;
+
+      --shadow-card: 0 0 0 1.5px rgba(33, 41, 156, 0.03),
+        0 2px 2px -1px rgba(0, 0, 0, 0.08),
+        0 1px 1px -0.5px rgba(0, 0, 0, 0.06);
+      --shadow-popover: 0 0 0 1px rgba(0, 0, 0, 0.05),
+        0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+      --shadow-button: inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        0 1px 1px rgba(0, 0, 0, 0.04);
+    }
+
+    /* ───────────────────────────── Reset ───────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--text-primary);
+      background: var(--surface-page);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      color: inherit;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+
+    input {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      border: none;
+      outline: none;
+      background: none;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ───────────────────────────── App shell ───────────────────────────── */
+    .app {
+      max-width: 1280px;
+      margin: 24px auto 64px;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      border-radius: 16px;
+      background: #fcfcfc;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04),
+        0 24px 48px rgba(0, 0, 0, 0.06);
+    }
+
+    .sidebar { border-top-left-radius: 16px; border-bottom-left-radius: 16px; }
+    .main    { border-top-right-radius: 16px; border-bottom-right-radius: 16px; }
+
+    /* ───────────────────────────── Sidebar ───────────────────────────── */
+    .sidebar {
+      background: #fcfcfc;
+      padding: 32px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--radius-button);
+      color: var(--text-secondary);
+      font-weight: 500;
+      transition: background 0.12s;
+    }
+    .nav-back:hover { background: var(--hover-bg); color: var(--text-primary); }
+
+    .nav-section { display: flex; flex-direction: column; gap: 2px; }
+
+    .nav-section-header {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.55);
+      letter-spacing: 0.02em;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: background 0.12s;
+    }
+    .nav-item:hover { background: var(--hover-bg); }
+    .nav-item.is-active { background: var(--selected-bg); }
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      color: var(--text-secondary);
+      stroke-width: 1.75;
+      flex-shrink: 0;
+    }
+
+    .nav-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #73e5bf, #3fab7e);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* ───────────────────────────── Main content ───────────────────────────── */
+    .main { display: flex; flex-direction: column; background: #ffffff; }
+
+    .main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 76px;
+      padding: 0 40px;
+      border-bottom: 1px solid #eeefef;
+      background: #ffffff;
+    }
+
+    .main-header h1 {
+      font-family: "Inter", sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #1e2624;
+    }
+
+    .main-header .doc-note {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .main-content {
+      display: flex;
+      justify-content: center;
+      padding: 48px 32px;
+    }
+
+    .setup-column {
+      width: 720px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* ───────────────────────────── Section heading ───────────────────────────── */
+    .section { display: flex; flex-direction: column; gap: 16px; }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 26px;
+      letter-spacing: 0.02em;
+      color: #1e2624;
+    }
+
+    .section-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px 0;
+    }
+
+    .section-summary .row-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .section-summary .row-desc {
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--text-secondary);
+    }
+
+    .section-summary .docs-link {
+      color: var(--text-primary);
+      text-decoration: underline;
+      text-decoration-color: var(--text-secondary);
+      text-underline-offset: 2px;
+    }
+    .section-summary .docs-link:hover { text-decoration-color: var(--text-primary); }
+
+    /* ───────────────────────────── Step card ───────────────────────────── */
+    .step-card {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-card);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step-card-header {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 8px;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: var(--surface-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+    .step-number.is-active { color: var(--text-primary); }
+
+    .step-header-copy {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .step-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-title .recommended-badge {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--tok-string);
+      background: rgba(33, 131, 88, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.01em;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .step-desc .inline-code {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 5px;
+      background: var(--surface-code);
+      border-radius: var(--radius-chip);
+      font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 16px;
+    }
+
+    .step-body {
+      padding-left: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ───────────────────────────── Tabs (variant B with icons) ───────────────────────────── */
+    .fw-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      background: var(--surface-muted);
+      border-radius: 11px;
+      width: fit-content;
+      box-shadow: inset 0 0 0 1px var(--border-subtle);
+    }
+
+    .fw-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 11px 5px 7px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+      white-space: nowrap;
+    }
+
+    .fw-tab:hover { color: var(--text-primary); }
+
+    .fw-tab.is-active {
+      background: #ffffff;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-button), 0 0 0 1px var(--border-subtle);
+    }
+
+    .fw-tab-mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
+    }
+
+    /* ───────────────────────────── Sub-toggle (Next.js App/Pages) ───────────────────────────── */
+    .sub-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      padding: 2px;
+      background: var(--surface-code);
+      border-radius: 7px;
+      width: fit-content;
+    }
+
+    .sub-toggle button {
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .sub-toggle button:hover { color: var(--text-primary); }
+
+    .sub-toggle button.is-active {
+      background: #ffffff;
+      color: var(--text-primary);
+      box-shadow: 0 0 0 1px var(--border-subtle);
+    }
+
+    /* ───────────────────────────── Code block ───────────────────────────── */
+    .code-block {
+      position: relative;
+      background: var(--surface-code);
+      border-radius: var(--radius-card);
+      padding: 12px 16px;
+    }
+
+    .code-block pre {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      line-height: 18px;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding-right: 100px;
+    }
+
+    .code-block .filename {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-bottom: 8px;
+      letter-spacing: 0.01em;
+    }
+
+    .tok-comment { color: var(--tok-comment); }
+    .tok-attr    { color: var(--tok-attr);    }
+    .tok-string  { color: var(--tok-string);  }
+    .tok-keyword { color: var(--tok-keyword); }
+    .tok-var     { color: var(--tok-var);     }
+    .tok-punct   { color: var(--tok-punct);   }
+    .tok-brace   { color: var(--tok-brace);   }
+
+    /* ───────────────────────────── Snippet controls ───────────────────────────── */
+    .snippet-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--radius-button);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 0 0 1px var(--border-strong), var(--shadow-button);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      transition: background 0.12s, box-shadow 0.12s, color 0.12s;
+    }
+
+    .btn:hover { background: #ffffff; }
+
+    .btn.is-icon {
+      width: 28px;
+      padding: 0;
+      color: var(--text-secondary);
+    }
+
+    .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .btn.is-disabled {
+      color: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.02);
+      box-shadow: 0 0 0 1px var(--border-input);
+      cursor: default;
+    }
+    .btn.is-disabled:hover { background: rgba(0, 0, 0, 0.02); }
+
+    /* AI button */
+    .btn.is-ai {
+      padding: 0 12px 0 8px;
+      color: var(--text-primary);
+      background: linear-gradient(180deg, #fff 0%, #f8f8fa 100%);
+      box-shadow: 0 0 0 1px var(--border-strong),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 1px 1px rgba(0, 0, 0, 0.04);
+      transition: background 0.12s, box-shadow 0.2s;
+    }
+    .btn.is-ai:hover {
+      box-shadow: 0 0 0 1px rgba(194, 41, 138, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 1px 1px rgba(0, 0, 0, 0.04),
+        0 0 0 3px rgba(194, 41, 138, 0.08);
+    }
+    .btn.is-ai .ai-sparkle {
+      color: var(--tok-keyword);
+      width: 14px;
+      height: 14px;
+    }
+
+    .step-card-header > .btn.is-ai {
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: -4px;
+    }
+
+    /* ───────────────────────────── Why-text (after code) ───────────────────────────── */
+    .why-text {
+      font-size: 13px;
+      line-height: 20px;
+      color: var(--text-secondary);
+      padding: 0 4px;
+    }
+
+    .why-text strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .why-text code {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      background: var(--surface-code);
+      padding: 1px 5px;
+      border-radius: var(--radius-chip);
+      color: var(--text-primary);
+    }
+
+    /* ───────────────────────────── Gotchas list ───────────────────────────── */
+    .gotchas {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 4px 0 0;
+    }
+
+    .gotchas-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .gotcha-item {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      line-height: 20px;
+      color: var(--text-secondary);
+      padding: 2px 0;
+    }
+
+    .gotcha-item .icon {
+      flex-shrink: 0;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      line-height: 20px;
+      width: 12px;
+      text-align: center;
+    }
+
+    .gotcha-item.is-warning .icon {
+      color: var(--warning-text);
+    }
+
+    .gotcha-item code {
+      font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      background: var(--surface-code);
+      padding: 1px 5px;
+      border-radius: var(--radius-chip);
+      color: var(--text-primary);
+    }
+
+    .gotcha-item .gotcha-link {
+      color: var(--text-primary);
+      text-decoration: underline;
+      text-decoration-color: var(--text-tertiary);
+      text-underline-offset: 2px;
+    }
+    .gotcha-item .gotcha-link:hover { text-decoration-color: var(--text-primary); }
+
+    /* ───────────────────────────── Collapsible fallback ───────────────────────────── */
+    .fallback {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .fallback-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 4px 0;
+      transition: color 0.12s;
+      width: fit-content;
+    }
+    .fallback-toggle:hover { color: var(--text-primary); }
+
+    .fallback-toggle .chevron {
+      width: 12px;
+      height: 12px;
+      transition: transform 0.15s;
+    }
+
+    .fallback-toggle.is-open .chevron { transform: rotate(90deg); }
+
+    .fallback-content {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .fallback.is-open .fallback-content { display: flex; }
+
+    .fallback-warning {
+      display: flex;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 18px;
+      color: var(--warning-text);
+    }
+
+    .fallback-warning .icon {
+      flex-shrink: 0;
+      font-size: 14px;
+      line-height: 18px;
+    }
+
+    /* ───────────────────────────── Verify step ───────────────────────────── */
+    .verify-row {
+      display: flex;
+      gap: 8px;
+      padding-left: 32px;
+    }
+
+    .verify-input {
+      flex: 1;
+      display: flex;
+      align-items: stretch;
+      border-radius: var(--radius-button);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px var(--border-input);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .verify-input .prefix {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      background: #f9f9f9;
+      color: var(--text-secondary);
+      font-size: 14px;
+      border-right: 1px solid var(--border-input);
+    }
+
+    .verify-input input {
+      flex: 1;
+      min-width: 0;
+      padding: 0 10px;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--text-primary);
+    }
+
+    .verify-input input::placeholder { color: rgba(0, 0, 0, 0.35); }
+
+    /* ───────────────────────────── Toast ───────────────────────────── */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 32px;
+      transform: translate(-50%, 12px);
+      background: #1e2624;
+      color: #ffffff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      white-space: nowrap;
+    }
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- App shell -->
+  <div class="app">
+    <!-- Sidebar (mirrors Martin's prototype for visual consistency) -->
+    <aside class="sidebar">
+      <a href="#" class="nav-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Back to App
+      </a>
+
+      <div class="nav-section">
+        <div class="nav-section-header">Workspace</div>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          General
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Members
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+          Plan &amp; Billing
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-header">Apps &amp; Tools</div>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Integrations
+        </a>
+        <a href="#" class="nav-item is-active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          Recording Links
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          MCP
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"></path></svg>
+          Webhooks
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-header">Account</div>
+        <a href="#" class="nav-item">
+          <span class="nav-avatar">M</span>
+          Matheus Poleza
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          Notifications
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <section class="main">
+      <header class="main-header">
+        <h1>Recording Links</h1>
+        <span class="doc-note">Iteration based on tab decisions</span>
+      </header>
+
+      <div class="main-content">
+        <div class="setup-column">
+          <!-- Connect Domain section -->
+          <div class="section">
+            <h2 class="section-title">Connect Domain</h2>
+            <div class="section-summary">
+              <div class="row-title">Get logs from your domain</div>
+              <div class="row-desc">
+                Send links from your domain to get debug logs, auto-blurring and more.
+                <a href="#" class="docs-link">View docs ↗</a>
+              </div>
+            </div>
+
+            <!-- Step 1: rendered by JS -->
+            <div id="step1Host"></div>
+
+            <!-- Step 2: Verify domain (shared across tabs) -->
+            <div class="step-card">
+              <div class="step-card-header">
+                <div class="step-number is-active">2</div>
+                <div class="step-header-copy">
+                  <div class="step-title">Verify domain</div>
+                  <div class="step-desc">Paste your site’s URL to verify script installation</div>
+                </div>
+              </div>
+              <div class="verify-row">
+                <div class="verify-input">
+                  <span class="prefix">https://</span>
+                  <input type="text" placeholder="yoursite.com" id="verifyInput" />
+                </div>
+                <button class="btn is-disabled" id="verifyBtn">Verify</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- SVG icon templates -->
+  <template id="iconCopy">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+  </template>
+  <template id="iconChevronRight">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </template>
+  <template id="iconSparkle">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"></path></svg>
+  </template>
+
+  <script>
+    // ───────────────────────── Helpers ─────────────────────────
+    function esc(text) {
+      return String(text).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
+    }
+    function tok(cls, text) { return `<span class="tok-${cls}">${esc(text)}</span>`; }
+    function iconHTML(id) {
+      const tpl = document.getElementById(id);
+      return tpl ? tpl.innerHTML : "";
+    }
+
+    const TEAM_ID = "cc790cfb-24ab-4979-a5ac-daa4112cd3a3";
+
+    // ───────────────────────── Snippet builders ─────────────────────────
+    // HTML — canonical 3-line snippet
+    function htmlSnippet() {
+      return [
+        tok("punct", "<meta ") + tok("attr", "name") + tok("punct", "=") +
+          tok("string", '"jam:team"') + " " + tok("attr", "content") + tok("punct", "=") +
+          tok("string", `"${TEAM_ID}"`) + tok("punct", ">"),
+        tok("punct", "<script ") + tok("attr", "type") + tok("punct", "=") +
+          tok("string", '"module"') + " " + tok("attr", "src") + tok("punct", "=") +
+          tok("string", '"https://js.jam.dev/recorder.js"') + tok("punct", "><\/script>"),
+        tok("punct", "<script ") + tok("attr", "type") + tok("punct", "=") +
+          tok("string", '"module"') + " " + tok("attr", "src") + tok("punct", "=") +
+          tok("string", '"https://js.jam.dev/capture.js"') + tok("punct", "><\/script>"),
+      ].join("\n");
+    }
+    const htmlPlain = `<meta name="jam:team" content="${TEAM_ID}">
+<script type="module" src="https://js.jam.dev/recorder.js"><\/script>
+<script type="module" src="https://js.jam.dev/capture.js"><\/script>`;
+
+    // Next.js App Router (script tag, with <Script> correctly configured)
+    function nextAppSnippet() {
+      return [
+        tok("keyword", "import") + " " + tok("var", "Script") + " " + tok("keyword", "from") + " " +
+          tok("string", '"next/script"') + tok("punct", ";"),
+        "",
+        tok("keyword", "export default function") + " " + tok("var", "RootLayout") +
+          tok("punct", "({ ") + tok("var", "children") + tok("punct", " }) {"),
+        "  " + tok("keyword", "return") + " " + tok("punct", "("),
+        "    " + tok("punct", "<html ") + tok("attr", "lang") + tok("punct", "=") + tok("string", '"en"') + tok("punct", ">"),
+        "      " + tok("punct", "<head>"),
+        "        " + tok("punct", "<meta ") + tok("attr", "name") + tok("punct", "=") +
+          tok("string", '"jam:team"') + " " + tok("attr", "content") + tok("punct", "=") +
+          tok("string", `"${TEAM_ID}"`) + tok("punct", " />"),
+        "      " + tok("punct", "</head>"),
+        "      " + tok("punct", "<body>"),
+        "        " + tok("punct", "<") + tok("var", "Script") + " " + tok("attr", "src") +
+          tok("punct", "=") + tok("string", '"https://js.jam.dev/recorder.js"'),
+        "          " + tok("attr", "type") + tok("punct", "=") + tok("string", '"module"') + " " +
+          tok("attr", "strategy") + tok("punct", "=") + tok("string", '"beforeInteractive"') + tok("punct", " />"),
+        "        " + tok("punct", "<") + tok("var", "Script") + " " + tok("attr", "src") +
+          tok("punct", "=") + tok("string", '"https://js.jam.dev/capture.js"'),
+        "          " + tok("attr", "type") + tok("punct", "=") + tok("string", '"module"') + " " +
+          tok("attr", "strategy") + tok("punct", "=") + tok("string", '"beforeInteractive"') + tok("punct", " />"),
+        "        " + tok("brace", "{") + tok("var", "children") + tok("brace", "}"),
+        "      " + tok("punct", "</body>"),
+        "    " + tok("punct", "</html>"),
+        "  " + tok("punct", ");"),
+        tok("punct", "}"),
+      ].join("\n");
+    }
+    const nextAppPlain = `import Script from "next/script";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <head>
+        <meta name="jam:team" content="${TEAM_ID}" />
+      </head>
+      <body>
+        <Script src="https://js.jam.dev/recorder.js"
+          type="module" strategy="beforeInteractive" />
+        <Script src="https://js.jam.dev/capture.js"
+          type="module" strategy="beforeInteractive" />
+        {children}
+      </body>
+    </html>
+  );
+}`;
+
+    // Next.js Pages Router
+    function nextPagesSnippet() {
+      return [
+        tok("keyword", "import") + " " + tok("punct", "{ ") + tok("var", "Html") + tok("punct", ", ") +
+          tok("var", "Head") + tok("punct", ", ") + tok("var", "Main") + tok("punct", ", ") +
+          tok("var", "NextScript") + tok("punct", " } ") + tok("keyword", "from") + " " +
+          tok("string", '"next/document"') + tok("punct", ";"),
+        tok("keyword", "import") + " " + tok("var", "Script") + " " + tok("keyword", "from") + " " +
+          tok("string", '"next/script"') + tok("punct", ";"),
+        "",
+        tok("keyword", "export default function") + " " + tok("var", "Document") + tok("punct", "() {"),
+        "  " + tok("keyword", "return") + " " + tok("punct", "("),
+        "    " + tok("punct", "<") + tok("var", "Html") + " " + tok("attr", "lang") + tok("punct", "=") + tok("string", '"en"') + tok("punct", ">"),
+        "      " + tok("punct", "<") + tok("var", "Head") + tok("punct", ">"),
+        "        " + tok("punct", "<meta ") + tok("attr", "name") + tok("punct", "=") +
+          tok("string", '"jam:team"') + " " + tok("attr", "content") + tok("punct", "=") +
+          tok("string", `"${TEAM_ID}"`) + tok("punct", " />"),
+        "      " + tok("punct", "</") + tok("var", "Head") + tok("punct", ">"),
+        "      " + tok("punct", "<body>"),
+        "        " + tok("punct", "<") + tok("var", "Main") + tok("punct", " />"),
+        "        " + tok("punct", "<") + tok("var", "NextScript") + tok("punct", " />"),
+        "        " + tok("punct", "<") + tok("var", "Script") + " " + tok("attr", "src") +
+          tok("punct", "=") + tok("string", '"https://js.jam.dev/recorder.js"'),
+        "          " + tok("attr", "type") + tok("punct", "=") + tok("string", '"module"') + " " +
+          tok("attr", "strategy") + tok("punct", "=") + tok("string", '"beforeInteractive"') + tok("punct", " />"),
+        "        " + tok("punct", "<") + tok("var", "Script") + " " + tok("attr", "src") +
+          tok("punct", "=") + tok("string", '"https://js.jam.dev/capture.js"'),
+        "          " + tok("attr", "type") + tok("punct", "=") + tok("string", '"module"') + " " +
+          tok("attr", "strategy") + tok("punct", "=") + tok("string", '"beforeInteractive"') + tok("punct", " />"),
+        "      " + tok("punct", "</body>"),
+        "    " + tok("punct", "</") + tok("var", "Html") + tok("punct", ">"),
+        "  " + tok("punct", ");"),
+        tok("punct", "}"),
+      ].join("\n");
+    }
+    const nextPagesPlain = `import { Html, Head, Main, NextScript } from "next/document";
+import Script from "next/script";
+
+export default function Document() {
+  return (
+    <Html lang="en">
+      <Head>
+        <meta name="jam:team" content="${TEAM_ID}" />
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+        <Script src="https://js.jam.dev/recorder.js"
+          type="module" strategy="beforeInteractive" />
+        <Script src="https://js.jam.dev/capture.js"
+          type="module" strategy="beforeInteractive" />
+      </body>
+    </Html>
+  );
+}`;
+
+    // Next.js SDK fallback (App Router) — two files
+    function nextAppSdkSnippet() {
+      return [
+        tok("comment", "// app/jam-provider.tsx"),
+        tok("string", '"use client"') + tok("punct", ";"),
+        tok("keyword", "import") + " " + tok("punct", "{ ") + tok("var", "useEffect") + tok("punct", " } ") +
+          tok("keyword", "from") + " " + tok("string", '"react"') + tok("punct", ";"),
+        tok("keyword", "import") + " " + tok("punct", "* ") + tok("keyword", "as") + " " + tok("var", "jam") + " " +
+          tok("keyword", "from") + " " + tok("string", '"@jam.dev/recording-links/sdk"') + tok("punct", ";"),
+        "",
+        tok("keyword", "export function") + " " + tok("var", "JamProvider") + tok("punct", "() {"),
+        "  " + tok("var", "useEffect") + tok("punct", "(() => {"),
+        "    " + tok("var", "jam") + tok("punct", ".") + tok("var", "initialize") +
+          tok("punct", "({ ") + tok("attr", "teamId") + tok("punct", ": ") + tok("string", `"${TEAM_ID}"`) + tok("punct", " });"),
+        "  " + tok("punct", "}, []);"),
+        "  " + tok("keyword", "return") + " " + tok("keyword", "null") + tok("punct", ";"),
+        tok("punct", "}"),
+      ].join("\n");
+    }
+    const nextAppSdkPlain = `// app/jam-provider.tsx
+"use client";
+import { useEffect } from "react";
+import * as jam from "@jam.dev/recording-links/sdk";
+
+export function JamProvider() {
+  useEffect(() => {
+    jam.initialize({ teamId: "${TEAM_ID}" });
+  }, []);
+  return null;
+}`;
+
+    // Next.js SDK fallback (Pages Router) — one file
+    function nextPagesSdkSnippet() {
+      return [
+        tok("comment", "// pages/_app.tsx"),
+        tok("keyword", "import") + " " + tok("keyword", "type") + " " + tok("punct", "{ ") +
+          tok("var", "AppProps") + tok("punct", " } ") + tok("keyword", "from") + " " +
+          tok("string", '"next/app"') + tok("punct", ";"),
+        tok("keyword", "import") + " " + tok("punct", "{ ") + tok("var", "useEffect") + tok("punct", " } ") +
+          tok("keyword", "from") + " " + tok("string", '"react"') + tok("punct", ";"),
+        tok("keyword", "import") + " " + tok("punct", "* ") + tok("keyword", "as") + " " + tok("var", "jam") + " " +
+          tok("keyword", "from") + " " + tok("string", '"@jam.dev/recording-links/sdk"') + tok("punct", ";"),
+        "",
+        tok("keyword", "export default function") + " " + tok("var", "App") +
+          tok("punct", "({ ") + tok("var", "Component") + tok("punct", ", ") + tok("var", "pageProps") +
+          tok("punct", " }: ") + tok("var", "AppProps") + tok("punct", ") {"),
+        "  " + tok("var", "useEffect") + tok("punct", "(() => {"),
+        "    " + tok("var", "jam") + tok("punct", ".") + tok("var", "initialize") +
+          tok("punct", "({ ") + tok("attr", "teamId") + tok("punct", ": ") + tok("string", `"${TEAM_ID}"`) + tok("punct", " });"),
+        "  " + tok("punct", "}, []);"),
+        "  " + tok("keyword", "return") + " " + tok("punct", "<") + tok("var", "Component") +
+          tok("punct", " {...") + tok("var", "pageProps") + tok("punct", "} />;"),
+        tok("punct", "}"),
+      ].join("\n");
+    }
+    const nextPagesSdkPlain = `// pages/_app.tsx
+import type { AppProps } from "next/app";
+import { useEffect } from "react";
+import * as jam from "@jam.dev/recording-links/sdk";
+
+export default function App({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    jam.initialize({ teamId: "${TEAM_ID}" });
+  }, []);
+  return <Component {...pageProps} />;
+}`;
+
+    // Angular SDK primary
+    function angularSdkSnippet() {
+      return [
+        tok("keyword", "import") + " " + tok("punct", "{ ") + tok("var", "Component") +
+          tok("punct", ", ") + tok("var", "OnInit") + tok("punct", ", ") + tok("var", "NgZone") +
+          tok("punct", " } ") + tok("keyword", "from") + " " + tok("string", "'@angular/core'") + tok("punct", ";"),
+        tok("keyword", "import") + " " + tok("punct", "* ") + tok("keyword", "as") + " " +
+          tok("var", "jam") + " " + tok("keyword", "from") + " " +
+          tok("string", "'@jam.dev/recording-links/sdk'") + tok("punct", ";"),
+        "",
+        tok("punct", "@") + tok("var", "Component") + tok("punct", "({"),
+        "  " + tok("attr", "selector") + tok("punct", ": ") + tok("string", "'app-root'") + tok("punct", ","),
+        "  " + tok("attr", "template") + tok("punct", ": ") + tok("string", "'<router-outlet></router-outlet>'") + tok("punct", ","),
+        tok("punct", "})"),
+        tok("keyword", "export class") + " " + tok("var", "AppComponent") + " " +
+          tok("keyword", "implements") + " " + tok("var", "OnInit") + tok("punct", " {"),
+        "  " + tok("keyword", "constructor") + tok("punct", "(") + tok("keyword", "private") + " " +
+          tok("var", "ngZone") + tok("punct", ": ") + tok("var", "NgZone") + tok("punct", ") {}"),
+        "",
+        "  " + tok("var", "ngOnInit") + tok("punct", "() {"),
+        "    " + tok("keyword", "this") + tok("punct", ".") + tok("var", "ngZone") +
+          tok("punct", ".") + tok("var", "runOutsideAngular") + tok("punct", "(() => {"),
+        "      " + tok("var", "jam") + tok("punct", ".") + tok("var", "initialize") +
+          tok("punct", "({ ") + tok("attr", "teamId") + tok("punct", ": ") + tok("string", `'${TEAM_ID}'`) + tok("punct", " });"),
+        "    " + tok("punct", "});"),
+        "  " + tok("punct", "}"),
+        tok("punct", "}"),
+      ].join("\n");
+    }
+    const angularSdkPlain = `import { Component, OnInit, NgZone } from '@angular/core';
+import * as jam from '@jam.dev/recording-links/sdk';
+
+@Component({
+  selector: 'app-root',
+  template: '<router-outlet></router-outlet>',
+})
+export class AppComponent implements OnInit {
+  constructor(private ngZone: NgZone) {}
+
+  ngOnInit() {
+    this.ngZone.runOutsideAngular(() => {
+      jam.initialize({ teamId: '${TEAM_ID}' });
+    });
+  }
+}`;
+
+    // Angular script tag fallback
+    const angularFallbackPlain = htmlPlain;
+    function angularFallbackSnippet() { return htmlSnippet(); }
+
+    // GTM single Custom HTML Tag
+    function gtmSnippet() {
+      return [
+        tok("punct", "<meta ") + tok("attr", "name") + tok("punct", "=") +
+          tok("string", '"jam:team"') + " " + tok("attr", "content") + tok("punct", "=") +
+          tok("string", `"${TEAM_ID}"`) + tok("punct", ">"),
+        tok("punct", "<script>"),
+        tok("punct", "(") + tok("keyword", "async function") + tok("punct", "() {"),
+        "  " + tok("keyword", "if") + tok("punct", " (") + tok("var", "window") + tok("punct", ".") +
+          tok("var", "jam") + tok("punct", ") ") + tok("keyword", "return") + tok("punct", ";"),
+        "  " + tok("keyword", "try") + tok("punct", " {"),
+        "    " + tok("keyword", "await") + " " + tok("var", "Promise") + tok("punct", ".") +
+          tok("var", "all") + tok("punct", "(["),
+        "      " + tok("keyword", "import") + tok("punct", "(") +
+          tok("string", "'https://js.jam.dev/recorder.js'") + tok("punct", "),"),
+        "      " + tok("keyword", "import") + tok("punct", "(") +
+          tok("string", "'https://js.jam.dev/capture.js'") + tok("punct", ")"),
+        "    " + tok("punct", "]);"),
+        "  " + tok("punct", "} ") + tok("keyword", "catch") + tok("punct", " (") + tok("var", "e") + tok("punct", ") {"),
+        "    " + tok("var", "console") + tok("punct", ".") + tok("var", "error") +
+          tok("punct", "(") + tok("string", "'Failed to load Jam scripts:'") + tok("punct", ", ") +
+          tok("var", "e") + tok("punct", ");"),
+        "  " + tok("punct", "}"),
+        tok("punct", "})();"),
+        tok("punct", "<\/script>"),
+      ].join("\n");
+    }
+    const gtmPlain = `<meta name="jam:team" content="${TEAM_ID}">
+<script>
+(async function() {
+  if (window.jam) return;
+  try {
+    await Promise.all([
+      import('https://js.jam.dev/recorder.js'),
+      import('https://js.jam.dev/capture.js')
+    ]);
+  } catch (e) {
+    console.error('Failed to load Jam scripts:', e);
+  }
+})();
+<\/script>`;
+
+    // ───────────────────────── Tab definitions ─────────────────────────
+    // Each tab has its own renderer because content varies significantly.
+    const TABS = [
+      { id: "html",    name: "HTML",    mark: "HT", color: "#5a6070" },
+      { id: "next",    name: "Next.js", mark: "N",  color: "#1e2624" },
+      { id: "angular", name: "Angular", mark: "A",  color: "#dd0031" },
+      { id: "gtm",     name: "GTM",     mark: "G",  color: "#246fdb" },
+    ];
+
+    // ───────────────────────── State ─────────────────────────
+    const state = {
+      tabId: loadFromStorage("jamProtoTab",     "html"),
+      nextRouter: loadFromStorage("jamProtoNextRouter", "app"), // "app" | "pages"
+      angularFallbackOpen: false,
+      nextFallbackOpen: false,
+      gtmFallbackOpen: false,
+    };
+
+    function loadFromStorage(key, fallback) {
+      try {
+        const v = localStorage.getItem(key);
+        return v || fallback;
+      } catch (_) { return fallback; }
+    }
+    function saveToStorage(key, value) {
+      try { localStorage.setItem(key, value); } catch (_) {}
+    }
+
+    // ───────────────────────── Render entry ─────────────────────────
+    const $ = sel => document.querySelector(sel);
+    const step1Host = $("#step1Host");
+
+    function render() {
+      if (state.tabId === "html")    renderHtmlTab();
+      else if (state.tabId === "next")    renderNextTab();
+      else if (state.tabId === "angular") renderAngularTab();
+      else if (state.tabId === "gtm")     renderGtmTab();
+    }
+
+    // ───────────────────────── Shared bits ─────────────────────────
+    function tabsHTML() {
+      return TABS.map(t => `
+        <button class="fw-tab ${t.id === state.tabId ? "is-active" : ""}"
+                data-tab="${t.id}" role="tab" aria-selected="${t.id === state.tabId}">
+          <span class="fw-tab-mark" style="background:${t.color}">${esc(t.mark)}</span>
+          <span>${esc(t.name)}</span>
+        </button>
+      `).join("");
+    }
+
+    function copyButton(plainText, label = "Copy snippet") {
+      return `
+        <button class="btn is-icon" data-copy="${esc(label)}" data-plain="${encodeURIComponent(plainText)}"
+                title="Copy to clipboard" aria-label="${esc(label)}">
+          ${iconHTML("iconCopy")}
+        </button>
+      `;
+    }
+
+    function aiButton() {
+      return `
+        <button class="btn is-ai" id="aiBtn" type="button"
+                aria-label="Copy agent prompt to clipboard"
+                title="Copies a self-contained prompt you can paste into your AI agent">
+          <span class="ai-sparkle">${iconHTML("iconSparkle")}</span>
+          <span>Copy agent prompt</span>
+        </button>
+      `;
+    }
+
+    function codeBlock(snippetHTML, plainText, filename) {
+      const fileLabel = filename ? `<div class="filename">${esc(filename)}</div>` : "";
+      return `
+        <div class="code-block">
+          ${fileLabel}
+          <pre>${snippetHTML}</pre>
+          <div class="snippet-controls">${copyButton(plainText)}</div>
+        </div>
+      `;
+    }
+
+    function gotcha(text, opts = {}) {
+      const cls = opts.warning ? "gotcha-item is-warning" : "gotcha-item";
+      const icon = opts.warning ? "⚠" : "•";
+      return `<div class="${cls}"><span class="icon">${icon}</span><span>${text}</span></div>`;
+    }
+
+    function gotchasList(items) {
+      return `
+        <div class="gotchas">
+          <div class="gotchas-title">Gotchas</div>
+          ${items.join("")}
+        </div>
+      `;
+    }
+
+    // ───────────────────────── HTML tab ─────────────────────────
+    function renderHtmlTab() {
+      step1Host.innerHTML = `
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number is-active">1</div>
+            <div class="step-header-copy">
+              <div class="step-title">Add code snippets</div>
+              <div class="step-desc">
+                Paste in the
+                <span class="inline-code">&lt;head&gt;</span>
+                of every page on your site
+              </div>
+            </div>
+            ${aiButton()}
+          </div>
+          <div class="step-body">
+            <div class="fw-tabs" role="tablist">${tabsHTML()}</div>
+            ${codeBlock(htmlSnippet(), htmlPlain)}
+            ${gotchasList([
+              gotcha(`Scripts must be in the <strong style="color:var(--text-primary)">static HTML response</strong> — injecting from JavaScript won't be detected by verification.`),
+              gotcha(`Must be present on <strong style="color:var(--text-primary)">every page</strong> — login, marketing, redirect targets all need the snippet loaded.`),
+            ])}
+          </div>
+        </div>
+      `;
+      wireCommon();
+    }
+
+    // ───────────────────────── Next.js tab ─────────────────────────
+    function renderNextTab() {
+      const isApp = state.nextRouter === "app";
+      const snippetFn = isApp ? nextAppSnippet : nextPagesSnippet;
+      const plain     = isApp ? nextAppPlain   : nextPagesPlain;
+      const filename  = isApp ? "app/layout.tsx" : "pages/_document.tsx";
+
+      const sdkSnippetFn = isApp ? nextAppSdkSnippet : nextPagesSdkSnippet;
+      const sdkPlain     = isApp ? nextAppSdkPlain   : nextPagesSdkPlain;
+
+      step1Host.innerHTML = `
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number is-active">1</div>
+            <div class="step-header-copy">
+              <div class="step-title">Add code snippets</div>
+              <div class="step-desc">
+                Add to your
+                <span class="inline-code">${esc(filename)}</span>
+                ${isApp ? "root layout" : "(not _app.tsx)"}
+              </div>
+            </div>
+            ${aiButton()}
+          </div>
+          <div class="step-body">
+            <div class="fw-tabs" role="tablist">${tabsHTML()}</div>
+
+            <div class="sub-toggle" role="tablist" aria-label="Next.js router">
+              <button data-router="app" class="${isApp ? "is-active" : ""}" role="tab" aria-selected="${isApp}">App Router</button>
+              <button data-router="pages" class="${!isApp ? "is-active" : ""}" role="tab" aria-selected="${!isApp}">Pages Router</button>
+            </div>
+
+            ${codeBlock(snippetFn(), plain, filename)}
+
+            ${gotchasList([
+              gotcha(`<strong style="color:var(--text-primary)">Don't add <code>defer</code></strong> — racing with <code>type="module"</code> is what broke real customers (TeachingStrategies, Kittl).`, { warning: true }),
+              gotcha(`<strong style="color:var(--text-primary)">Mount in the root layout</strong>, not a nested one — login, marketing, and redirect targets all need the scripts loaded.`, { warning: true }),
+              gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
+            ])}
+
+            <div class="fallback ${state.nextFallbackOpen ? "is-open" : ""}" id="nextFallback">
+              <button class="fallback-toggle ${state.nextFallbackOpen ? "is-open" : ""}" data-fallback="next">
+                <span class="chevron">${iconHTML("iconChevronRight")}</span>
+                <span>Want lazy loading and TypeScript types? Use the SDK</span>
+              </button>
+              <div class="fallback-content">
+                <div class="why-text">
+                  Bypasses the <code>&lt;Script&gt;</code> defer/module race entirely. SDK auto-detects
+                  <code>?jam-recording=...</code> URL params and lazy-loads the recorder.
+                </div>
+                <div class="code-block">
+                  <pre>${tok("comment", "$ npm install @jam.dev/recording-links")}</pre>
+                </div>
+                ${codeBlock(sdkSnippetFn(), sdkPlain, isApp ? "app/jam-provider.tsx" : "pages/_app.tsx")}
+                ${isApp ? `<div class="why-text">
+                  Then import <code>&lt;JamProvider /&gt;</code> in your root layout. Two files keep
+                  the layout server-rendered (avoids marking it as <code>"use client"</code>).
+                </div>` : ""}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      wireCommon();
+      wireSubToggle();
+      wireFallback("next");
+    }
+
+    // ───────────────────────── Angular tab ─────────────────────────
+    function renderAngularTab() {
+      step1Host.innerHTML = `
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number is-active">1</div>
+            <div class="step-header-copy">
+              <div class="step-title">
+                Install via SDK
+                <span class="recommended-badge">recommended for Angular</span>
+              </div>
+              <div class="step-desc">
+                Add to
+                <span class="inline-code">src/app/app.component.ts</span>
+                — loads the recorder when needed and avoids Zone.js performance issues
+              </div>
+            </div>
+            ${aiButton()}
+          </div>
+          <div class="step-body">
+            <div class="fw-tabs" role="tablist">${tabsHTML()}</div>
+
+            <div class="code-block">
+              <pre>${tok("comment", "$ npm install @jam.dev/recording-links")}</pre>
+            </div>
+
+            ${codeBlock(angularSdkSnippet(), angularSdkPlain, "src/app/app.component.ts")}
+
+            <div class="why-text">
+              <strong>Why <code>runOutsideAngular</code>?</strong> capture.js patches
+              <code>fetch</code>/<code>XHR</code>. Without this wrapper, every captured request
+              triggers Angular change detection → noticeable lag.
+            </div>
+
+            ${gotchasList([
+              gotcha(`Mount in <code>AppComponent</code> (root) — not a nested feature module.`),
+              gotcha(`For server-side rendering (Angular Universal), the SDK is browser-only — wrap in a platform check.`),
+              gotcha(`Using Content Security Policy? Allow <code>js.jam.dev</code> and <code>recorder.jam.dev</code> — <a class="gotcha-link" href="#">CSP setup ↗</a>`),
+            ])}
+
+            <div class="fallback ${state.angularFallbackOpen ? "is-open" : ""}" id="angularFallback">
+              <button class="fallback-toggle ${state.angularFallbackOpen ? "is-open" : ""}" data-fallback="angular">
+                <span class="chevron">${iconHTML("iconChevronRight")}</span>
+                <span>Need to install without npm? Use script tags</span>
+              </button>
+              <div class="fallback-content">
+                <div class="fallback-warning">
+                  <span class="icon">⚠</span>
+                  <span><strong>Not recommended for Angular.</strong> Customers have reported significant performance issues with this approach. Use the SDK above unless you have no build access.</span>
+                </div>
+                ${codeBlock(angularFallbackSnippet(), angularFallbackPlain, "src/index.html")}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      wireCommon();
+      wireFallback("angular");
+    }
+
+    // ───────────────────────── GTM tab ─────────────────────────
+    function renderGtmTab() {
+      step1Host.innerHTML = `
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number is-active">1</div>
+            <div class="step-header-copy">
+              <div class="step-title">Custom HTML Tag in GTM</div>
+              <div class="step-desc">
+                One Custom HTML Tag, trigger
+                <span class="inline-code">All Pages</span>,
+                publish workspace
+              </div>
+            </div>
+            ${aiButton()}
+          </div>
+          <div class="step-body">
+            <div class="fw-tabs" role="tablist">${tabsHTML()}</div>
+
+            ${codeBlock(gtmSnippet(), gtmPlain, "GTM → New Tag → Custom HTML")}
+
+            <div class="why-text">
+              <strong>Why this differs from the standard snippet:</strong> GTM injects tag content
+              <em>after</em> the DOM is parsed. A <code>&lt;script type="module"&gt;</code> appended
+              post-parse never executes. Dynamic <code>import()</code> inside a classic
+              <code>&lt;script&gt;</code> bypasses this.
+            </div>
+
+            ${gotchasList([
+              gotcha(`<strong style="color:var(--text-primary)">Don't paste the standard HTML snippet</strong> into GTM — it appears in the DOM but never fires. Symptom: scripts in Elements tab, nothing in Network tab.`, { warning: true }),
+              gotcha(`<strong style="color:var(--text-primary)">Don't use the Window Loaded trigger</strong> — too late, app code already started network calls.`),
+              gotcha(`<strong style="color:var(--text-primary)">Publish, don't just save.</strong> Common confusion: "worked in preview, not in production" → workspace wasn't published.`),
+              gotcha(`CDN HTML minifiers (Cloudflare, etc.) sometimes strip script attributes — if logs don't appear post-publish, compare GTM template against the served HTML.`),
+            ])}
+
+            <div class="fallback ${state.gtmFallbackOpen ? "is-open" : ""}" id="gtmFallback">
+              <button class="fallback-toggle ${state.gtmFallbackOpen ? "is-open" : ""}" data-fallback="gtm">
+                <span class="chevron">${iconHTML("iconChevronRight")}</span>
+                <span>2-tag variant (Aidan's original CSUP-491 snippet)</span>
+              </button>
+              <div class="fallback-content">
+                <div class="why-text">
+                  Same logic, two GTM tags instead of one. Functionally equivalent if firing order is correct,
+                  but riskier: Tag 2 depends on Tag 1 having fired.
+                </div>
+                <div class="code-block">
+                  <div class="filename">Tag 1 — Custom HTML Tag</div>
+                  <pre>${tok("punct", "<meta ") + tok("attr", "name") + tok("punct", "=") + tok("string", '"jam:team"') + " " + tok("attr", "content") + tok("punct", "=") + tok("string", `"${TEAM_ID}"`) + tok("punct", ">")}</pre>
+                </div>
+                <div class="code-block">
+                  <div class="filename">Tag 2 — Custom JavaScript Tag</div>
+                  <pre>${[
+                    tok("punct", "(") + tok("keyword", "async function") + tok("punct", "() {"),
+                    "  " + tok("keyword", "if") + tok("punct", " (!") + tok("var", "document") + tok("punct", ".") +
+                      tok("var", "querySelector") + tok("punct", "(") + tok("string", "'meta[name=\"jam:team\"]'") + tok("punct", ")) {"),
+                    "    " + tok("var", "console") + tok("punct", ".") + tok("var", "warn") +
+                      tok("punct", "(") + tok("string", "'Jam meta tag not found.'") + tok("punct", ");"),
+                    "    " + tok("keyword", "return") + tok("punct", ";"),
+                    "  " + tok("punct", "}"),
+                    "  " + tok("keyword", "if") + tok("punct", " (") + tok("var", "window") + tok("punct", ".") +
+                      tok("var", "jam") + tok("punct", ") ") + tok("keyword", "return") + tok("punct", ";"),
+                    "  " + tok("keyword", "try") + tok("punct", " {"),
+                    "    " + tok("keyword", "await") + " " + tok("var", "Promise") + tok("punct", ".") +
+                      tok("var", "all") + tok("punct", "(["),
+                    "      " + tok("keyword", "import") + tok("punct", "(") +
+                      tok("string", "'https://js.jam.dev/recorder.js'") + tok("punct", "),"),
+                    "      " + tok("keyword", "import") + tok("punct", "(") +
+                      tok("string", "'https://js.jam.dev/capture.js'") + tok("punct", ")"),
+                    "    " + tok("punct", "]);"),
+                    "  " + tok("punct", "} ") + tok("keyword", "catch") + tok("punct", " (") + tok("var", "error") + tok("punct", ") {"),
+                    "    " + tok("var", "console") + tok("punct", ".") + tok("var", "error") +
+                      tok("punct", "(") + tok("string", "'Failed to load Jam scripts:'") + tok("punct", ", ") +
+                      tok("var", "error") + tok("punct", ");"),
+                    "  " + tok("punct", "}"),
+                    tok("punct", "})();"),
+                  ].join("\n")}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      wireCommon();
+      wireFallback("gtm");
+    }
+
+    // ───────────────────────── Wiring ─────────────────────────
+    function selectTab(id) {
+      state.tabId = id;
+      saveToStorage("jamProtoTab", id);
+      render();
+    }
+
+    function selectRouter(router) {
+      state.nextRouter = router;
+      saveToStorage("jamProtoNextRouter", router);
+      render();
+    }
+
+    function wireCommon() {
+      // Tabs
+      const tabs = document.querySelectorAll(".fw-tab");
+      for (const tab of tabs) {
+        tab.addEventListener("click", () => selectTab(tab.dataset.tab));
+      }
+
+      // Copy buttons (any element with data-copy)
+      const copyBtns = document.querySelectorAll("[data-copy]");
+      for (const btn of copyBtns) {
+        btn.addEventListener("click", async () => {
+          const plain = decodeURIComponent(btn.dataset.plain);
+          const label = btn.dataset.copy;
+          try {
+            await navigator.clipboard.writeText(plain);
+            showToast(`Copied — ${label}`);
+          } catch (_) {
+            showToast("Copy failed — select the code manually");
+          }
+        });
+      }
+
+      // AI button
+      const aiBtn = document.getElementById("aiBtn");
+      if (aiBtn) {
+        aiBtn.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(buildAgentPrompt());
+            showToast("Copied — paste into your AI agent");
+          } catch (_) {
+            showToast("Copy failed — select the text manually");
+          }
+        });
+      }
+    }
+
+    function wireSubToggle() {
+      const buttons = document.querySelectorAll(".sub-toggle button");
+      for (const btn of buttons) {
+        btn.addEventListener("click", () => selectRouter(btn.dataset.router));
+      }
+    }
+
+    function wireFallback(tabId) {
+      const btn = document.querySelector(`[data-fallback="${tabId}"]`);
+      if (!btn) return;
+      btn.addEventListener("click", () => {
+        const key = `${tabId}FallbackOpen`;
+        state[key] = !state[key];
+        render();
+      });
+    }
+
+    // ───────────────────────── Agent prompt ─────────────────────────
+    function buildAgentPrompt() {
+      return [
+        "Install the Jam Recording Links scripts in this project.",
+        "",
+        `Team ID: ${TEAM_ID}`,
+        "",
+        "Detect the framework, then use the matching recipe below:",
+        "",
+        "— HTML / Vite / CRA / Vue / Nuxt / SvelteKit / Astro / Remix / WordPress / Webflow / Shopify —",
+        "Paste in <head> of every page (login, marketing, redirect targets included):",
+        htmlPlain,
+        "",
+        "— Next.js (App Router) — paste in app/layout.tsx —",
+        nextAppPlain,
+        "",
+        "— Next.js (Pages Router) — paste in pages/_document.tsx —",
+        nextPagesPlain,
+        "",
+        "— Angular — paste in src/app/app.component.ts (SDK is required, npm install @jam.dev/recording-links first) —",
+        angularSdkPlain,
+        "",
+        "— Google Tag Manager — Custom HTML Tag, trigger All Pages, then PUBLISH workspace —",
+        gtmPlain,
+        "",
+        "Critical rules:",
+        "1. For Next.js: do NOT add `defer` to <Script> tags — it races with type=module.",
+        "2. For Next.js: place in the ROOT layout (app/layout.tsx or pages/_document.tsx), not a nested layout.",
+        "3. For Angular: must use the SDK with NgZone.runOutsideAngular — script tags cause performance issues.",
+        "4. For GTM: do NOT paste the standard <script type=\"module\"> snippet — it won't execute. Use the dynamic-import wrapper above.",
+        "5. If a Content-Security-Policy is configured, allow `js.jam.dev` (script-src) and `recorder.jam.dev` (connect-src).",
+        "",
+        "After install, verify by running the site and checking DevTools Network tab for js.jam.dev requests.",
+      ].join("\n");
+    }
+
+    // ───────────────────────── Verify button (cosmetic) ─────────────────────────
+    document.getElementById("verifyBtn").addEventListener("click", () => {
+      showToast("Verification isn't wired up in this prototype");
+    });
+
+    // ───────────────────────── Toast ─────────────────────────
+    let toastTimer = null;
+    function showToast(message) {
+      const el = document.getElementById("toast");
+      el.textContent = message;
+      el.classList.add("is-visible");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("is-visible"), 1800);
+    }
+
+    // ───────────────────────── Boot ─────────────────────────
+    render();
+  </script>
+</body>
+</html>
