@@ -1,0 +1,21 @@
+/* Reuse the menu bar's frosted surface, row spacing, and selection color. */
+.draft-folder-picker{position:absolute;left:92px;top:49px;width:264px;min-width:264px;max-width:calc(100% - 16px);max-height:none;overflow:visible;z-index:30}
+.draft-folder{gap:5px;font-weight:590;border-radius:99px;cursor:default}
+.draft-folder:hover,.draft-folder[aria-expanded="true"]{background:#00000006}
+.draft-folder:active{scale:1}
+.draft-folder:focus-visible{outline:2px solid #007aff80;outline-offset:1px}
+#draft-folder-name{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.draft-folder .folder-disclosure{width:5px;height:5px;margin:0 4px 3px 3px;border-right:1.2px solid currentColor;border-bottom:1.2px solid currentColor;rotate:45deg;opacity:.55}
+.folder-search-field{display:block;position:relative;margin:3px}
+.folder-search-field::before{content:"";position:absolute;left:9px;top:8px;width:8px;height:8px;border:1.3px solid #86838b;border-radius:50%;pointer-events:none}
+.folder-search-field::after{content:"";position:absolute;left:17px;top:16px;width:5px;height:1.3px;background:#86838b;rotate:45deg;transform-origin:left center;pointer-events:none}
+.folder-search-field input{width:100%;height:28px;padding:3px 8px 3px 28px;border:0;border-radius:5px;background:#ffffffb3;box-shadow:inset 0 0 0 1px #00000018;color:#29272d;font-size:13px;line-height:20px;font-weight:400;cursor:text;appearance:none}
+.folder-search-field input::placeholder{color:#85818a;opacity:1}
+.folder-search-field input:focus{outline:none;box-shadow:inset 0 0 0 1px #007aff77,0 0 0 2px #007aff22}
+.folder-options{max-height:240px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.folder-option{min-height:26px;gap:8px;user-select:none}
+.folder-option img{width:14px;height:11px;opacity:.65}
+.folder-option.is-active{background:#0069de;color:white}
+.folder-option.is-active img{filter:brightness(0) invert(1);opacity:.95}
+.folder-option[aria-selected="true"]::before{position:absolute;left:7px;top:8px;width:9px;height:5px;border-left:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg);content:""}
+.folder-empty{padding:14px 12px;text-align:center;color:#79757e;font-size:12px}

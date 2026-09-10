@@ -38,7 +38,17 @@
   let recordingStart = null;
   let recordingInterval;
   const surfacePositions = { onboarding: null, draft: null };
+  let playgroundVisible = true;
   const surfaceWidth = () => workspace.dataset.surface === 'draft' ? 1027 : 700;
+
+  // Programmatic focus after a drag must not inherit keyboard focus styling.
+  document.body.dataset.inputMethod = 'pointer';
+  const usePointer = () => { if (document.body.dataset.inputMethod !== 'pointer') document.body.dataset.inputMethod = 'pointer'; };
+  document.addEventListener('pointerdown', usePointer, true);
+  document.addEventListener('pointermove', usePointer, { capture: true, passive: true });
+  document.addEventListener('keydown', (event) => {
+    if (!['Shift', 'Control', 'Alt', 'Meta'].includes(event.key)) document.body.dataset.inputMethod = 'keyboard';
+  }, true);
 
   function syncLensCanvas(source = canvas) {
     if (!cloneCanvas || !$('lens-enabled').checked) return;
@@ -315,33 +325,28 @@
     workspace.dataset.surface = surface;
     workspace.style.width = `${surface === 'draft' ? 1027 : 700}px`;
     windowEl.hidden = surface !== 'onboarding';
-    $('onboarding-playground').hidden = surface !== 'onboarding';
+    $('onboarding-playground').hidden = surface !== 'onboarding' || !playgroundVisible;
     $('draft-window').hidden = surface !== 'draft';
-    $('draft-playground').hidden = surface !== 'draft';
-    document.querySelectorAll('.surface-tabs button').forEach((button) => {
-      const selected = button.dataset.surface === surface;
-      button.setAttribute('aria-selected', String(selected));
-      button.tabIndex = selected ? 0 : -1;
-    });
+    $('draft-playground').hidden = surface !== 'draft' || !playgroundVisible;
     const saved = surfacePositions[surface];
     if (saved) windowPosition = { ...saved };
     fitWindow(!saved);
     window.JamDraft?.setActive(surface === 'draft');
+    document.dispatchEvent(new CustomEvent('playgroundchange'));
   }
 
-  document.querySelectorAll('.surface-tabs button').forEach((button) => {
-    button.addEventListener('click', () => setSurface(button.dataset.surface));
-    button.addEventListener('keydown', (event) => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-      event.preventDefault();
-      const target = ['ArrowLeft', 'Home'].includes(event.key) ? 'onboarding' : 'draft';
-      setSurface(target);
-      $(`surface-${target}`).focus();
-    });
-  });
+  function setPlaygroundVisible(visible) {
+    playgroundVisible = Boolean(visible);
+    $('onboarding-playground').hidden = workspace.dataset.surface !== 'onboarding' || !playgroundVisible;
+    $('draft-playground').hidden = workspace.dataset.surface !== 'draft' || !playgroundVisible;
+    fitWindow(false);
+    document.dispatchEvent(new CustomEvent('playgroundchange'));
+  }
 
   window.JamPlayground = {
     setSurface,
+    setPlaygroundVisible,
+    isPlaygroundVisible: () => playgroundVisible,
     fit: fitWindow,
     notify,
     getScale: () => scale,

@@ -4,10 +4,15 @@
   const video = $('draft-video');
   const sampleSource = 'assets/draft/jam-video.mp4';
   const sampleStrip = 'assets/draft/jam-video-filmstrip.jpg';
+  // Exact bytes of the bundled recording; chosen files use their File.size.
+  const sampleSizeBytes = 19590393;
   const timeline = new window.JamDraftTimeline($('draft-timeline'), {
     duration: 104.566667,
-    handleAnimationMs: 180,
+    handleAnimationMs: 220,
+    handleSpringiness: 65,
+    sourceSizeBytes: sampleSizeBytes,
     onTimeChange(time) { showVideo(); seek(time); },
+    onPreviewTimeChange: previewAt,
     onPlayChange(playing) { playing ? play() : pause(); },
     onTrimChange() {
       $('draft-trim-preset').value = timeline.getState().trimmed ? 'custom' : 'untrimmed';
@@ -17,11 +22,17 @@
   let active = false;
   let mediaReady = false;
   let playbackFrame = 0;
+  let hoverPreviewTime = null;
+  let hoverPreviewFrame = 0;
   let playRequest = 0;
   let sourceVersion = 0;
   let customURL = null;
   let customStrip = null;
   let popoverTimer = 0;
+  let popoverOpenTimer = 0;
+  let popoverCloseTimer = 0;
+  let popoverPinned = false;
+  let suppressPopoverFocus = false;
 
   function formatTime(seconds) {
     const hundredths = Math.floor(Math.max(0, seconds) * 100 + .00001);
@@ -42,14 +53,40 @@
     video.hidden = reference;
     timeline.setThumbnailSource(reference ? 'assets/trim-video-track.png' : customStrip || sampleStrip,
       reference ? { size: '23.58px 50.98px' } : {});
-    if (reference) pause();
+    if (reference) { timeline.clearHover(); pause(); }
   }
 
   function showVideo() { if (video.hidden) setPreview('video'); }
 
   function seek(time) {
+    cancelAnimationFrame(hoverPreviewFrame);
+    hoverPreviewFrame = 0;
+    hoverPreviewTime = null;
     if (video.readyState >= 1) video.currentTime = Math.max(0, Math.min(time, video.duration));
     timeline.setTime(time);
+  }
+
+  function previewAt(time) {
+    cancelAnimationFrame(hoverPreviewFrame);
+    hoverPreviewFrame = 0;
+    hoverPreviewTime = time;
+    if (time === null) {
+      if (mediaReady) video.currentTime = timeline.getState().time;
+    } else {
+      showVideo();
+      queueHoverPreview();
+    }
+  }
+
+  function queueHoverPreview() {
+    if (hoverPreviewFrame || hoverPreviewTime === null || !active || !mediaReady) return;
+    hoverPreviewFrame = requestAnimationFrame(() => {
+      hoverPreviewFrame = 0;
+      if (hoverPreviewTime === null || !active || !mediaReady || !video.paused || video.seeking) return;
+      const target = Math.max(0, Math.min(hoverPreviewTime, video.duration));
+      // Finish the current decoder seek before requesting the latest hover frame.
+      if (Math.abs(video.currentTime - target) > .001) video.currentTime = target;
+    });
   }
 
   function pause() {
@@ -108,7 +145,10 @@
     if (active && $('draft-loop').checked) { seek(timeline.getState().start); play(); }
     else { pause(); timeline.setTime(timeline.getState().end); }
   });
-  video.addEventListener('seeked', () => timeline.setTime(video.currentTime));
+  video.addEventListener('seeked', () => {
+    if (hoverPreviewTime !== null) queueHoverPreview();
+    else if (!video.paused) timeline.setTime(video.currentTime);
+  });
   function initializeMedia() {
     if (!Number.isFinite(video.duration) || video.duration < .25) {
       mediaReady = false;
@@ -137,15 +177,28 @@
 
   function closePopover(returnFocus = false) {
     clearTimeout(popoverTimer);
+    clearTimeout(popoverOpenTimer);
+    clearTimeout(popoverCloseTimer);
+    popoverPinned = false;
     $('draft-offline-button').setAttribute('aria-expanded', 'false');
+    $('draft-offline-popover').inert = true;
     $('draft-offline-popover').classList.remove('is-open');
     popoverTimer = setTimeout(() => { $('draft-offline-popover').hidden = true; }, 160);
-    if (returnFocus) $('draft-offline-button').focus();
+    if (returnFocus) {
+      suppressPopoverFocus = true;
+      $('draft-offline-button').focus();
+      suppressPopoverFocus = false;
+    }
   }
 
-  function openPopover() {
+  function openPopover(pin = false) {
+    if ($('draft-offline-button').hidden || !active) return;
     clearTimeout(popoverTimer);
+    clearTimeout(popoverOpenTimer);
+    clearTimeout(popoverCloseTimer);
+    popoverPinned = popoverPinned || pin;
     $('draft-offline-popover').hidden = false;
+    $('draft-offline-popover').inert = false;
     $('draft-offline-button').setAttribute('aria-expanded', 'true');
     requestAnimationFrame(() => {
       if ($('draft-offline-button').getAttribute('aria-expanded') === 'true') $('draft-offline-popover').classList.add('is-open');
@@ -158,14 +211,32 @@
     $('draft-window').dataset.connection = connection;
     $('draft-connected-label').hidden = offline;
     $('draft-offline-button').hidden = !offline;
-    $('draft-folder-name').hidden = !offline;
     $('draft-create-button').textContent = offline ? 'Save to drafts' : 'Create Jam';
     closePopover();
   }
 
   $('draft-connection').addEventListener('change', (event) => setConnection(event.target.value));
   $('draft-offline-button').addEventListener('click', () => {
-    $('draft-offline-button').getAttribute('aria-expanded') === 'true' ? closePopover() : openPopover();
+    popoverPinned ? closePopover() : openPopover(true);
+  });
+  $('draft-offline-button').addEventListener('pointerenter', (event) => {
+    if (event.pointerType === 'touch') return;
+    clearTimeout(popoverCloseTimer);
+    popoverOpenTimer = setTimeout(() => openPopover(), 140);
+  });
+  function leavePopover() {
+    clearTimeout(popoverOpenTimer);
+    clearTimeout(popoverCloseTimer);
+    if (!popoverPinned) popoverCloseTimer = setTimeout(() => {
+      if (!popoverPinned && !$('draft-offline-button').matches(':hover') && !$('draft-offline-popover').matches(':hover')) closePopover();
+    }, 180);
+  }
+  $('draft-offline-button').addEventListener('pointerleave', leavePopover);
+  $('draft-offline-popover').addEventListener('pointerenter', () => clearTimeout(popoverCloseTimer));
+  $('draft-offline-popover').addEventListener('pointerleave', leavePopover);
+  $('draft-offline-button').addEventListener('focus', () => { if (!suppressPopoverFocus && document.body.dataset.inputMethod === 'keyboard') openPopover(); });
+  document.addEventListener('focusin', (event) => {
+    if (!event.target.closest('#draft-offline-button, #draft-offline-popover')) closePopover();
   });
   document.addEventListener('pointerdown', (event) => {
     if (!event.target.closest('#draft-offline-button, #draft-offline-popover')) closePopover();
@@ -190,13 +261,18 @@
   });
   $('draft-camera-enabled').addEventListener('change', (event) => { $('draft-camera').hidden = !event.target.checked; });
   $('draft-playback-speed').addEventListener('change', (event) => { video.playbackRate = Number(event.target.value); });
-  function updateHandleSpeed() {
-    const input = $('draft-handle-speed');
-    $('draft-handle-speed-value').value = `${input.value} ms`;
-    input.style.setProperty('--range-fill', `${(input.value - input.min) / (input.max - input.min) * 100}%`);
-    timeline.setOptions({ handleAnimationMs: Number(input.value) });
+  function updateHandleMotion() {
+    const speed = $('draft-handle-speed');
+    const spring = $('draft-handle-spring');
+    $('draft-handle-speed-value').value = `${speed.value} ms`;
+    $('draft-handle-spring-value').value = `${spring.value}%`;
+    speed.setAttribute('aria-valuetext', `${speed.value} milliseconds`);
+    spring.setAttribute('aria-valuetext', `${spring.value}% springiness`);
+    [speed, spring].forEach((input) => input.style.setProperty('--range-fill', `${(input.value - input.min) / (input.max - input.min) * 100}%`));
+    timeline.setOptions({ handleAnimationMs: Number(speed.value), handleSpringiness: Number(spring.value) });
   }
-  $('draft-handle-speed').addEventListener('input', updateHandleSpeed);
+  $('draft-handle-speed').addEventListener('input', updateHandleMotion);
+  $('draft-handle-spring').addEventListener('input', updateHandleMotion);
   $('draft-toggle-controls').addEventListener('click', () => {
     const expanded = $('draft-toggle-controls').getAttribute('aria-expanded') !== 'true';
     $('draft-toggle-controls').setAttribute('aria-expanded', String(expanded));
@@ -249,10 +325,11 @@
     } finally { reader.removeAttribute('src'); reader.load(); }
   }
 
-  function loadSource(url, label) {
+  function loadSource(url, label, sizeBytes) {
     pause();
     mediaReady = false;
     timeline.setActive(false);
+    timeline.setSourceSize(sizeBytes);
     sourceVersion++;
     customStrip = null;
     $('draft-media-error').hidden = true;
@@ -273,29 +350,30 @@
     if (!file) return;
     const previous = customURL;
     customURL = URL.createObjectURL(file);
-    loadSource(customURL, file.name);
+    loadSource(customURL, file.name, file.size);
     if (previous) URL.revokeObjectURL(previous);
     event.target.value = '';
   });
   $('draft-reset').addEventListener('click', () => {
     const previous = customURL;
     customURL = null;
-    loadSource(sampleSource, 'jam-video.mp4 · stored locally');
+    loadSource(sampleSource, 'jam-video.mp4 · stored locally', sampleSizeBytes);
     if (previous) URL.revokeObjectURL(previous);
     timeline.reset();
     $('draft-trim-preset').value = 'untrimmed';
     setConnection('connected');
-    $('draft-handle-speed').value = '180'; updateHandleSpeed();
+    $('draft-handle-speed').value = '220';
+    $('draft-handle-spring').value = '65'; updateHandleMotion();
     $('draft-playback-speed').value = '1'; video.playbackRate = 1;
     $('draft-loop').checked = true;
     $('draft-camera-enabled').checked = false;
     $('draft-camera').hidden = true;
     $('draft-title').value = '';
     $('draft-description').value = '';
+    window.JamFolderPicker?.reset();
     updateReadout();
     window.JamPlayground.fit();
   });
-  $('draft-folder').addEventListener('click', () => window.JamPlayground.notify('Draft folder · prototype preview'));
   $('draft-create-button').addEventListener('click', () => {
     window.JamPlayground.notify($('draft-connection').value === 'offline' ? 'Saved to drafts · prototype preview' : 'Jam created · prototype preview');
   });
@@ -310,7 +388,7 @@
   };
   window.JamPlayground.bindWindowDrag($('draft-titlebar'));
   timeline.setThumbnailSource(sampleStrip);
-  updateHandleSpeed();
+  updateHandleMotion();
   updateReadout();
   // A local or cached sample can finish metadata loading before deferred scripts run.
   if (video.error) mediaError();
