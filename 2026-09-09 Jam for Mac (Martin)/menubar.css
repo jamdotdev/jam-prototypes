@@ -1,0 +1,42 @@
+/* Desktop chrome stays at native size while the prototype window scales. */
+.desktop-menubar{position:absolute;inset:0 0 auto;z-index:50;display:flex;align-items:center;justify-content:space-between;height:28px;padding:0 20px;box-shadow:0 1px 0 #00000008;color:#16151bcc;font-size:13px;font-weight:500;user-select:none}
+.desktop-menubar::before{content:"";position:absolute;inset:0;z-index:-1;background:#ffffff29;backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);pointer-events:none}
+.desktop-menu-left,.desktop-menu-right,.app-menubar{display:flex;align-items:center}
+.desktop-menu-left{gap:10px;height:100%}
+.desktop-menu-left .apple{font-size:21px;line-height:20px;margin-right:1px}
+.desktop-menu-right{gap:16px;white-space:nowrap}
+.desktop-menu-right>img{width:13px;height:15px;opacity:.85}
+.desktop-menu-right>img.desktop-wifi{width:32px;height:19px;margin:0 -8px}
+.app-menubar,.desktop-menu{height:100%}
+.desktop-menu{position:relative}
+.menu-trigger{display:block;height:100%;padding:0 11px;border-radius:5px;color:inherit;font-size:13px;font-weight:500;background:transparent;cursor:default;transition:none}
+.app-menu-trigger{font-weight:700}
+.menu-trigger[aria-expanded="true"]{background:#00000020;color:#151419}
+.menu-trigger:focus-visible{outline:2px solid #0068d999;outline-offset:-3px}
+.menu-trigger:active,.native-menu-item:active{scale:1}
+.native-menu{position:fixed;top:28px;left:var(--menu-left,0);min-width:246px;max-width:calc(100vw - 16px);max-height:calc(100svh - 36px);overflow:auto;padding:5px;border-radius:9px;background:rgba(245,245,247,.87);backdrop-filter:blur(38px) saturate(1.6);-webkit-backdrop-filter:blur(38px) saturate(1.6);box-shadow:0 0 0 .5px #00000036,inset 0 0 0 .5px #ffffffb3,0 8px 22px #00000029,0 22px 52px #180f2824;color:#252429;font-size:13px;font-weight:400;line-height:18px}
+.native-menu-item{position:relative;display:flex;align-items:center;width:100%;min-height:24px;padding:3px 12px 3px 24px;border-radius:4px;background:transparent;color:inherit;font-size:13px;font-weight:400;line-height:18px;text-align:left;white-space:nowrap;cursor:default;transition:none}
+.native-menu-item:focus{outline:none;background:#0069de;color:white}
+.native-menu-item[aria-checked="true"]::before{position:absolute;left:7px;top:7px;width:9px;height:5px;border-left:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg);content:""}
+.native-menu-label{padding:3px 12px 4px 24px;color:#79777d;font-size:11px;font-weight:600;line-height:16px}
+.native-menu-separator{height:1px;margin:5px 7px;background:#00000020}
+.prototype-dialog{width:360px;max-width:calc(100vw - 32px);max-height:calc(100svh - 64px);margin:auto;padding:24px;border:0;border-radius:14px;background:#f4f3f5f5;color:#29272d;box-shadow:0 0 0 .5px #0003,inset 0 0 0 .5px #fff,0 24px 80px #0004;font-size:13px;line-height:18px;-webkit-font-smoothing:antialiased}
+.prototype-dialog::backdrop{background:#17101d26}
+.prototype-dialog h2{margin:0 0 16px;font-size:16px;font-weight:700;line-height:21px;letter-spacing:-.2px}
+.prototype-dialog p{margin:12px 0;text-wrap:pretty}
+.prototype-dialog .dialog-secondary{color:#79757e;font-size:11px;line-height:16px}
+.prototype-dialog .dialog-subtitle{margin:-10px 0 18px;color:#78737e;font-size:12px}
+.prototype-dialog form{display:flex;justify-content:flex-end;margin-top:22px}
+.dialog-done{min-width:72px;min-height:28px;padding:4px 15px;border-radius:6px;background:linear-gradient(#3195fb,#0871e8);box-shadow:inset 0 0 0 .5px #00000018,0 1px 2px #0002;color:white;font-size:13px;line-height:18px;cursor:default;transition:filter 120ms var(--ease)}
+.dialog-done:hover{filter:brightness(1.04)}
+.dialog-done:active{scale:1;filter:brightness(.94)}
+.dialog-done:focus-visible{outline:3px solid #007aff55;outline-offset:2px}
+.about-dialog{text-align:center;width:320px}
+.about-icon{display:block;margin:0 auto 16px}
+.help-topics{margin:0}
+.help-topics>div+div{margin-top:16px}
+.help-topics dt{margin-bottom:3px;font-weight:600}
+.help-topics dd{margin:0;color:#6a666e;text-wrap:pretty}
+@media(max-width:600px){.desktop-menubar{padding:0 13px}.desktop-menu-right{gap:10px}.desktop-menu-right>span:first-of-type{display:none}}
+@media(max-width:360px){.desktop-menu-left{gap:6px}.menu-trigger{padding:0 8px}.desktop-menu-right{gap:7px}}
+@media(prefers-reduced-motion:reduce){.dialog-done{transition:none}}

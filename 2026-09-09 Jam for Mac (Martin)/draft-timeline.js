@@ -20,15 +20,18 @@
     constructor(container, options = {}) {
       if (!container) throw new Error('JamDraftTimeline requires a container.');
       this.container = container;
-      this.options = { loop: false, handleAnimationMs: 300, ...options };
+      this.options = { loop: false, handleAnimationMs: 220, handleSpringiness: 65, ...options };
       this.duration = Math.max(.25, finite(options.duration, 163));
       this.start = 0;
       this.end = this.duration;
       this.time = 0;
+      this.sourceSizeBytes = Number.isFinite(options.sourceSizeBytes) && options.sourceSizeBytes >= 0 ? options.sourceSizeBytes : null;
+      this.showFileSize = false;
       this.playing = false;
       this.active = true;
       this.drag = null;
       this.hoverTime = null;
+      this.isPreviewing = false;
       this.listeners = [];
       this.id = `draft-timeline-${++instanceCount}`;
       container.innerHTML = `<div class="draft-timeline" role="group" aria-label="Video playback and trim controls">
@@ -39,8 +42,8 @@
           <button class="dt-handle dt-handle--start" type="button" role="slider" aria-label="Trim start" aria-orientation="horizontal" aria-describedby="${this.id}-help"><span class="dt-handle-visual">${handleIcon('start')}</span></button>
           <button class="dt-handle dt-handle--end" type="button" role="slider" aria-label="Trim end" aria-orientation="horizontal" aria-describedby="${this.id}-help"><span class="dt-handle-visual">${handleIcon('end')}</span></button>
           <div class="dt-current-head" aria-hidden="true"></div><div class="dt-hover-head" aria-hidden="true"></div><div class="dt-tooltip" aria-hidden="true">0:00.00</div>
-        </div><span class="dt-duration" aria-label="Selected video duration"></span>
-        <span class="dt-sr-only" id="${this.id}-help">Drag to scrub or trim. Arrow keys adjust by a tenth of a second; Shift and arrows adjust by one second. Home and End move to a boundary. Space plays or pauses.</span>
+        </div><button type="button" class="dt-duration" aria-label="Selected video duration"></button>
+        <span class="dt-sr-only" id="${this.id}-help">Hover while paused to preview frames. Click or release a scrub to place the playhead and play. Drag the handles to trim. Arrow keys adjust by a tenth of a second; Shift and arrows adjust by one second. Home and End move to a boundary. Enter on the playhead starts playback. Space plays or pauses.</span>
       </div>`;
       this.root = container.querySelector('.draft-timeline');
       this.track = this.root.querySelector('.dt-track');
@@ -51,8 +54,8 @@
       this.startHandle = this.root.querySelector('.dt-handle--start');
       this.endHandle = this.root.querySelector('.dt-handle--end');
       this.handleMotion = new Map([
-        [this.startHandle, { path: this.startHandle.querySelector('path'), original: chevrons.start, progress: 0, target: 0, frame: 0 }],
-        [this.endHandle, { path: this.endHandle.querySelector('path'), original: chevrons.end, progress: 0, target: 0, frame: 0 }],
+        [this.startHandle, { path: this.startHandle.querySelector('path'), original: chevrons.start, progress: 0, velocity: 0, target: 0, frame: 0 }],
+        [this.endHandle, { path: this.endHandle.querySelector('path'), original: chevrons.end, progress: 0, velocity: 0, target: 0, frame: 0 }],
       ]);
       this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       this.currentHead = this.root.querySelector('.dt-current-head');
@@ -75,6 +78,7 @@
 
     bind() {
       this.listen(this.playButton, 'click', () => this.togglePlay());
+      this.listen(this.durationLabel, 'click', () => { this.showFileSize = !this.showFileSize; this.renderDuration(); });
       this.listen(this.startHandle, 'pointerdown', event => this.beginDrag(event, 'start'));
       this.listen(this.endHandle, 'pointerdown', event => this.beginDrag(event, 'end'));
       this.listen(this.track, 'pointerdown', event => {
@@ -86,13 +90,15 @@
       this.listen(window, 'pointerup', event => this.endDrag(event));
       this.listen(window, 'pointercancel', event => this.endDrag(event));
       this.listen(this.track, 'lostpointercapture', event => this.endDrag(event));
-      this.listen(window, 'blur', () => this.endDrag());
+      this.listen(window, 'blur', () => { this.endDrag(); this.clearHover(); });
       this.listen(this.track, 'pointermove', event => {
         if (this.drag || this.playing || !this.active || event.pointerType === 'touch') return;
         if (event.target.closest('.dt-handle')) { this.clearHover(); return; }
         this.hoverTime = this.timeAtClientX(event.clientX);
+        this.isPreviewing = true;
         this.root.classList.add('is-hovering');
         this.renderHover();
+        this.options.onPreviewTimeChange?.(this.hoverTime);
       });
       this.listen(this.track, 'pointerleave', () => { if (!this.drag) this.clearHover(); });
       this.listen(this.startHandle, 'keydown', event => this.keyboard(event, 'start'));
@@ -100,9 +106,10 @@
       this.listen(this.scrubber, 'keydown', event => this.keyboard(event, 'scrub'));
       this.listen(window, 'resize', () => this.render());
       this.listen(this.reducedMotion, 'change', () => {
-        if (this.reducedMotion.matches) {
-          for (const [handle, motion] of this.handleMotion) this.animateHandle(handle, Boolean(motion.target));
-        }
+        if (this.reducedMotion.matches) this.settleHandles();
+      });
+      this.listen(document, 'visibilitychange', () => {
+        if (document.hidden) { this.endDrag(); this.clearHover(); this.settleHandles(); }
       });
     }
 
@@ -116,8 +123,10 @@
         return String(Number((from + (to - from) * amount).toFixed(5)));
       });
       motion.path.setAttribute('d', d);
-      motion.path.setAttribute('stroke-width', String(4 + amount));
-      motion.path.setAttribute('stroke-opacity', String(.1216 + .0284 * amount));
+      // Geometry can overshoot; keep the stroke within the two designed styles.
+      const styleAmount = clamp(amount, 0, 1);
+      motion.path.setAttribute('stroke-width', String(4 + styleAmount));
+      motion.path.setAttribute('stroke-opacity', String(.1216 + .0284 * styleAmount));
     }
 
     animateHandle(handle, straight) {
@@ -126,18 +135,55 @@
       cancelAnimationFrame(motion.frame);
       motion.frame = 0;
       motion.target = straight ? 1 : 0;
-      const from = motion.progress;
-      const duration = this.reducedMotion.matches ? 0 : clamp(finite(this.options.handleAnimationMs, 300), 0, 1000) * Math.abs(motion.target - from);
-      if (!duration) { motion.progress = motion.target; this.drawHandle(motion); return; }
-      const started = performance.now();
+      let previousTime = performance.now();
       const step = now => {
-        const progress = clamp((now - started) / duration, 0, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        motion.progress = from + (motion.target - from) * eased;
+        const response = clamp(finite(this.options.handleAnimationMs, 220), 0, 1000);
+        if (this.reducedMotion.matches || !this.active || document.hidden || response === 0) {
+          this.settleHandle(motion);
+          return;
+        }
+        const dt = Math.max(0, (now - previousTime) / 1000);
+        previousTime = now;
+        const omega = 4.5 / Math.max(.04, response / 1000);
+        const damping = 1 - .75 * clamp(finite(this.options.handleSpringiness, 65), 0, 100) / 100;
+        const displacement = motion.progress - motion.target;
+        const velocity = motion.velocity;
+        const decay = Math.exp(-damping * omega * dt);
+        // Solve the damped spring exactly per frame, retaining velocity when
+        // the target changes. This stays stable at any refresh rate.
+        if (damping === 1) {
+          const b = velocity + omega * displacement;
+          motion.progress = motion.target + decay * (displacement + b * dt);
+          motion.velocity = decay * (velocity - omega * b * dt);
+        } else {
+          const frequency = omega * Math.sqrt(1 - damping * damping);
+          const b = (velocity + damping * omega * displacement) / frequency;
+          const sin = Math.sin(frequency * dt);
+          const cos = Math.cos(frequency * dt);
+          motion.progress = motion.target + decay * (displacement * cos + b * sin);
+          motion.velocity = decay * ((b * frequency - damping * omega * displacement) * cos
+            - (displacement * frequency + damping * omega * b) * sin);
+        }
+        if (Math.abs(motion.progress - motion.target) < .001 && Math.abs(motion.velocity) < .01) {
+          this.settleHandle(motion);
+          return;
+        }
         this.drawHandle(motion);
-        motion.frame = progress < 1 ? requestAnimationFrame(step) : 0;
+        motion.frame = requestAnimationFrame(step);
       };
-      motion.frame = requestAnimationFrame(step);
+      step(previousTime);
+    }
+
+    settleHandle(motion) {
+      cancelAnimationFrame(motion.frame);
+      motion.frame = 0;
+      motion.progress = motion.target;
+      motion.velocity = 0;
+      this.drawHandle(motion);
+    }
+
+    settleHandles() {
+      for (const motion of this.handleMotion.values()) this.settleHandle(motion);
     }
 
     geometry() {
@@ -216,7 +262,10 @@
 
     endDrag(event) {
       if (!this.drag || (event?.pointerId !== undefined && event.pointerId !== this.drag.pointerId)) return;
-      const pointerId = this.drag.pointerId;
+      const { pointerId, mode } = this.drag;
+      const placed = event?.type === 'pointerup';
+      // Include the release coordinate even when the browser coalesces a fast move.
+      if (placed && Number.isFinite(event.clientX)) this.updateDrag(event);
       this.drag = null;
       this.root.classList.remove('is-trimming');
       this.startHandle.classList.remove('is-dragging');
@@ -227,16 +276,23 @@
       try { if (this.track.hasPointerCapture(pointerId)) this.track.releasePointerCapture(pointerId); } catch (_) { /* Browser already released a canceled pointer. */ }
       this.clearHover();
       this.render();
+      if (placed && mode === 'scrub' && this.active && !document.hidden) this.requestPlay(true);
     }
 
     keyboard(event, mode) {
       if (!this.active) return;
+      if (event.key === 'Enter' && mode === 'scrub') {
+        event.preventDefault(); event.stopPropagation();
+        if (!this.playing) this.togglePlay();
+        return;
+      }
       if (event.key === ' ' || event.key.toLowerCase() === 'k') {
         event.preventDefault(); event.stopPropagation(); this.togglePlay(); return;
       }
       if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
       event.preventDefault(); event.stopPropagation();
       this.requestPlay(false);
+      this.clearHover();
       const current = mode === 'scrub' ? this.time : this[mode];
       const step = event.shiftKey ? 1 : .1;
       let value = current + (['ArrowLeft', 'ArrowDown'].includes(event.key) ? -step : step);
@@ -247,8 +303,11 @@
     }
 
     clearHover() {
+      const wasPreviewing = this.isPreviewing;
+      this.isPreviewing = false;
       this.hoverTime = null;
       this.root.classList.remove('is-hovering');
+      if (wasPreviewing) this.options.onPreviewTimeChange?.(null);
     }
 
     renderHover() {
@@ -292,9 +351,38 @@
         handle.setAttribute('aria-valuetext', formatTime(value, true));
         handle.disabled = !this.active;
       }
-      this.durationLabel.textContent = formatTime(this.end - this.start, this.end - this.start < 1);
-      this.durationLabel.title = `${formatTime(this.start, true)} – ${formatTime(this.end, true)} (${(this.end - this.start).toFixed(2)} seconds)`;
+      this.durationLabel.disabled = !this.active;
+      this.renderDuration();
       this.renderHover();
+    }
+
+    getSelectedSizeBytes() {
+      return this.sourceSizeBytes === null ? null : this.sourceSizeBytes * clamp((this.end - this.start) / this.duration, 0, 1);
+    }
+
+    renderDuration() {
+      const seconds = this.end - this.start;
+      const duration = formatTime(seconds, seconds < 1);
+      const bytes = this.getSelectedSizeBytes();
+      let size = '—';
+      if (bytes !== null) {
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const unit = bytes > 0 ? clamp(Math.floor(Math.log10(bytes) / 3), 0, units.length - 1) : 0;
+        size = `${(bytes / 1000 ** unit).toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
+      }
+      this.durationLabel.textContent = this.showFileSize ? size : duration;
+      this.durationLabel.dataset.metric = this.showFileSize ? 'size' : 'duration';
+      this.durationLabel.setAttribute('aria-label', this.showFileSize
+        ? `Estimated file size: ${bytes === null ? 'unavailable' : size}. Show duration`
+        : `Selected video duration: ${duration}. Show estimated file size`);
+      this.durationLabel.title = this.showFileSize
+        ? `${bytes === null ? 'File size unavailable.' : 'Estimated from the original file size and selected duration.'} Click to show duration.`
+        : `${formatTime(this.start, true)} – ${formatTime(this.end, true)} (${seconds.toFixed(2)} seconds). Click to show estimated file size.`;
+    }
+
+    setSourceSize(bytes) {
+      this.sourceSizeBytes = Number.isFinite(bytes) && bytes >= 0 ? bytes : null;
+      this.renderDuration();
     }
 
     getState() { return { duration: this.duration, start: this.start, end: this.end, time: this.time, playing: this.playing, active: this.active, trimmed: this.start > .0001 || this.end < this.duration - .0001 }; }
@@ -314,8 +402,8 @@
       this.time = clamp(this.time, this.start, this.end);
       this.render();
     }
-    reset() { this.endDrag(); this.start = 0; this.end = this.duration; this.time = 0; this.playing = false; this.clearHover(); this.render(); }
-    setActive(active) { this.active = Boolean(active); if (!this.active) { this.endDrag(); this.requestPlay(false); this.clearHover(); } this.render(); }
+    reset() { this.endDrag(); this.settleHandles(); this.start = 0; this.end = this.duration; this.time = 0; this.playing = false; this.showFileSize = false; this.clearHover(); this.render(); }
+    setActive(active) { this.active = Boolean(active); if (!this.active) { this.endDrag(); this.settleHandles(); this.requestPlay(false); this.clearHover(); } this.render(); }
     setOptions(options = {}) {
       Object.assign(this.options, options);
     }
