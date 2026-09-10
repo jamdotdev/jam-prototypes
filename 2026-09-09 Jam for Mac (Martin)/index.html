@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#26232b">
+  <title>Jam for Mac · UI playground</title>
+  <link rel="icon" href="assets/strawberry.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="draft.css">
+  <link rel="stylesheet" href="draft-timeline.css">
+  <script src="grid.js" defer></script>
+  <script src="draft-timeline.js" defer></script>
+  <script src="prototype.js" defer></script>
+  <script src="draft.js?v=jam-video" defer></script>
+</head>
+<body>
+  <main class="desktop" id="desktop" aria-label="Jam for Mac prototype">
+    <div class="desktop-menubar" aria-hidden="true">
+      <div class="desktop-menu-left"><span class="apple"></span><strong>Jam</strong><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span></div>
+      <div class="desktop-menu-right"><img src="assets/strawberry.svg" alt=""><img class="desktop-wifi" src="assets/wifi.svg" alt=""><span>Wed Apr 1</span><span>9:41 AM</span></div>
+    </div>
+
+    <div class="workspace" id="workspace" data-surface="onboarding">
+      <nav class="surface-switcher" aria-label="Prototype surface">
+        <div class="surface-tabs" role="tablist" aria-label="Surface">
+          <span class="surface-selection" aria-hidden="true"></span>
+          <button id="surface-onboarding" role="tab" aria-selected="true" aria-controls="onboarding-window" data-surface="onboarding">Onboarding</button>
+          <button id="surface-draft" role="tab" aria-selected="false" aria-controls="draft-window" tabindex="-1" data-surface="draft">DraftUI</button>
+        </div>
+      </nav>
+      <section class="mac-window" id="onboarding-window" role="tabpanel" aria-labelledby="surface-onboarding">
+        <div class="window-scene" id="window-scene">
+          <canvas class="background-grid" id="background-grid" width="700" height="500" aria-hidden="true"></canvas>
+          <div class="titlebar" id="titlebar" tabindex="0" role="group" aria-label="Drag window. Arrow keys move it; Home centers it.">
+            <div class="traffic-lights" aria-hidden="true"><span class="traffic close"></span><span class="traffic minimize"></span><span class="traffic zoom"></span></div>
+          </div>
+          <header class="onboarding-heading">
+            <h1>Find Jam in your Menu Bar</h1>
+            <p>Click Jam’s strawberry icon to record, open drafts, or change settings.</p>
+          </header>
+          <div class="menu-viz" aria-hidden="true">
+            <div class="macbook-corner">
+              <div class="mini-desktop">
+                <img class="mini-wallpaper" src="assets/wallpaper.png" alt="" draggable="false">
+                <div class="mini-menubar">
+                  <span class="mini-jam"><img src="assets/strawberry.svg" alt="" draggable="false"></span>
+                  <img class="mini-wifi" src="assets/wifi.svg" alt="" draggable="false">
+                  <span class="mini-date"><span>Wed Apr 1</span><span>9:41 AM</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="strawberry-target" id="strawberry-target" aria-label="Open Jam menu" aria-expanded="false"></button>
+          <div class="jam-menu" id="jam-menu" hidden>
+            <div class="jam-menu-title">Jam</div>
+            <button data-menu-action="record"><span class="record-dot"></span>Record screen <kbd>⌘ ⇧ 2</kbd></button>
+            <button data-menu-action="drafts">Drafts <span class="menu-count">0</span></button>
+            <div class="menu-rule"></div>
+            <button data-menu-action="settings">Settings… <kbd>⌘ ,</kbd></button>
+          </div>
+          <div class="recording-indicator" id="recording-indicator" hidden><span></span><span id="recording-time">00:00</span></div>
+          <footer class="window-footer">
+            <button class="back-button" id="back-button" aria-label="Reset onboarding preview"><img src="assets/back-chevron.svg" width="7" height="12" alt=""></button>
+            <button class="record-button" id="record-button">Start Recording</button>
+          </footer>
+        </div>
+        <div class="magnifier" id="magnifier" tabindex="0" role="group" aria-label="Magnifying lens. Drag to explore, use arrow keys to move, or double-click to return to the strawberry.">
+          <div class="lens-aperture" id="lens-aperture" aria-hidden="true"><div id="lens-content" inert></div></div>
+          <img class="lens-rim" src="assets/lens.svg" alt="" draggable="false">
+        </div>
+      </section>
+
+      <section class="dev-toolbar" id="onboarding-playground" aria-label="Onboarding playground controls">
+        <div class="toolbar-title-row">
+          <div class="toolbar-title"><span class="live-dot"></span>Playground<span class="toolbar-caption">Menu bar onboarding</span></div>
+          <div class="toolbar-actions"><button id="reset-all" class="text-button" title="Reset all controls and positions">Reset</button><button id="toggle-controls" class="collapse-button" aria-label="Collapse prototype controls" aria-expanded="true"><span></span></button></div>
+        </div>
+        <div class="controls-body" id="controls-body">
+          <div class="effect-controls">
+            <label class="control select-control"><span>Grid hover effect</span><span class="select-wrap"><select id="effect"><option value="disperse">Disperse</option><option value="magnetize">Magnetize</option><option value="bulge">Bulge</option><option value="twist">Twist</option><option value="ripple">Ripple</option><option value="trail">Trail</option></select></span></label>
+            <label class="control range-control"><span><span id="strength-label">Force</span><output id="strength-value" for="strength">45%</output></span><input id="strength" type="range" min="0" max="100" value="45"></label>
+            <label class="control range-control"><span><span id="radius-label">Radius</span><output id="radius-value" for="radius">120 px</output></span><input id="radius" type="range" min="40" max="240" value="120" step="4"></label>
+            <label class="control range-control"><span><span id="speed-label">Response</span><output id="speed-value" for="speed">1.0×</output></span><input id="speed" type="range" min="0.2" max="2" value="1" step="0.1"></label>
+          </div>
+          <div class="secondary-controls">
+            <label class="switch-control"><input type="checkbox" id="grid-enabled" checked><span class="switch-track"></span><span>Grid</span></label>
+            <label class="switch-control"><input type="checkbox" id="lens-enabled" checked><span class="switch-track"></span><span>Lens</span></label>
+            <label class="compact-control"><span>Zoom</span><span class="select-wrap"><select id="lens-zoom" aria-label="Lens magnification"><option value="1.5">1.5×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select></span></label>
+            <label class="compact-control size-control"><span>Size</span><input id="lens-size" type="range" min="88" max="176" value="88" step="4" aria-label="Lens size"><output id="lens-size-value" for="lens-size">88</output></label>
+            <label class="compact-control fill-control"><span>Fill</span><input id="fill" type="range" min="0" max="30" value="10" aria-label="Grid gray fill"><output id="fill-value" for="fill">10%</output></label>
+            <button class="text-button center-lens" id="center-lens">Recenter lens</button>
+          </div>
+          <div class="toolbar-footnote"><span id="effect-description">Push the grid away from your cursor.</span><span>Drag the title bar or lens</span></div>
+        </div>
+      </section>
+
+      <section class="draft-window" id="draft-window" role="tabpanel" aria-labelledby="surface-draft" hidden>
+        <div class="draft-main-pane">
+          <div class="draft-titlebar" id="draft-titlebar" tabindex="0" role="group" aria-label="Drag DraftUI window. Arrow keys move it; Home centers it.">
+            <div class="traffic-lights" aria-hidden="true"><span class="traffic close"></span><span class="traffic minimize"></span><span class="traffic zoom"></span></div>
+            <button class="draft-folder" id="draft-folder" aria-label="Draft folder"><img src="assets/draft/folder.svg" width="14" height="11" alt=""><span id="draft-folder-name" hidden>Folder Name</span></button>
+          </div>
+          <div class="draft-preview-area">
+            <div class="draft-preview" id="draft-preview">
+              <video id="draft-video" src="assets/draft/jam-video.mp4" muted playsinline preload="auto" aria-label="Sample video for trimming"></video>
+              <img class="draft-figma-reference" id="draft-figma-reference" src="assets/draft/preview.png" alt="Original Figma preview" hidden>
+              <img class="draft-camera" id="draft-camera" src="assets/draft/camera.png" alt="Camera bubble" hidden>
+            </div>
+            <div class="draft-media-error" id="draft-media-error" role="status" hidden>Couldn’t load this video. Choose another file in the playground.</div>
+          </div>
+          <div class="draft-timeline-mount" id="draft-timeline"></div>
+        </div>
+        <aside class="draft-share-pane" aria-label="Sharing details">
+          <div class="draft-share-toolbar">
+            <span class="draft-connected-label" id="draft-connected-label">Create a link to share</span>
+            <button class="draft-offline-button" id="draft-offline-button" aria-label="Offline" aria-haspopup="dialog" aria-expanded="false" aria-controls="draft-offline-popover" hidden><img src="assets/draft/offline-label.svg" width="64" height="14" alt="Offline"></button>
+            <button class="draft-create-button" id="draft-create-button">Create Jam</button>
+          </div>
+          <div class="draft-editor">
+            <input id="draft-title" aria-label="Jam title" placeholder="Title" autocomplete="off" maxlength="200">
+            <textarea id="draft-description" aria-label="Jam description" placeholder="Add a description..."></textarea>
+          </div>
+        </aside>
+        <div class="draft-offline-popover" id="draft-offline-popover" role="dialog" aria-labelledby="offline-popover-title" aria-describedby="offline-popover-description" hidden>
+          <img class="draft-popover-surface" src="assets/draft/popover.png" alt="">
+          <div class="draft-popover-content"><h2 id="offline-popover-title">You are offline</h2><p id="offline-popover-description">You can save this Jam as a draft and upload it after you regain connectivity.</p></div>
+        </div>
+      </section>
+
+      <section class="dev-toolbar draft-playground" id="draft-playground" aria-label="DraftUI playground controls" hidden>
+        <div class="toolbar-title-row">
+          <div class="toolbar-title"><span class="live-dot"></span>Playground<span class="toolbar-caption">DraftUI</span></div>
+          <div class="toolbar-actions"><button id="draft-reset" class="text-button">Reset</button><button id="draft-toggle-controls" class="collapse-button" aria-label="Collapse DraftUI controls" aria-expanded="true"><span></span></button></div>
+        </div>
+        <div class="controls-body" id="draft-controls-body">
+          <div class="draft-controls-grid">
+            <label class="control"><span>Connection</span><span class="select-wrap"><select id="draft-connection"><option value="connected">Connected</option><option value="offline">Offline</option></select></span></label>
+            <label class="control"><span>Trim state</span><span class="select-wrap"><select id="draft-trim-preset"><option value="untrimmed">Untrimmed</option><option value="trimmed">Trimmed</option><option value="custom" disabled>Custom trim</option></select></span></label>
+            <label class="control"><span>Preview</span><span class="select-wrap"><select id="draft-preview-mode"><option value="video">Sample video</option><option value="figma">Figma reference</option></select></span></label>
+            <label class="control range-control"><span><span>Handle animation</span><output id="draft-handle-speed-value" for="draft-handle-speed">180 ms</output></span><input id="draft-handle-speed" type="range" min="80" max="500" value="180" step="10"></label>
+            <label class="control"><span>Playback speed</span><span class="select-wrap"><select id="draft-playback-speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></span></label>
+          </div>
+          <div class="draft-controls-secondary">
+            <label class="switch-control"><input id="draft-loop" type="checkbox" checked><span class="switch-track"></span><span>Loop selection</span></label>
+            <label class="switch-control"><input id="draft-camera-enabled" type="checkbox"><span class="switch-track"></span><span>Camera bubble</span></label>
+            <div class="draft-trim-readout"><span>In <output id="draft-in-time">0:00.00</output></span><span>Out <output id="draft-out-time">1:44.56</output></span><span>Selected <output id="draft-selection-time">1:44.56</output></span></div>
+            <button class="text-button" id="draft-load-video">Choose video…</button><input id="draft-video-file" type="file" accept="video/*" hidden>
+          </div>
+          <div class="toolbar-footnote"><span>Drag either trim handle to scrub. Hover the paused timeline to inspect a timestamp.</span><span id="draft-video-name">jam-video.mp4 · stored locally</span></div>
+        </div>
+      </section>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+    <div class="desktop-caption" aria-hidden="true">JAM FOR MAC <span>·</span> UI EXPLORATIONS</div>
+  </main>
+</body>
+</html>

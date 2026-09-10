@@ -1,0 +1,49 @@
+name: Publish prototypes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '2026-09-09 Jam for Mac (Martin)/**'
+      - '.github/pages/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out prototypes
+        uses: actions/checkout@v6
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Prepare the static site
+        env:
+          PROTOTYPE_DIR: '2026-09-09 Jam for Mac (Martin)'
+        run: |
+          mkdir -p _site/mac
+          cp "$PROTOTYPE_DIR"/*.html "$PROTOTYPE_DIR"/*.css "$PROTOTYPE_DIR"/*.js _site/mac/
+          cp -R "$PROTOTYPE_DIR/assets" _site/mac/assets
+          cp .github/pages/index.html _site/index.html
+          touch _site/.nojekyll
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
