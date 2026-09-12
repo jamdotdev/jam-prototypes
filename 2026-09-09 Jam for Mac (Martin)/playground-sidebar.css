@@ -1,0 +1,36 @@
+/* Shared sidebar for every surface. Reference: Figma 2623:29144 (12px inset, 438px rail at 1920px). */
+/* The absolute desktop and sidebar still need a full-height document for native hit testing. */
+html,body{height:100%;min-height:100%}
+body{--pg-sidebar-width:clamp(320px,23vw,438px);--pg-inset:12px;background:#080809;overflow:hidden}
+.desktop{position:absolute;inset:0;width:auto;height:auto;min-height:0;border-radius:0;transition:inset 280ms cubic-bezier(.32,.72,0,1),border-radius 280ms cubic-bezier(.32,.72,0,1)}
+body.playground-open .desktop{inset:var(--pg-inset) calc(var(--pg-sidebar-width) + var(--pg-inset)) var(--pg-inset) var(--pg-inset);border-radius:14px}
+.playground-settings{display:grid;place-items:center;width:28px;height:28px;padding:4px;background:transparent;color:inherit;border-radius:5px;position:relative}
+body.playground-open .playground-settings{visibility:hidden;pointer-events:none}
+.playground-settings img{width:14px;height:14px;font-size:10px;opacity:.85}
+.playground-settings:hover,.playground-settings[aria-expanded="true"]{background:#00000012}
+.playground-settings:focus-visible{outline-offset:-2px}
+.playground-sidebar{position:absolute;right:0;top:0;bottom:0;width:var(--pg-sidebar-width);padding:12px 12px 12px 0;opacity:0;visibility:hidden;transform:translateX(24px);transition:transform 280ms cubic-bezier(.32,.72,0,1),opacity 180ms ease,visibility 0s 280ms;color:#efedf2}
+.playground-open .playground-sidebar{opacity:1;visibility:visible;transform:translateX(0);transition-delay:0s}
+.playground-sidebar .dev-toolbar.pg-shell{position:relative;inset:auto;width:100%;height:100%;margin:0;transform:none;border-radius:0;box-shadow:none;background:transparent;backdrop-filter:none;display:flex;flex-direction:column;overflow:hidden}
+.playground-sidebar .pg-shell .toolbar-title-row{grid-template-columns:1fr 32px;grid-template-rows:32px 36px;height:auto;padding:0 4px 8px 12px;gap:0;flex:none}
+.playground-sidebar .toolbar-title{grid-column:1;grid-row:1}
+.playground-sidebar .toolbar-actions{grid-column:2;grid-row:1}
+.playground-sidebar .toolbar-screen-center{grid-column:1/-1;grid-row:2;justify-content:flex-start}
+.playground-sidebar .collapse-button{width:28px;height:28px;padding:6px}
+.playground-sidebar .collapse-button img{width:16px;height:16px;filter:invert(1);opacity:.55}
+.playground-sidebar .pg-content{display:flex;flex-direction:column;min-height:0;flex:1}
+.playground-sidebar .pg-player{flex:none;padding:10px 12px 12px}
+.playground-sidebar .pg-player-transport{display:grid;grid-template-columns:28px 28px minmax(0,1fr);gap:6px}
+.playground-sidebar .pg-player-readouts{grid-column:3;grid-row:1;justify-self:end;max-width:100%}
+.playground-sidebar .pg-player-timeline{grid-column:1/-1;grid-row:2;min-width:0}
+.playground-sidebar .pg-player-time{font-size:10px;padding-inline:5px;width:calc(var(--pg-time-digits,4ch) + 10px)}
+.playground-sidebar .pg-player-speed{width:32px}
+.playground-sidebar .pg-player-readouts .pg-unit-button{width:28px}
+.playground-sidebar .pg-sections{display:flex;flex-direction:column;height:auto;min-height:0;flex:1;padding:12px;gap:10px}
+.playground-sidebar .pg-column{width:100%;flex:none}
+.playground-sidebar .playground-footer{flex:none;margin:0 12px;gap:6px;flex-wrap:wrap}
+.playground-sidebar .playground-default-status:empty{display:none}
+.playground-sidebar .playground-default-status:not(:empty){flex-basis:100%}
+body.playground-instant .desktop,body.playground-instant .playground-sidebar{transition:none}
+@media(max-width:700px){body{--pg-sidebar-width:300px}.playground-open .desktop-menu-right>span{display:none}.playground-open .desktop-menubar{padding-inline:8px}.playground-open .desktop-menu-right{gap:4px}}
+@media(prefers-reduced-motion:reduce){.desktop,.playground-sidebar{transition:none}}

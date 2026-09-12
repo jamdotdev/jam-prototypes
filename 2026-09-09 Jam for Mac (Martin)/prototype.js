@@ -9,15 +9,9 @@
   const lensContent = $('lens-content');
   const canvas = $('background-grid');
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const settings = {
-    disperse: { strength: 45, radius: 120, speed: 1 },
-    magnetize: { strength: 45, radius: 140, speed: 1 },
-    bulge: { strength: 50, radius: 144, speed: 1 },
-    twist: { strength: 55, radius: 156, speed: 1 },
-    ripple: { strength: 45, radius: 160, speed: 1 },
-    trail: { strength: 60, radius: 64, speed: 1 },
-  };
-  const defaults = JSON.parse(JSON.stringify(settings));
+  const initialGrid = window.JamDefaults.get('grid');
+  const initialOnboarding = window.JamDefaults.get('onboarding');
+  const settings = initialGrid.effects;
   const effectCopy = {
     disperse: ['Force', 'Radius', 'Response', 'Push the grid away from your cursor.'],
     magnetize: ['Attraction', 'Radius', 'Response', 'Pull the grid gently toward your cursor.'],
@@ -26,20 +20,33 @@
     ripple: ['Amplitude', 'Reach', 'Wave speed', 'Send soft waves through the grid.'],
     trail: ['Intensity', 'Width', 'Fade speed', 'Leave a fading trail of muted gray squares.'],
   };
-  let effect = 'disperse';
+  let effect = initialGrid.effect;
+  let gridEnabled = initialGrid.enabled;
+  let gridFill = initialGrid.fill;
+  let lensEnabled = initialOnboarding.lensEnabled;
+  const gridBounds = { strength: [0, 100], radius: [40, 240], speed: [.2, 2], fill: [0, 30] };
+  const bounded = (value, min, max, fallback) => Number.isFinite(Number(value))
+    ? Math.max(min, Math.min(max, Number(value))) : fallback;
   let scale = 1;
   let windowPosition = { x: 0, y: 0 };
   let lensPosition = { x: 310, y: 186 };
-  let lensSize = 88;
-  let magnification = 2;
+  let lensSize = initialOnboarding.lensSize;
+  let magnification = initialOnboarding.lensZoom;
   let cloneCanvas;
   let drag = null;
   let toastTimeout;
   let recordingStart = null;
   let recordingInterval;
-  const surfacePositions = { onboarding: null, draft: null };
-  let playgroundVisible = true;
-  const surfaceWidth = () => workspace.dataset.surface === 'draft' ? 1027 : 700;
+  const surfaces = {
+    onboarding: { label: 'Onboarding', width: 700, windowId: 'onboarding-window', playgroundId: 'onboarding-playground', resetId: 'reset-all' },
+    welcome: { label: 'Welcome screen', width: 700, windowId: 'welcome-window', playgroundId: 'welcome-playground', resetId: 'welcome-reset', setActive: (active) => window.JamWelcome?.setActive(active) },
+    draft: { label: 'DraftUI', width: 1027, windowId: 'draft-window', playgroundId: 'draft-playground', resetId: 'draft-reset', setActive: (active) => window.JamDraft?.setActive(active) },
+    recording: { label: 'Recording belt', width: 1100, fullscreen: true, windowId: 'recording-window', playgroundId: 'recording-playground', resetId: 'recording-reset', setActive: (active) => window.JamRecording?.setActive(active) },
+  };
+  const surfacePositions = Object.fromEntries(Object.keys(surfaces).map((surface) => [surface, null]));
+  let playgroundVisible = false;
+  const currentSurface = () => surfaces[workspace.dataset.surface] || surfaces.onboarding;
+  const surfaceWidth = () => currentSurface().width;
 
   // Programmatic focus after a drag must not inherit keyboard focus styling.
   document.body.dataset.inputMethod = 'pointer';
@@ -51,7 +58,7 @@
   }, true);
 
   function syncLensCanvas(source = canvas) {
-    if (!cloneCanvas || !$('lens-enabled').checked) return;
+    if (!cloneCanvas || !lensEnabled) return;
     if (cloneCanvas.width !== source.width || cloneCanvas.height !== source.height) {
       cloneCanvas.width = source.width;
       cloneCanvas.height = source.height;
@@ -94,45 +101,95 @@
   function positionWindow() {
     const width = surfaceWidth() * scale;
     const height = workspace.offsetHeight * scale;
-    windowPosition.x = Math.max(12, Math.min(innerWidth - width - 12, windowPosition.x));
-    windowPosition.y = Math.max(40, Math.min(Math.max(40, innerHeight - height - 20), windowPosition.y));
+    windowPosition.x = Math.max(12, Math.min($('desktop').clientWidth - width - 12, windowPosition.x));
+    windowPosition.y = Math.max(40, Math.min(Math.max(40, $('desktop').clientHeight - height - 20), windowPosition.y));
     workspace.style.left = `${windowPosition.x}px`;
     workspace.style.top = `${windowPosition.y}px`;
   }
 
   function fitWindow(center = true) {
+    if (currentSurface().fullscreen) {
+      // Recording uses the inset desktop's own pixel coordinates.
+      scale = 1;
+      $('recording-playground').style.setProperty('--pg-body-height', `${Math.max(32, Math.min(260, $('desktop').clientHeight * .28, $('desktop').clientHeight - 282))}px`);
+      window.JamRecording?.layout();
+      return;
+    }
     const width = surfaceWidth();
-    scale = Math.min(1, (innerWidth - 32) / width, (innerHeight - 72) / workspace.offsetHeight);
+    // Reserve a stable panel budget; expanding a folder scrolls instead of shrinking the app.
+    workspace.style.setProperty("--pg-body-height", `${Math.max(180, Math.min(300, $('desktop').clientHeight - (workspace.dataset.surface === "draft" ? 870 : 750)))}px`);
+    // The taller Welcome playground needs room above the desktop caption.
+    const verticalReserve = workspace.dataset.surface === 'welcome' ? 100 : 72;
+    scale = Math.min(1, ($('desktop').clientWidth - 32) / width, ($('desktop').clientHeight - verticalReserve) / workspace.offsetHeight);
     scale = Math.max(.25, scale);
     workspace.style.setProperty('--workspace-scale', scale);
-    if (center) windowPosition = { x: (innerWidth - width * scale) / 2, y: 28 + (innerHeight - 28 - workspace.offsetHeight * scale) / 2 - 5 };
+    if (center) windowPosition = { x: ($('desktop').clientWidth - width * scale) / 2, y: 28 + ($('desktop').clientHeight - 28 - workspace.offsetHeight * scale) / 2 - 5 };
     positionWindow();
     placeLens();
   }
 
-  function paintRange(input) {
-    input.style.setProperty('--range-fill', `${(Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min)) * 100}%`);
+  function getGridOptions() {
+    return { effect, ...settings[effect], fill: gridFill, enabled: gridEnabled, reducedMotion: prefersReducedMotion.matches };
+  }
+
+  function getGridSettings() {
+    return {
+      effect,
+      enabled: gridEnabled,
+      fill: gridFill,
+      effects: Object.fromEntries(Object.entries(settings).map(([name, values]) => [name, { ...values }])),
+    };
+  }
+
+  function getGridLabels() {
+    const [strength, radius, speed, description] = effectCopy[effect];
+    return { strength, radius, speed, description };
+  }
+
+  function updateEffectSettings(name, patch = {}) {
+    for (const key of ['strength', 'radius', 'speed']) {
+      if (!Object.hasOwn(patch, key)) continue;
+      settings[name][key] = bounded(patch[key], ...gridBounds[key], settings[name][key]);
+    }
+  }
+
+  function updateGridOptions(patch = {}) {
+    if (Object.hasOwn(settings, patch.effect)) effect = patch.effect;
+    updateEffectSettings(effect, patch);
+    if (Object.hasOwn(patch, 'fill')) gridFill = bounded(patch.fill, ...gridBounds.fill, gridFill);
+    if (Object.hasOwn(patch, 'enabled')) gridEnabled = Boolean(patch.enabled);
+    applyGridOptions();
+    return getGridOptions();
   }
 
   function applyGridOptions() {
-    grid.setOptions({ effect, ...settings[effect], fill: Number($('fill').value), enabled: $('grid-enabled').checked, reducedMotion: prefersReducedMotion.matches });
-    $('strength-value').value = `${$('strength').value}%`;
-    $('radius-value').value = `${$('radius').value} px`;
-    $('speed-value').value = `${Number($('speed').value).toFixed(1)}×`;
-    $('fill-value').value = `${$('fill').value}%`;
-    $('onboarding-playground').querySelectorAll('input[type="range"]').forEach(paintRange);
+    grid.setOptions(getGridOptions());
+    document.dispatchEvent(new CustomEvent('gridoptionschange', { detail: getGridOptions() }));
+    // Grid values are shared by the onboarding and permissions default groups.
+    window.JamDefaults.changed();
   }
 
-  function setEffect(value) {
-    effect = value;
-    $('effect').value = value;
-    for (const key of ['strength', 'radius', 'speed']) $(key).value = settings[value][key];
-    const [strength, radius, speed, description] = effectCopy[value];
-    $('strength-label').textContent = strength;
-    $('radius-label').textContent = radius;
-    $('speed-label').textContent = speed;
-    $('effect-description').textContent = description;
-    applyGridOptions();
+  function applyGridSettings(values = {}) {
+    Object.keys(settings).forEach((name) => updateEffectSettings(name, values.effects?.[name] || {}));
+    grid.clearPointer();
+    updateGridOptions(values);
+    return getGridSettings();
+  }
+
+  function getLensSettings() {
+    return { lensEnabled, lensZoom: magnification, lensSize };
+  }
+
+  function updateLensSettings(patch = {}) {
+    if (Object.hasOwn(patch, 'lensEnabled')) lensEnabled = Boolean(patch.lensEnabled);
+    if (Object.hasOwn(patch, 'lensZoom')) magnification = bounded(patch.lensZoom, 1.5, 4, magnification);
+    if (Object.hasOwn(patch, 'lensSize')) lensSize = bounded(patch.lensSize, 88, 176, lensSize);
+    lens.hidden = !lensEnabled;
+    placeLens();
+    syncLensCanvas();
+    document.dispatchEvent(new CustomEvent('lensoptionschange', { detail: getLensSettings() }));
+    window.JamDefaults.changed('onboarding');
+    return getLensSettings();
   }
 
   function notify(message) {
@@ -184,30 +241,11 @@
 
   refreshLensScene();
   const grid = new window.JamGrid(canvas, { width: 700, height: 500, onFrame: syncLensCanvas });
-  setEffect('disperse');
+  applyGridSettings(initialGrid);
+  updateLensSettings(initialOnboarding);
   fitWindow();
   recenterLens();
 
-  $('effect').addEventListener('change', (event) => setEffect(event.target.value));
-  ['strength', 'radius', 'speed'].forEach((key) => $(key).addEventListener('input', (event) => {
-    settings[effect][key] = Number(event.target.value);
-    applyGridOptions();
-  }));
-  $('fill').addEventListener('input', applyGridOptions);
-  $('grid-enabled').addEventListener('change', applyGridOptions);
-  $('lens-enabled').addEventListener('change', () => {
-    lens.hidden = !$('lens-enabled').checked;
-    ['lens-zoom', 'lens-size', 'center-lens'].forEach((id) => $(id).disabled = lens.hidden);
-    syncLensCanvas();
-  });
-  $('lens-zoom').addEventListener('change', (event) => { magnification = Number(event.target.value); placeLens(); });
-  $('lens-size').addEventListener('input', (event) => {
-    lensSize = Number(event.target.value);
-    $('lens-size-value').value = lensSize;
-    paintRange(event.target);
-    placeLens();
-  });
-  $('center-lens').addEventListener('click', recenterLens);
   lens.addEventListener('dblclick', recenterLens);
   $('titlebar').addEventListener('dblclick', () => fitWindow());
   $('strawberry-target').addEventListener('click', () => toggleMenu());
@@ -221,33 +259,6 @@
   });
   document.addEventListener('pointerdown', (event) => {
     if (!$('jam-menu').hidden && !event.target.closest('.jam-menu, .strawberry-target, .magnifier')) toggleMenu(false);
-  });
-
-  $('toggle-controls').addEventListener('click', () => {
-    const expanded = $('toggle-controls').getAttribute('aria-expanded') === 'true';
-    $('toggle-controls').setAttribute('aria-expanded', String(!expanded));
-    $('toggle-controls').setAttribute('aria-label', `${expanded ? 'Expand' : 'Collapse'} prototype controls`);
-    $('controls-body').hidden = expanded;
-    fitWindow(false);
-  });
-  $('reset-all').addEventListener('click', () => {
-    Object.keys(settings).forEach((key) => Object.assign(settings[key], defaults[key]));
-    $('grid-enabled').checked = true;
-    $('lens-enabled').checked = true;
-    lens.hidden = false;
-    ['lens-zoom', 'lens-size', 'center-lens'].forEach((id) => $(id).disabled = false);
-    magnification = 2;
-    lensSize = 88;
-    $('lens-zoom').value = '2';
-    $('lens-size').value = '88';
-    $('lens-size-value').value = '88';
-    $('fill').value = '10';
-    grid.clearPointer();
-    stopRecording();
-    toggleMenu(false);
-    setEffect('disperse');
-    fitWindow();
-    recenterLens();
   });
 
   function localPoint(event) {
@@ -313,32 +324,41 @@
   $('titlebar').addEventListener('keydown', (event) => keyboardMove(event, 'window'));
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { toggleMenu(false); grid.clearPointer(); } });
   window.addEventListener('resize', () => fitWindow());
+  new ResizeObserver(() => fitWindow()).observe($('desktop'));
   prefersReducedMotion.addEventListener('change', applyGridOptions);
   document.addEventListener('visibilitychange', () => { if (document.hidden && recordingStart !== null) updateTimer(); });
 
   function setSurface(surface) {
-    if (!['onboarding', 'draft'].includes(surface)) surface = 'onboarding';
+    if (!Object.hasOwn(surfaces, surface)) surface = 'onboarding';
     const previous = workspace.dataset.surface;
-    surfacePositions[previous] = { ...windowPosition };
+    if (Object.hasOwn(surfaces, previous)) surfacePositions[previous] = { ...windowPosition };
     grid.clearPointer();
-    if (surface === 'draft' && recordingStart !== null) stopRecording();
+    if (surface !== 'onboarding' && recordingStart !== null) stopRecording();
     workspace.dataset.surface = surface;
-    workspace.style.width = `${surface === 'draft' ? 1027 : 700}px`;
-    windowEl.hidden = surface !== 'onboarding';
-    $('onboarding-playground').hidden = surface !== 'onboarding' || !playgroundVisible;
-    $('draft-window').hidden = surface !== 'draft';
-    $('draft-playground').hidden = surface !== 'draft' || !playgroundVisible;
+    $('desktop').dataset.surface = surface;
+    workspace.hidden = Boolean(currentSurface().fullscreen);
+    workspace.style.width = `${surfaceWidth()}px`;
+    Object.entries(surfaces).forEach(([name, config]) => {
+      $(config.windowId).hidden = name !== surface;
+      $(config.playgroundId).hidden = name !== surface;
+    });
     const saved = surfacePositions[surface];
     if (saved) windowPosition = { ...saved };
     fitWindow(!saved);
-    window.JamDraft?.setActive(surface === 'draft');
+    Object.entries(surfaces).forEach(([name, config]) => config.setActive?.(name === surface));
+    const url = new URL(location.href);
+    if (url.searchParams.get('surface') !== surface) {
+      url.searchParams.set('surface', surface);
+      history.replaceState(history.state, '', url);
+    }
     document.dispatchEvent(new CustomEvent('playgroundchange'));
   }
 
   function setPlaygroundVisible(visible) {
     playgroundVisible = Boolean(visible);
-    $('onboarding-playground').hidden = workspace.dataset.surface !== 'onboarding' || !playgroundVisible;
-    $('draft-playground').hidden = workspace.dataset.surface !== 'draft' || !playgroundVisible;
+    Object.entries(surfaces).forEach(([name, config]) => {
+      $(config.playgroundId).hidden = workspace.dataset.surface !== name;
+    });
     fitWindow(false);
     document.dispatchEvent(new CustomEvent('playgroundchange'));
   }
@@ -350,11 +370,36 @@
     fit: fitWindow,
     notify,
     getScale: () => scale,
+    getGridOptions,
+    updateGridOptions,
+    getGridSettings,
+    applyGridSettings,
+    getGridLabels,
+    getLensSettings,
+    updateLensSettings,
+    recenterLens,
     getSurface: () => workspace.dataset.surface,
+    getSurfaceLabel: () => currentSurface().label,
+    resetSurface: () => $(currentSurface().resetId).click(),
     bindWindowDrag(handle) {
       handle.addEventListener('pointerdown', (event) => beginDrag(event, 'window'));
       handle.addEventListener('dblclick', (event) => { if (!event.target.closest('button')) fitWindow(); });
       handle.addEventListener('keydown', (event) => { if (event.target === handle) keyboardMove(event, 'window'); });
     },
   };
+
+  window.JamDefaults.register('onboarding', {
+    groups: ['grid', 'onboarding'],
+    read: () => ({ grid: getGridSettings(), onboarding: getLensSettings() }),
+    apply(values) {
+      applyGridSettings(values.grid);
+      updateLensSettings(values.onboarding);
+    },
+    onReset() {
+      stopRecording();
+      toggleMenu(false);
+      fitWindow();
+      recenterLens();
+    },
+  });
 })();

@@ -41,14 +41,5 @@
 .draft-popover-content h2{font-size:13px;line-height:16px;font-weight:590;margin:0 0 8px;text-wrap:balance}
 .draft-popover-content p{font-size:13px;line-height:16px;color:rgba(0,0,0,.61);margin:0;text-wrap:pretty}
 .draft-playground{width:1027px;margin-top:22px}
-.draft-controls-grid{display:grid;grid-template-columns:136px 136px 152px 1fr 1fr 110px;gap:16px}
-.draft-controls-grid select{height:40px}
-.draft-controls-grid input[type="range"]{height:40px}
-.draft-controls-secondary{display:flex;align-items:center;gap:22px;margin-top:9px;padding-top:7px;border-top:1px solid #ffffff0b;min-height:44px}
-.draft-trim-readout{display:flex;align-items:center;gap:18px;color:#9996a1;font-size:11px}
-.draft-trim-readout span{white-space:nowrap}
-.draft-trim-readout output{display:inline-block;min-width:48px;margin-left:5px;color:#ece9f0;font-variant-numeric:tabular-nums}
-#draft-load-video{margin-left:auto}
-#draft-video-name{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .is-window-dragging .draft-window{box-shadow:0 0 1px #000c,0 24px 60px #0000004d}
 @media(prefers-reduced-motion:reduce){.draft-offline-popover{transition:none}}
