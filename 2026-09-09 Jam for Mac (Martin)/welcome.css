@@ -1,0 +1,24 @@
+/* Figma 2432:46998 assets, optically centered within the 700 × 500 window. */
+.welcome-window{position:relative;width:700px;height:500px;overflow:hidden;isolation:isolate;background:#fcfcfc;border-radius:16px;box-shadow:0 0 1px #000c,0 18px 54px #0000004d;color:rgba(0,0,0,.87);--ease-out:cubic-bezier(.23,1,.32,1)}
+.welcome-titlebar{position:absolute;inset:0 0 auto;height:30px;z-index:5;cursor:grab;touch-action:none;user-select:none}
+.welcome-titlebar:active{cursor:grabbing}.welcome-titlebar:focus-visible{outline-offset:-4px;border-radius:16px 16px 0 0}
+.welcome-grid-reveal{position:absolute;inset:0;pointer-events:none;opacity:.8}
+#welcome-grid-canvas{position:absolute;inset:0;width:700px;height:500px;pointer-events:none}
+.welcome-grid-layer{position:absolute;inset:0}
+.welcome-grid-pattern{position:absolute;inset:0;background-size:16px 16px;background-position:-.5px -2.5px;mask:url('data:image/svg+xml,%3Csvg%20preserveAspectRatio%3D%22none%22%20overflow%3D%22visible%22%20style%3D%22display%3A%20block%3B%22%20width%3D%22700%22%20height%3D%22500%22%20viewBox%3D%220%200%20700%20500%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20id%3D%22Linear%20Mask%22%20d%3D%22M0%200H700V500H0V0Z%22%20fill%3D%22url%28%23paint0_linear_0_595%29%22%2F%3E%0A%3Cdefs%3E%0A%3ClinearGradient%20id%3D%22paint0_linear_0_595%22%20x1%3D%22350%22%20y1%3D%220%22%20x2%3D%22350%22%20y2%3D%22500%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%0A%3Cstop%20offset%3D%220.477439%22%20stop-color%3D%22%23D9D9D9%22%20stop-opacity%3D%220%22%2F%3E%0A%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23737373%22%2F%3E%0A%3C%2FlinearGradient%3E%0A%3C%2Fdefs%3E%0A%3C%2Fsvg%3E') center/700px 500px no-repeat;transform:scaleY(-1)}
+.welcome-grid-horizontal{background-image:linear-gradient(to bottom,#0000000f 1px,transparent 1px)}
+.welcome-grid-vertical{background-image:linear-gradient(to right,#0000000f 1px,transparent 1px)}
+.welcome-stickers{position:absolute;inset:0;pointer-events:none;z-index:1}
+.welcome-sticker{position:absolute;left:0;top:0;transform-origin:center;pointer-events:none}
+.welcome-sticker-pop{width:100%;height:100%;transform-origin:center}
+.welcome-sticker img{position:absolute;display:block;max-width:none;user-select:none;pointer-events:none}
+.welcome-message{position:absolute;left:0;top:160px;width:100%;z-index:2;text-align:center;pointer-events:none}
+.welcome-app-icon{display:block;width:72px;height:72px;margin:0 auto 20px;border-radius:18px;box-shadow:0 0 1px #00000045,0 0 0 1px #00000003,0 1px 3px #00000017,0 1px 2px #00000005}
+.welcome-message h1{margin:0;font-size:26px;line-height:32px;font-weight:700;letter-spacing:0;text-wrap:balance}
+.welcome-message p{margin:4px 0 0;font-size:15px;line-height:20px;font-weight:590;color:rgba(0,0,0,.61);text-wrap:pretty}
+.welcome-footer{position:absolute;inset:432px 0 0;z-index:3;display:flex;align-items:center;justify-content:center;height:68px;background:#fff;box-shadow:0 -1px 1px #00000005,0 0 .5px #00000045}
+.welcome-continue{position:relative;display:flex;align-items:center;justify-content:center;width:158px;height:36px;padding:0 16px;border-radius:18px;background:#9feb6c;color:rgba(0,0,0,.87);font-size:13px;font-weight:510;line-height:16px;white-space:nowrap}
+.welcome-continue::after{content:"";position:absolute;inset:-2px 0;border-radius:20px}.welcome-continue:focus-visible{outline:2px solid #007aff80;outline-offset:3px}
+@media(hover:hover) and (pointer:fine){.welcome-continue:hover{background:#96e764}}
+.is-window-dragging .welcome-window{box-shadow:0 0 1px #000c,0 24px 60px #0000004d}
+@media(prefers-reduced-motion:reduce){.welcome-continue{transition:none}}

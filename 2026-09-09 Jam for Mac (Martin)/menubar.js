@@ -19,7 +19,7 @@
       item.setAttribute('aria-checked', String(item.dataset.surface === surface));
     });
     document.getElementById('menu-playground').setAttribute('aria-checked', String(playground.isPlaygroundVisible()));
-    document.getElementById('menu-reset').textContent = `Reset ${surface === 'draft' ? 'DraftUI' : 'Onboarding'} Playground`;
+    document.getElementById('menu-reset').textContent = `Reset ${playground.getSurfaceLabel()} Playground`;
   }
 
   function focusTrigger(trigger) {
@@ -47,6 +47,7 @@
     trigger.setAttribute('aria-expanded', 'true');
     const menu = menuFor(trigger);
     menu.hidden = false;
+    menu.style.top=`${document.querySelector('.desktop-menubar').getBoundingClientRect().bottom}px`;
     const left = Math.max(8, Math.min(trigger.getBoundingClientRect().left, innerWidth - menu.offsetWidth - 8));
     menu.style.setProperty('--menu-left', `${left}px`);
     if (edge) {
@@ -69,7 +70,7 @@
       const commands = {
         playground: () => playground.setPlaygroundVisible(!playground.isPlaygroundVisible()),
         center: () => playground.fit(),
-        reset: () => document.getElementById(playground.getSurface() === 'draft' ? 'draft-reset' : 'reset-all').click(),
+        reset: () => playground.resetSurface(),
       };
       commands[item.dataset.command]?.();
     }

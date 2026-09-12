@@ -1,0 +1,87 @@
+/* DialKit is inline in the existing app playground. These tokens are shared by every screen. */
+.dev-toolbar.pg-shell{--pg-section-inset:12px;--pg-row-inset:12px;--pg-toggle-end-inset:7px;--pg-label-size:11px;--pg-label-weight:400;--dial-row-height:28px;--dial-row-gap:5px;--dial-radius:7px;--dial-surface:rgba(255,255,255,.045);--dial-surface-hover:rgba(255,255,255,.075);--dial-surface-active:rgba(255,255,255,.105);--dial-text-label:#b4b1ba;--dial-text-primary:#efedf2;--dial-text-section:#dbd8e0;--dial-border:rgba(255,255,255,.07);--dial-focus-ring:#b8bdcb;color:var(--dial-text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin-top:20px;container-type:inline-size;background:#25232aee;overflow:visible}
+.pg-shell .toolbar-title-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);height:46px;padding:0 14px;gap:8px}
+.pg-shell .toolbar-title{font-size:11px;font-weight:550;justify-self:start}
+.pg-shell .toolbar-actions{justify-self:end}
+.pg-shell .collapse-button{width:28px;height:28px}
+.toolbar-screen-center{display:flex;align-items:center;justify-content:center;gap:2px;min-width:0}
+.pg-screen-select{min-width:0}
+.pg-screen-select .dialkit-select-trigger{background:transparent;box-shadow:none;padding:0 8px;gap:0}
+.pg-screen-select .dialkit-select-label{display:none}
+.pg-screen-select .dialkit-select-value{font-weight:500;color:#d8d5de}
+.pg-screen-select .dialkit-select-right{gap:6px}
+.pg-icon-button{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:7px;background:transparent;color:#d7d4dd;padding:6px;flex:none;cursor:pointer}
+.pg-icon-button svg{display:block;width:16px;height:16px}
+.pg-shell button:disabled{opacity:.35;cursor:default}
+.pg-player{padding:10px 16px 12px;border-block:1px solid #ffffff09}
+.pg-player-status{font-size:10px;font-weight:400;color:#96929e;text-align:right}
+.pg-player-transport{display:flex;align-items:flex-start;gap:6px;min-height:28px}
+.pg-player-readouts{display:flex;align-items:center;flex:none;height:28px;border-radius:var(--dial-radius);background:var(--dial-surface)}
+.pg-player-readouts>*+*{border-left:1px solid #0002}
+.pg-player-time{display:flex;align-items:center;justify-content:center;box-sizing:border-box;height:28px;padding:0 9px;width:calc(var(--pg-time-digits,4ch) + 18px);font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--dial-text-primary);white-space:nowrap}
+.pg-player-duration{color:var(--dial-text-label)}
+.pg-player-timeline{flex:1;min-width:30px;display:flex;flex-direction:column}
+.pg-player-timeline .pg-player-status{text-align:center;line-height:16px;min-height:16px}
+.pg-player-seek{--playground-control-height:28px}
+.pg-player-speed{width:44px;flex:none}
+.pg-speed-button,.pg-unit-button{display:block;width:100%;height:var(--dial-row-height);padding:0 7px;border:0;border-radius:0;background:transparent;color:var(--dial-text-label);font-size:var(--pg-label-size);font-weight:var(--pg-label-weight);font-variant-numeric:tabular-nums;cursor:pointer}
+.pg-player-readouts .pg-unit-button{width:34px;border-left:1px solid #0002}
+.pg-player-readouts>:last-child,.pg-player-readouts>:last-child button{border-radius:0 var(--dial-radius) var(--dial-radius) 0}
+.pg-loop-button{position:relative;color:#96929e;transition:background-color 150ms,color 150ms,scale 150ms}
+.pg-loop-button[aria-pressed="true"]{background:var(--dial-surface-active);color:var(--dial-text-primary)}
+.pg-loop-button svg{position:absolute;inset:6px;opacity:0;scale:.25;filter:blur(4px);transition:opacity 200ms cubic-bezier(.2,0,0,1),scale 200ms cubic-bezier(.2,0,0,1),filter 200ms cubic-bezier(.2,0,0,1)}
+.pg-loop-button[aria-pressed="true"] .pg-loop-on,.pg-loop-button[aria-pressed="false"] .pg-loop-off{opacity:1;scale:1;filter:blur(0)}
+.pg-loop-button:active{scale:.96}
+.pg-player .pg-note{margin:0}
+.pg-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;align-items:start;gap:10px;padding:12px 16px;height:var(--pg-body-height,260px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#ffffff20 transparent}
+.pg-sections>.pg-column>.pg-control>.dialkit-folder{border:1px solid #ffffff08;border-radius:10px;background:#ffffff03}
+.pg-shell .dialkit-folder-header{padding:0;min-height:0}
+.pg-shell .dialkit-folder-header-top{min-height:32px;gap:8px}
+.pg-shell .dialkit-folder-title{font-size:11px;font-weight:550;letter-spacing:0}
+.pg-shell .dialkit-folder-inner{padding:var(--pg-section-inset);display:flex;flex-direction:column;gap:var(--dial-row-gap)}
+.pg-shell .dialkit-folder .dialkit-folder{border-top:1px solid #ffffff09;margin-top:3px}
+.pg-control{min-width:0}
+.pg-shell .dialkit-slider,.pg-shell .dialkit-select-trigger,.pg-shell .dialkit-labeled-control{min-height:28px;font-size:11px}
+.pg-shell .dialkit-segmented{height:28px}
+.pg-shell .dialkit-segmented-button{font-size:var(--pg-label-size);font-weight:var(--pg-label-weight);padding-block:0}
+.pg-shell :is(.dialkit-slider-label,.dialkit-slider-value,.dialkit-slider-input,.dialkit-select-label,.dialkit-select-value,.dialkit-labeled-control-label){font-size:var(--pg-label-size);font-weight:var(--pg-label-weight)}
+.pg-shell .dialkit-slider-label{left:var(--pg-row-inset)}
+.pg-shell :is(.dialkit-slider-value,.dialkit-slider-input){right:var(--pg-row-inset)}
+.pg-shell .dialkit-labeled-control{padding:2px var(--pg-toggle-end-inset) 2px var(--pg-row-inset)}
+.pg-shell .dialkit-select-option{min-height:var(--dial-row-height);padding:5px var(--pg-row-inset);font-size:var(--pg-label-size);font-weight:var(--pg-label-weight);line-height:18px}
+.pg-action{height:28px;padding:0 var(--pg-row-inset);border:0;border-radius:7px;font:inherit;color:#ddd9e4;background:#ffffff06;width:100%;text-align:left;cursor:pointer}
+.pg-readout{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;padding:0 var(--pg-row-inset);color:#a8a3b0;font-size:11px}
+.pg-readout>span:last-child{color:#ded9e5;font-variant-numeric:tabular-nums}
+.pg-note{font-size:10px;line-height:1.5;color:#918c9a;padding:3px var(--pg-row-inset);overflow-wrap:anywhere}
+.playground-footer{display:flex;align-items:center;justify-content:flex-end;gap:16px;min-height:46px;margin:0 16px;padding:8px 0;border-top:1px solid #ffffff09}
+.playground-default-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.playground-footer .text-button{height:28px;padding:0 11px;border-radius:7px}
+.make-default-button{background:#ffffff07;box-shadow:inset 0 0 0 1px #ffffff08;transition:background-color 150ms,color 150ms}
+.make-default-button:enabled{background:#a7f374;color:#17210f}
+.playground-default-status{min-width:0;margin-right:auto;color:#aaa6b0;font-size:10px;line-height:1.4;text-wrap:pretty}
+.pg-shell .jam-glide-easing{height:auto;padding:0;grid-template-columns:1fr;gap:8px;background:transparent;box-shadow:none}
+.pg-shell .jam-glide-easing__graph{height:144px}
+.pg-shell .jam-glide-easing__controls{gap:8px}
+.pg-shell .jam-glide-easing__numbers{gap:5px}
+.pg-shell .jam-glide-easing__curve{stroke:#c6c1d1}
+.pg-shell .jam-glide-easing__tangent{stroke:#c6c1d170}
+.pg-shell .jam-glide-easing__handle span{box-shadow:0 0 0 1.5px #c6c1d1,0 1px 3px #0005}
+.pg-shell .jam-glide-easing__handle.is-dragging span{background:#c6c1d1}
+.pg-shell .jam-glide-easing :focus-visible,.pg-shell .pg-icon-button:focus-visible,.pg-shell .pg-action:focus-visible,.pg-shell .pg-player-seek:focus-visible,.pg-shell .pg-speed-button:focus-visible,.pg-shell .pg-unit-button:focus-visible{outline:2px solid var(--dial-focus-ring);outline-offset:2px}
+@container(max-width:540px){.pg-sections{grid-template-columns:1fr}.pg-player-time{padding-inline:6px;font-size:10px}.pg-shell .toolbar-title-row{grid-template-columns:1fr auto 28px}}
+@media(hover:hover){.pg-icon-button:enabled:hover,.pg-action:hover,.pg-speed-button:hover,.pg-unit-button:hover,.pg-screen-select .dialkit-select-trigger:hover{background:#ffffff0c;color:white}.make-default-button:enabled:hover{background:#b7fa8e;color:#17210f}}
+@media(prefers-reduced-motion:reduce){.pg-shell *, .pg-shell *::before,.pg-shell *::after{animation-duration:0s!important;transition-duration:0s!important}}
+
+/* Standalone folders have no sticky panel gutter to paint. */
+.pg-shell .dialkit-folder-header::before{content:none}
+.pg-shell .pg-section>.dialkit-folder>.dialkit-folder-header>.dialkit-folder-header-top{padding:0 var(--pg-section-inset)}
+/* Nested headers already sit inside the parent’s 12px content inset. */
+.pg-shell .pg-section-nested>.dialkit-folder>.dialkit-folder-header>.dialkit-folder-header-top{padding-inline:0}
+.pg-shell .dialkit-slider-value::after{content:attr(data-unit);padding-left:3px;color:var(--dial-text-label);font-size:10px}
+
+/* The native-size app window scales as a unit, so narrow screens also need a viewport breakpoint. */
+@media(max-width:760px){.pg-shell .pg-sections{grid-template-columns:1fr}}
+
+.pg-column{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pg-sections.pg-single-column{grid-template-columns:1fr}
+.pg-shell .dialkit-folder-inner :is(button,input,[tabindex]){scroll-margin-top:8px;scroll-margin-bottom:8px}

@@ -7,6 +7,7 @@
 .desktop-menu-right{gap:16px;white-space:nowrap}
 .desktop-menu-right>img{width:13px;height:15px;opacity:.85}
 .desktop-menu-right>img.desktop-wifi{width:32px;height:19px;margin:0 -8px}
+.desktop-menu-right>.desktop-system-status{opacity:.4}
 .app-menubar,.desktop-menu{height:100%}
 .desktop-menu{position:relative}
 .menu-trigger{display:block;height:100%;padding:0 11px;border-radius:5px;color:inherit;font-size:13px;font-weight:500;background:transparent;cursor:default;transition:none}
