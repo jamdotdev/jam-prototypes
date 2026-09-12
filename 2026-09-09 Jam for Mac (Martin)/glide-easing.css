@@ -1,0 +1,29 @@
+.jam-glide-easing{display:grid;grid-template-columns:minmax(180px,.9fr) minmax(0,1.1fr);gap:20px;width:100%;height:168px;padding:12px;color:#eeedf1;background:#ffffff03;box-shadow:inset 0 0 0 1px #ffffff0a;border-radius:10px;font-size:11px;line-height:15px;user-select:none}
+.jam-glide-easing *{box-sizing:border-box}
+.jam-glide-easing__graph{position:relative;min-width:0;height:144px}
+.jam-glide-easing__plot{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
+.jam-glide-easing__grid{fill:#00000012;stroke:#ffffff0e;stroke-width:1;vector-effect:non-scaling-stroke}
+.jam-glide-easing__diagonal{fill:none;stroke:#ffffff16;stroke-width:1;stroke-dasharray:2 4;vector-effect:non-scaling-stroke}
+.jam-glide-easing__tangent{fill:none;stroke:#a7f37470;stroke-width:1;vector-effect:non-scaling-stroke}
+.jam-glide-easing__curve{fill:none;stroke:#a7f374;stroke-width:2;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.jam-glide-easing__endpoint{fill:#c8c5cf}
+.jam-glide-easing__progress{fill:#fff;stroke:#252429;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.jam-glide-easing__axis{fill:#9b999f;font-family:inherit;font-size:9px}
+.jam-glide-easing__handle{position:absolute;display:grid;place-items:center;width:28px;height:28px;margin:0;padding:0;transform:translate(-50%,-50%);border:0;border-radius:50%;background:transparent;cursor:grab;touch-action:none;transition:none!important;scale:1!important;z-index:1}
+.jam-glide-easing__handle span{display:block;width:9px;height:9px;border-radius:50%;background:#252429;box-shadow:0 0 0 1.5px #a7f374,0 1px 3px #0005;pointer-events:none}
+.jam-glide-easing__handle.is-dragging{cursor:grabbing;z-index:2}
+.jam-glide-easing__handle.is-dragging span{background:#a7f374}
+.jam-glide-easing__handle:focus-visible{outline:2px solid #a7f374;outline-offset:-2px}
+.jam-glide-easing__controls{display:flex;flex-direction:column;justify-content:center;gap:9px;min-width:0}
+.jam-glide-easing__preset-label,.jam-glide-easing__numbers label{display:flex;flex-direction:column;gap:4px;min-width:0;color:#b5b3ba}
+.jam-glide-easing__select-wrap{position:relative;display:block;min-width:0}
+.jam-glide-easing__select-wrap::after{content:"";position:absolute;right:11px;top:10px;width:5px;height:5px;border-right:1px solid #bdbbc3;border-bottom:1px solid #bdbbc3;rotate:45deg;pointer-events:none}
+.jam-glide-easing select,.jam-glide-easing input[type="number"]{appearance:none;-webkit-appearance:none;display:block;width:100%;min-width:0;height:28px;border:0;border-radius:7px;box-shadow:0 0 0 1px #ffffff0c,inset 0 1px 0 #ffffff07;background:#ffffff0b;color:#f5f4f7;font:inherit;font-variant-numeric:tabular-nums;line-height:16px}
+.jam-glide-easing select{padding:0 28px 0 10px;cursor:pointer}
+.jam-glide-easing input[type="number"]{padding:0 6px 0 8px;user-select:text}
+.jam-glide-easing select:focus-visible,.jam-glide-easing input:focus-visible{outline:2px solid #a7f374;outline-offset:2px}
+.jam-glide-easing__numbers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.jam-glide-easing__numbers label>span{white-space:nowrap;font-size:10px}
+.jam-glide-easing__sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(hover:hover) and (pointer:fine){.jam-glide-easing__handle:hover span{background:#a7f374}.jam-glide-easing select:hover,.jam-glide-easing input[type="number"]:hover{background:#ffffff11}}
+@media(prefers-reduced-motion:reduce){.jam-glide-easing,.jam-glide-easing *{animation:none!important;transition:none!important}}
