@@ -24,7 +24,7 @@
       const hit = document.elementFromPoint(pointer.clientX, pointer.clientY);
       if (!hit || !root.contains(hit)) return null;
       if (!button.contains(hit)) {
-        if (hit.closest('button,a,input,select,textarea,[role="button"],[role="slider"],[role="menu"],.desktop-menubar,.rb-window-titlebar,.rb-window-resizer,.rb-camera,.rb-belt')) return null;
+        if (hit.closest('button,a,input,select,textarea,[role="button"],[role="slider"],[role="menu"],.desktop-menubar,.rb-window-titlebar,.rb-window-resizer,.rb-camera,.rb-belt,.rb-selection-notch')) return null;
         const window = hit.closest('[data-window]');
         if (state.window && window && window.dataset.window !== state.window) return null;
       }
