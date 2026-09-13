@@ -8,11 +8,10 @@
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'rb-camera-slot rb-camera-pin';
-    button.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" pathLength="100"/></svg><span class="rb-camera-pin-label">Press to pin</span>';
+    button.innerHTML = JamCameraPlaceholders.borderMarkup() + '<span class="rb-camera-pin-label">Press to pin</span>';
     button.tabIndex = -1;
     button.setAttribute('aria-hidden', 'true');
     root.append(button);
-    const ring = button.querySelector('circle');
     const listeners = new AbortController();
     let pointer = null, candidate = null, press = null, swallowClick = false;
 
@@ -37,7 +36,7 @@
       if (!horizontal || !vertical) return null;
       const slot = slots.find(item => item.name === vertical + horizontal);
       // Reflow, selection changes, and a different bubble size cancel a held gesture.
-      return { ...slot, key: JSON.stringify([state.key, bounds, slot]) };
+      return { ...slot, style: state.style, key: JSON.stringify([state.key, bounds, slot, state.style]) };
     }
 
     function paint() {
@@ -52,6 +51,7 @@
         width: `${diameter}px`, height: `${diameter}px`,
       });
       button.dataset.corner = candidate.name;
+      JamCameraPlaceholders.paintBorder(button, diameter, candidate.style, !!press);
       button.setAttribute('aria-label', `Pin camera to ${names[candidate.name]}. Hold for half a second, or press Enter.`);
     }
 
@@ -93,7 +93,7 @@
       swallowClick = true;
       const current = press = { id: event.pointerId, slot: candidate, start: pointer };
       root.setPointerCapture(event.pointerId);
-      current.animation = ring.animate([{ strokeDashoffset: 100 }, { strokeDashoffset: 0 }], { duration: HOLD_MS, easing: 'linear', fill: 'forwards' });
+      current.animation = JamCameraPlaceholders.holdBorder(button, HOLD_MS);
       current.timer = setTimeout(() => {
         refresh();
         if (press !== current) return;

@@ -29,7 +29,7 @@
     <div class="rb-capture-region" tabindex="0" role="group" aria-label="Recording area. Drag to move, arrow keys to nudge, Shift for ten pixels."><span class="rb-area-dimensions"></span>${['nw','n','ne','e','se','s','sw','w'].map(handle=>`<button class="rb-area-handle rb-handle-${handle}" data-handle="${handle}" aria-label="Resize recording area ${handle}"></button>`).join('')}<div class="rb-window-notch"><button type="button" class="rb-change-window">${icon("change")}Change window</button><span>${icon("logs")}Not capturing logs</span></div></div>
     <button class="rb-area-draw" aria-label="Draw a new recording area" hidden></button>
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
-    <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}"></i>`).join('')}</div>
+    <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
     <div class="rb-belt" role="toolbar" aria-label="Recording controls">
       <div class="rb-belt-idle">
@@ -47,6 +47,7 @@
   `;
   const $=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
   const belt=$('.rb-belt'),bubble=$('.rb-camera'),region=$('.rb-capture-region');
+  const cameraDragOverlay=JamCameraPlaceholders.createOverlay(root);
   const settings={cameraZoom:1,...JamDefaults.get('recording')};
   function beltHome(width=IDLE_WIDTH){
     return {x:W/2,y:Math.max(60,H-44),width};
@@ -87,7 +88,7 @@
     settings.camera=true;syncSelection();JamDefaults.changed('recording');emit();wake();
     return camera.request(deviceId);
   }
-  const ranges={cameraZoom:[1,3],cameraSize:[12,480],cameraMinSize:[12,480],cameraMaxSize:[12,480],followSize:[12,160],gap:[8,64],stiffness:[80,500],damping:[10,50],anticipation:[0,100],beltSpring:[80,500],beltDamping:[10,50],warningSeconds:[5,30],pulseStart:[600,1600],pulseEnd:[350,600],pulseStrength:[0,8],rate:[.5,2]};
+  const ranges={placeholderStroke:[.5,4],placeholderActiveStroke:[0,4],placeholderDash:[1,16],placeholderGap:[1,24],placeholderOpacity:[0,100],placeholderActiveOpacity:[0,100],placeholderOverlayOpacity:[0,80],cameraZoom:[1,3],cameraSize:[12,480],cameraMinSize:[12,480],cameraMaxSize:[12,480],followSize:[12,160],gap:[8,64],stiffness:[80,500],damping:[10,50],anticipation:[0,100],beltSpring:[80,500],beltDamping:[10,50],warningSeconds:[5,30],pulseStart:[600,1600],pulseEnd:[350,600],pulseStrength:[0,8],rate:[.5,2]};
   function emit(){listeners.forEach(fn=>fn());}
   function rectStyle(el,r){el.style.left=`${r.x}px`;el.style.top=`${r.y}px`;el.style.width=`${r.width}px`;el.style.height=`${r.height}px`;}
   function local(event,constrain=true){
@@ -273,6 +274,7 @@
       else if(typeof settings[key]==='boolean')settings[key]=Boolean(patch[key]);
       else if(key==='mode'&&['screen','window','area'].includes(patch.mode))settings.mode=patch.mode;
       else if(key==='cameraDevice'&&typeof patch[key]==='string'&&patch[key].length<=64)settings[key]=patch[key];
+      else if(['placeholderColor','placeholderContrastColor','placeholderContrastActiveColor','placeholderContrastEdgeColor','placeholderOverlayColor'].includes(key)&&typeof patch[key]==='string'&&patch[key].length<=64&&CSS.supports('color',patch[key])&&!/var\(|currentcolor|inherit|initial|unset/i.test(patch[key]))settings[key]=patch[key];
       else if(key==='microphoneDevice'&&['MacBook','AirPods Pro 3','ZoomAudioDevice','BoseQC Ultra Headphones','Mac Studio Display Microphone'].includes(patch[key]))settings[key]=patch[key];
     }
     if(settings.cameraMinSize>settings.cameraMaxSize){
@@ -339,9 +341,12 @@
   }
   function nearestSlot(){return cameraSlots().sort((a,b)=>Math.hypot(a.x-fixedCamera.x,a.y-fixedCamera.y)-Math.hypot(b.x-fixedCamera.x,b.y-fixedCamera.y))[0];}
   function renderSlots(){
-    const show=drag?.kind==='camera'&&!settings.followCursor,layer=$('.rb-camera-slots');layer.classList.toggle('is-visible',show);
+    JamCameraPlaceholders.paintPalette(root,settings);
+    const show=active&&drag?.kind==='camera'&&!settings.followCursor,layer=$('.rb-camera-slots');layer.classList.toggle('is-visible',show);
+    root.classList.toggle('is-camera-dragging',show);
+    const slots=cameraSlots();cameraDragOverlay.update(captureBounds(),slots,show,settings);
     const nearest=show?nearestSlot().name:null;
-    for(const slot of cameraSlots()){const el=layer.querySelector(`[data-slot="${slot.name}"]`),diameter=Math.max(24,slot.size);rectStyle(el,{x:slot.x-diameter/2,y:slot.y-diameter/2,width:diameter,height:diameter});el.classList.toggle('is-nearest',slot.name===nearest);}
+    for(const slot of slots){const el=layer.querySelector(`[data-slot="${slot.name}"]`),diameter=Math.max(24,slot.size);rectStyle(el,{x:slot.x-diameter/2,y:slot.y-diameter/2,width:diameter,height:diameter});el.classList.toggle('is-nearest',slot.name===nearest);JamCameraPlaceholders.paintBorder(el,diameter,settings,show,slot.name===nearest);}
   }
   function snapCamera(target=nearestSlot(),from=follower.getState()){
     fixedAnchor=target.name;
@@ -545,7 +550,7 @@
   };
   cornerPin=JamCameraPin.create(root,{local,onPin:pinCamera,context:()=>({
     enabled:active&&isIdle()&&settings.camera&&settings.followCursor&&camera.getState().status==='live'&&!drag&&!openMenu&&(settings.mode!=='window'||!!selectedWindow),
-    key:cameraPositionKey(),window:settings.mode==='window'?selectedWindow:null,bounds:captureBounds(),slots:cameraSlots(),
+    key:cameraPositionKey(),window:settings.mode==='window'?selectedWindow:null,bounds:captureBounds(),slots:cameraSlots(),style:{placeholderPinContrast:settings.placeholderPinContrast,placeholderContrastColor:settings.placeholderContrastColor,placeholderContrastActiveColor:settings.placeholderContrastActiveColor,placeholderContrastEdgeColor:settings.placeholderContrastEdgeColor,placeholderColor:settings.placeholderColor,placeholderStroke:settings.placeholderStroke,placeholderActiveStroke:settings.placeholderActiveStroke,placeholderDash:settings.placeholderDash,placeholderGap:settings.placeholderGap,placeholderOpacity:settings.placeholderOpacity,placeholderActiveOpacity:settings.placeholderActiveOpacity},
   })});
   syncWindows();
   JamDefaults.register('recording',{groups:['recording'],read:()=>({recording:{...settings}}),apply:values=>updateSettings(values.recording),onReset(){clearTimeout(clockTimer);clockStamp=0;fixedAnchor=null;cameraSnap=null;stage='idle';elapsed=0;previewPlaying=false;previewTime=0;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};resetSelection();renderBelt();emit();}});

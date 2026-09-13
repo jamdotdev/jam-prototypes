@@ -48,6 +48,8 @@
 .pg-shell .dialkit-slider-label{left:var(--pg-row-inset)}
 .pg-shell :is(.dialkit-slider-value,.dialkit-slider-input){right:var(--pg-row-inset)}
 .pg-shell .dialkit-labeled-control{padding:2px var(--pg-toggle-end-inset) 2px var(--pg-row-inset)}
+.pg-shell .dialkit-color-control{padding-inline:var(--pg-row-inset)}
+.pg-shell :is(.dialkit-color-label,.dialkit-color-value){font-size:var(--pg-label-size);font-weight:var(--pg-label-weight)}
 .pg-shell .dialkit-select-option{min-height:var(--dial-row-height);padding:5px var(--pg-row-inset);font-size:var(--pg-label-size);font-weight:var(--pg-label-weight);line-height:18px}
 .pg-action{height:28px;padding:0 var(--pg-row-inset);border:0;border-radius:7px;font:inherit;color:#ddd9e4;background:#ffffff06;width:100%;text-align:left;cursor:pointer}
 .pg-readout{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;padding:0 var(--pg-row-inset);color:#a8a3b0;font-size:11px}

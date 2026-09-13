@@ -1,6 +1,6 @@
 window.JamDefaultValues = {
   "version": 1,
-  "revision": 17,
+  "revision": 23,
   "groups": {
     "welcome": {
       "settings": {
@@ -101,6 +101,19 @@ window.JamDefaultValues = {
       "loop": false
     },
     "recording": {
+      "placeholderActiveStroke": 1,
+      "placeholderContrastColor": "#666666",
+      "placeholderContrastActiveColor": "#333333",
+      "placeholderContrastEdgeColor": "#fffffff2",
+      "placeholderPinContrast": true,
+      "placeholderColor": "#ffffffcf",
+      "placeholderStroke": 1.5,
+      "placeholderDash": 3,
+      "placeholderGap": 6,
+      "placeholderOpacity": 100,
+      "placeholderActiveOpacity": 83,
+      "placeholderOverlayColor": "#000000",
+      "placeholderOverlayOpacity": 15,
       "cameraZoom": 1.45,
       "cameraMinSize": 44,
       "cameraMaxSize": 172,
@@ -108,12 +121,12 @@ window.JamDefaultValues = {
       "pulseStart": 1000,
       "pulseEnd": 350,
       "pulseStrength": 4,
-      "mode": "screen",
+      "mode": "area",
       "camera": true,
       "microphone": true,
       "cameraDevice": "FaceTime HD Camera (467C:1317)",
       "microphoneDevice": "AirPods Pro 3",
-      "cameraSize": 172,
+      "cameraSize": 53,
       "followCursor": false,
       "followSize": 44,
       "mirror": true,

@@ -34,7 +34,11 @@ def with_player_settings(group, value, fallback=None):
     """Fill only the fields added with the shared Player, retaining saved values."""
     if group == "recording" and isinstance(value, dict):
         fallback = fallback or {}
-        added = {"cameraZoom": 1, "cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4}
+        added = {"placeholderContrastColor": "#666666", "placeholderContrastActiveColor": "#333333", "placeholderContrastEdgeColor": "#ffffff",
+                 "placeholderPinContrast": True, "placeholderColor": "#ffffff", "placeholderStroke": 1, "placeholderActiveStroke": 1, "placeholderDash": 4, "placeholderGap": 8,
+                 "placeholderOpacity": 50, "placeholderActiveOpacity": 100,
+                 "placeholderOverlayColor": "#000000", "placeholderOverlayOpacity": 32,
+                 "cameraZoom": 1, "cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4}
         return {**{key: fallback.get(key, default) for key, default in added.items()}, **value}
     if group in ("handoff", "permissions") and isinstance(value, dict):
         fallback = fallback or {}
@@ -84,6 +88,32 @@ def validate_default_values(group, value):
     def valid_rate(number):
         return type(number) in (int, float) and number in PLAYBACK_RATES
 
+    def valid_color(color):
+        # Self-contained colors supported by the DialKit picker, never URLs or variables.
+        if not isinstance(color, str) or len(color) > 64:
+            return False
+        color = color.strip().lower()
+        if color == "transparent" or re.fullmatch(r"#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})", color):
+            return True
+        match = re.fullmatch(r"(rgb|rgba|hsl|hsla|oklch|color)\(([^()]*)\)", color)
+        if not match:
+            return False
+        kind, body = match.groups()
+        if kind == "color":
+            if not body.startswith("display-p3 "):
+                return False
+            body = body[11:]
+        parts = re.split(r"[,/\s]+", body.strip())
+        if len(parts) not in (3, 4):
+            return False
+        number = r"[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?"
+        for index, part in enumerate(parts):
+            hue = (index == 0 and kind.startswith("hsl")) or (index == 2 and kind == "oklch")
+            unit = r"(?:deg|grad|rad|turn)?" if hue else r"%?"
+            if not re.fullmatch(number + unit, part) or not math.isfinite(float(re.match(number, part).group())):
+                return False
+        return True
+
     if group == "welcome":
         bounds = {"stagger": (0, 90), "turn": (0, 120), "drift": (0, 5), "depth": (0, 60),
                   "orbit": (70, 115), "gridAmount": (0, 20), "gridSoftness": (20, 100),
@@ -108,12 +138,15 @@ def validate_default_values(group, value):
     if group == "onboarding":
         return value["lensZoom"] in (1.5, 2, 3, 4) and between(value["lensSize"], 88, 176)
     if group == "recording":
-        bounds = {"cameraZoom": (1, 3), "cameraSize": (12, 480), "cameraMinSize": (12, 480), "cameraMaxSize": (12, 480), "followSize": (12, 160), "gap": (8, 64),
+        bounds = {"placeholderStroke": (.5, 4), "placeholderActiveStroke": (0, 4), "placeholderDash": (1, 16), "placeholderGap": (1, 24),
+                  "placeholderOpacity": (0, 100), "placeholderActiveOpacity": (0, 100), "placeholderOverlayOpacity": (0, 80),
+                  "cameraZoom": (1, 3), "cameraSize": (12, 480), "cameraMinSize": (12, 480), "cameraMaxSize": (12, 480), "followSize": (12, 160), "gap": (8, 64),
                   "stiffness": (80, 500), "damping": (10, 50), "anticipation": (0, 100),
                   "beltSpring": (80, 500), "beltDamping": (10, 50),
                   "warningSeconds": (5, 30), "pulseStart": (600, 1600), "pulseEnd": (350, 600), "pulseStrength": (0, 8)}
-        flags = ("camera", "microphone", "followCursor", "mirror", "showBounds", "loop")
+        flags = ("placeholderPinContrast", "camera", "microphone", "followCursor", "mirror", "showBounds", "loop")
         return (value["cameraMinSize"] <= value["cameraSize"] <= value["cameraMaxSize"] and
+                all(valid_color(value[key]) for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor")) and
                 value["mode"] in ("screen", "window", "area") and
                 isinstance(value["cameraDevice"], str) and 0 < len(value["cameraDevice"]) <= 64 and
                 value["microphoneDevice"] in ("MacBook", "AirPods Pro 3", "ZoomAudioDevice", "BoseQC Ultra Headphones", "Mac Studio Display Microphone") and
