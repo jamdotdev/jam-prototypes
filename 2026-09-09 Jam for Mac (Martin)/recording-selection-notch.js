@@ -1,10 +1,10 @@
 (() => {
   'use strict';
   const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
-  function create(root,{icon,onSize,onRatio,onOrientation,onPreset,onChangeWindow,onOpen,onClose}){
+  function create(root,{icon,onSize,onRatio,onOrientation,onPreset,onChangeWindow,onOpen,onClose,onToggleRulers=()=>{}}){
     const notch=document.createElement('div');
     notch.className='rb-selection-notch';notch.role='group';notch.hidden=true;
-    notch.innerHTML=`<div class="rb-notch-window-controls"><button type="button" class="rb-notch-change">${icon('change')}<span>Change window</span></button><i class="rb-notch-separator"></i><span class="rb-notch-logs">${icon('status')}Not capturing logs</span><i class="rb-notch-separator"></i></div><div class="rb-notch-sizing"><button type="button" class="rb-notch-ratio" aria-label="Aspect ratio" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-ratio-menu">${icon('aspect')}<span></span></button><label class="rb-notch-field"><span class="sr-only">Capture width</span><input class="rb-notch-width" aria-label="Capture width" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><span class="rb-notch-times" aria-hidden="true">×</span><label class="rb-notch-field"><span class="sr-only">Capture height</span><input class="rb-notch-height" aria-label="Capture height" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><button type="button" class="rb-notch-resize" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-resize-menu">Resize</button></div>`;
+    notch.innerHTML=`<div class="rb-notch-backplate" aria-hidden="true"></div><div class="rb-notch-window-controls"><button type="button" class="rb-notch-change" aria-label="Change window" title="Change window">${icon('change')}<span class="rb-notch-change-label">Change window</span></button><i class="rb-notch-separator"></i><span class="rb-notch-logs" title="Not capturing logs">${icon('status')}<span class="rb-notch-logs-label">Not capturing logs</span></span><i class="rb-notch-separator"></i></div><div class="rb-notch-sizing"><button type="button" class="rb-notch-ratio" title="Change ratio" aria-label="Aspect ratio" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-ratio-menu">${icon('aspect')}<span></span></button><label class="rb-notch-field"><span class="sr-only">Capture width</span><input class="rb-notch-width" aria-label="Capture width" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><span class="rb-notch-times" aria-hidden="true">×</span><label class="rb-notch-field"><span class="sr-only">Capture height</span><input class="rb-notch-height" aria-label="Capture height" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><button type="button" class="rb-notch-resize" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-resize-menu">Resize</button><i class="rb-notch-separator rb-notch-rulers-separator" aria-hidden="true"></i><button type="button" class="rb-notch-rulers" title="Display rulers" aria-label="Display rulers" aria-pressed="false">${icon('rulers')}</button></div>`;
     const ratioMenu=document.createElement('div'),resizeMenu=document.createElement('div');
     for(const [menu,id,label] of [[ratioMenu,'rb-ratio-menu','Aspect ratio'],[resizeMenu,'rb-resize-menu','Resize presets']]){
       menu.id=id;menu.className='native-menu rb-sizing-menu';menu.role='menu';menu.tabIndex=-1;menu.setAttribute('aria-label',label);menu.hidden=true;root.append(menu);
@@ -12,6 +12,44 @@
     root.append(notch);
     const $=selector=>notch.querySelector(selector),ratioButton=$('.rb-notch-ratio'),resizeButton=$('.rb-notch-resize');
     let context=null,currentMenu=null,trigger=null,contextKey=null,typeBuffer='',typeTimer=0;
+    const naturalWidths=new Map(),moving=[...notch.children],animations=new Map();
+    const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+    const GAP=8,FIT_BUFFER=12;
+    let layout=null,pointerInput=true;
+    root.addEventListener('pointerdown',()=>pointerInput=true,true);
+    root.addEventListener('keydown',()=>{pointerInput=false;notch.classList.add('is-instant');stopMotion();},true);
+    function stopMotion(){for(const animation of animations.values())animation.cancel();animations.clear();}
+    reducedMotion.addEventListener('change',()=>{if(reducedMotion.matches)stopMotion();});
+    function measureWidth(key){
+      if(naturalWidths.has(key))return naturalWidths.get(key);
+      // A hidden probe avoids expanding the focused live panel while measuring.
+      // Expanding it at a canvas edge can otherwise scroll an overflow-hidden ancestor.
+      const probe=notch.cloneNode(true);probe.inert=true;
+      probe.classList.remove('is-compact');
+      probe.style.cssText='left:0;top:0;width:max-content;max-width:none;visibility:hidden';
+      root.append(probe);
+      const wide=probe.offsetWidth,windowControls=probe.querySelector('.rb-notch-window-controls');
+      windowControls.querySelector('.rb-notch-separator:last-child').remove();
+      const result={wide,stacked:Math.max(windowControls.offsetWidth,probe.querySelector('.rb-notch-sizing').offsetWidth)+16};
+      probe.remove();
+      naturalWidths.set(key,result);return result;
+    }
+    function animateLayout(before){
+      stopMotion();
+      const scale=root.getBoundingClientRect().width/root.clientWidth;
+      // FLIP each layer separately: text never scales, and capture handles stay above the backplate.
+      for(const element of moving){
+        const first=before.get(element),last=element.getBoundingClientRect();
+        if(!first?.width||!last.width)continue;
+        const x=(first.x-last.x)/scale,y=(first.y-last.y)/scale;
+        const plate=element.classList.contains('rb-notch-backplate');
+        const transform=`translate(${x}px,${y}px)${plate?` scale(${first.width/last.width},${first.height/last.height})`:''}`;
+        const animation=element.animate([{transform},{transform:'none'}],{duration:220,easing:'cubic-bezier(.23,1,.32,1)'});
+        animations.set(element,animation);
+        animation.onfinish=()=>{if(animations.get(element)===animation)animations.delete(element);};
+      }
+    }
+    document.fonts?.ready.then(()=>{naturalWidths.clear();if(context?.enabled)render(context);});
     function close(restore=true){
       if(!currentMenu)return;
       const menu=currentMenu,button=trigger;currentMenu=null;trigger=null;menu.hidden=true;
@@ -67,6 +105,7 @@
     }
     ratioButton.addEventListener('click',()=>show(ratioMenu,ratioButton));resizeButton.addEventListener('click',()=>show(resizeMenu,resizeButton));
     $('.rb-notch-change').addEventListener('click',onChangeWindow);
+    $('.rb-notch-rulers').addEventListener('click',onToggleRulers);
     for(const axis of ['width','height']){
       const input=$(`.rb-notch-${axis}`);
       const restore=()=>{input.value=String(Math.round(context.rect[axis]));input.removeAttribute('aria-invalid');};
@@ -100,22 +139,43 @@
       if(next>=0){event.preventDefault();items[next].focus({preventScroll:true});}
     });
     function render(next){
+      const continuous=contextKey===next.key&&!notch.hidden;
+      const before=continuous?new Map(moving.map(element=>[element,element.getBoundingClientRect()])):null;
+      const instant=!continuous||!pointerInput||reducedMotion.matches||notch.contains(document.activeElement)&&document.activeElement.tagName==='INPUT';
+      notch.classList.toggle('is-instant',instant);
       context=next;
-      if(contextKey!==next.key||!next.enabled)close(false);
+      if(!continuous||!next.enabled){close(false);stopMotion();layout=null;}
       contextKey=next.key;notch.hidden=!next.enabled;if(!next.enabled)return;
       const windowMode=next.mode==='window',locked=next.sizing.preset!=='custom';
       notch.classList.toggle('is-window',windowMode);notch.classList.toggle('is-ratio-locked',locked);
+      $('.rb-notch-rulers').hidden=windowMode;$('.rb-notch-rulers-separator').hidden=windowMode;
+      $('.rb-notch-rulers').setAttribute('aria-pressed',String(!!next.sizing.rulers));
       notch.setAttribute('aria-label',`${windowMode?'Window':'Area'} sizing`);$('.rb-notch-window-controls').hidden=!windowMode;
       ratioButton.querySelector('span:last-child').textContent=locked?JamSelectionGeometry.label(next.sizing):'';
       ratioButton.setAttribute('aria-label',`Aspect ratio: ${JamSelectionGeometry.label(next.sizing)}`);
       for(const axis of ['width','height']){const input=$(`.rb-notch-${axis}`);if(document.activeElement!==input)input.value=String(Math.round(next.rect[axis]));input.setAttribute('aria-description',locked?'Aspect ratio locked. Changing this value updates the other dimension.':'Size in pixels');}
       const width=root.clientWidth,height=root.clientHeight;
-      notch.classList.toggle('is-compact',width<620);
-      notch.style.maxWidth=`${Math.max(0,width-16)}px`;
-      const x=clamp(next.rect.x+next.rect.width/2-notch.offsetWidth/2,8,width-notch.offsetWidth-8);
-      const bottom=next.rect.y+next.rect.height,inside=bottom+notch.offsetHeight>height-4;
-      notch.classList.toggle('is-inset',inside);
-      notch.style.left=`${x}px`;notch.style.top=`${clamp(inside?bottom-notch.offsetHeight:bottom,0,height-notch.offsetHeight)}px`;
+      const available=Math.max(0,width-16),fitWidth=Math.min(available,next.rect.width);
+      const natural=measureWidth(`${windowMode}:${JamSelectionGeometry.label(next.sizing)}`);
+      const compact=windowMode&&(layout?.compact?natural.wide+FIT_BUFFER>fitWidth:natural.wide>fitWidth);
+      notch.classList.toggle('is-compact',compact);
+      notch.style.width=`${compact?natural.stacked:natural.wide}px`;
+      notch.style.maxWidth=`${available}px`;
+      const panelWidth=notch.offsetWidth,panelHeight=notch.offsetHeight;
+      const floating=layout?.floating?next.rect.width<panelWidth+FIT_BUFFER:next.rect.width<panelWidth;
+      const bottom=next.rect.y+next.rect.height;
+      const below=bottom+(floating?GAP:0);
+      const above=floating&&below+panelHeight>height-4&&next.rect.y-panelHeight-GAP>=0;
+      const inside=!above&&below+panelHeight>height-4;
+      const x=clamp(next.rect.x+next.rect.width/2-panelWidth/2,8,width-panelWidth-8);
+      const y=above?next.rect.y-panelHeight-GAP:inside?bottom-panelHeight-(floating?GAP:0):below;
+      const changed=layout&&(layout.compact!==compact||layout.floating!==floating||layout.above!==above||layout.inside!==inside);
+      notch.classList.toggle('is-floating',floating);notch.classList.toggle('is-inset',inside);
+      notch.classList.toggle('is-above',above);
+      notch.style.left=`${x}px`;notch.style.top=`${clamp(y,0,height-panelHeight)}px`;
+      if(changed&&before&&!instant&&!currentMenu)animateLayout(before);
+      else if(instant)stopMotion();
+      layout={compact,floating,above,inside};
       if(currentMenu===ratioMenu)syncRatioMenu();
       if(currentMenu)position(currentMenu,trigger);
     }

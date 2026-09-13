@@ -1,7 +1,9 @@
 .rb-selection-notch{position:absolute;display:flex;width:max-content;align-items:center;gap:4px;padding:8px;color:#ffffff8c;border-radius:0 0 18px 18px;font-size:12px;font-weight:500;white-space:nowrap;cursor:default;pointer-events:none}
-.rb-selection-notch::before{content:'';position:absolute;inset:0;z-index:35;border-radius:inherit;background:#1e1e1e;box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59;pointer-events:auto}
+.rb-notch-backplate{position:absolute;inset:0;z-index:35;border-radius:inherit;transform-origin:0 0;transition:border-radius 220ms cubic-bezier(.23,1,.32,1);background:#1e1e1e;box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59;pointer-events:auto}
 .rb-selection-notch.is-inset{border-radius:18px 18px 0 0}
-.rb-notch-window-controls,.rb-notch-sizing{position:relative;z-index:38;pointer-events:auto;display:flex;align-items:center;gap:4px;min-width:0}
+.rb-selection-notch.is-instant .rb-notch-backplate{transition:none}
+.rb-selection-notch.is-floating{border-radius:18px}
+.rb-notch-window-controls,.rb-notch-sizing{transform-origin:0 0;position:relative;z-index:38;pointer-events:auto;display:flex;align-items:center;gap:4px;min-width:0}
 .rb-selection-notch button{position:relative;display:flex;align-items:center;justify-content:center;gap:4px;min-width:40px;height:24px;padding:0 12px;border-radius:10px;background:transparent;color:inherit;font-size:12px;line-height:16px;white-space:nowrap;cursor:default;transition:background-color 120ms ease,scale 120ms cubic-bezier(.2,0,0,1)}
 .rb-selection-notch button::after{content:'';position:absolute;inset:0 0 -8px}
 .rb-selection-notch button:active{scale:.96}.rb-selection-notch button:focus-visible{outline:2px solid #9ff065;outline-offset:2px}
@@ -25,5 +27,12 @@
 .rb-notch-orientation button{display:grid;place-items:center;flex:1;min-width:46px;padding:0;height:20px;border-radius:11px;background:transparent;color:#222;cursor:default}
 .rb-notch-orientation .rb-sf{width:14px;height:14px}.rb-notch-orientation button[aria-pressed="true"]{background:#ffffffed;box-shadow:0 1px 3px #0002}.rb-notch-orientation button:focus-visible{outline:2px solid #0069de;outline-offset:1px}
 @media(hover:hover) and (pointer:fine){.rb-selection-notch button:hover{background-color:#ffffff12}.rb-selection-notch.is-ratio-locked .rb-notch-ratio:hover{background-color:#9ff06548}}
-.rb-selection-notch.is-window.is-compact{flex-wrap:wrap;justify-content:center}.rb-selection-notch.is-compact .rb-notch-window-controls{justify-content:center;width:100%}.rb-selection-notch.is-compact .rb-notch-window-controls .rb-notch-separator:last-child{display:none}.rb-selection-notch.is-compact .rb-notch-logs,.rb-selection-notch.is-compact .rb-notch-change{font-size:10px;padding-inline:7px}
-@media(prefers-reduced-motion:reduce){.rb-selection-notch button{transition:none}.rb-selection-notch button:active{scale:1}}
+.rb-selection-notch.is-window.is-compact{flex-wrap:wrap;justify-content:center;row-gap:17px}
+.rb-selection-notch.is-compact .rb-notch-window-controls{justify-content:center;width:100%}
+.rb-selection-notch.is-compact .rb-notch-window-controls::after{content:'';position:absolute;left:-8px;right:-8px;bottom:-9px;height:1px;background:#ffffff26;pointer-events:none}
+.rb-selection-notch.is-compact .rb-notch-window-controls .rb-notch-separator:last-child{display:none}
+@media(prefers-reduced-motion:reduce){.rb-notch-backplate{transition:none}.rb-selection-notch button{transition:none}.rb-selection-notch button:active{scale:1}}
+
+.rb-selection-notch .rb-notch-rulers{padding:0 8px}
+.rb-selection-notch .rb-notch-rulers[aria-pressed="true"]{background:#9ff06538;color:#9ff065}
+@media(hover:hover) and (pointer:fine){.rb-selection-notch .rb-notch-rulers[aria-pressed="true"]:hover{background:#9ff06548}}

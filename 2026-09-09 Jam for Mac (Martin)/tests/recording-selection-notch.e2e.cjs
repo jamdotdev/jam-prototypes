@@ -28,7 +28,7 @@ const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${
     assert.ok(await notch.isVisible());assert.ok(!await page.locator('.rb-notch-window-controls').isVisible());
     assert.equal(await page.locator('.rb-notch-ratio .rb-sf').evaluate(el=>getComputedStyle(el).display),'block','Aspect symbol is visible');
     const beforeFlip=await rect();await orientation('vertical');let r=await rect();near(r.width,beforeFlip.height,'Custom orientation swaps width');near(r.height,beforeFlip.width,'Custom orientation swaps height');
-    await resizeButton.click();assert.equal(await page.locator('#rb-resize-menu .native-menu-item').first().innerText(),'1280 × 720','Custom presets remain landscape16:9');await page.keyboard.press('Escape');
+    await resizeButton.click();assert.deepEqual((await page.locator('#rb-resize-menu .native-menu-item').allTextContents()).slice(0,3),['640 × 360','960 × 540','1280 × 720'],'Custom includes smaller landscape 16:9 presets in ascending order');await page.keyboard.press('Escape');
     await orientation('horizontal');
     for(const preset of ['1:1','4:3','16:9','16:10'])for(const direction of ['horizontal','vertical']){
       await orientation(direction);await ratio(preset);r=await rect();const [a,b]=preset.split(':').map(Number),q=direction==='vertical'?b/a:a/b;
@@ -63,10 +63,23 @@ const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${
     // New drawings retain explicit ratio and never include the notch in the capture bounds.
     await page.mouse.move(40,70);await page.mouse.down();await page.mouse.move(240,200,{steps:8});await page.mouse.up();near((await rect()).width/(await rect()).height,16/9,'Drawing preserves ratio');await checkFields();
     await ratio('custom');await dimension('width',50);await dimension('height',50);r=await rect();
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollLeft),0,'Sizing focus never scrolls the desktop');
     await page.mouse.move(r.x+25,r.y+25);await page.mouse.down();await page.mouse.move(60,999,{steps:8});await page.mouse.up();
-    assert.ok(await notch.evaluate(el=>el.classList.contains('is-inset')),'Small area at bottom keeps notch inside canvas');
+    assert.ok(await notch.evaluate(el=>el.classList.contains('is-above')),'Small area at bottom floats above selection');
     const bottomNotch=await notch.boundingBox();assert.ok(bottomNotch.y+bottomNotch.height<=1000,'Bottom notch remains visible');await checkFields();await ratioButton.click();assert.ok(await page.locator('#rb-ratio-menu').isVisible(),'Inset notch stays interactive');await page.keyboard.press('Escape');
     await mode('window');assert.ok(!await notch.isVisible());await page.evaluate(()=>JamRecording.selectWindow('browser'));assert.ok(await notch.isVisible());assert.ok(await page.locator('.rb-notch-window-controls').isVisible());
+    assert.equal(await page.locator('.rb-notch-change').getAttribute('title'),'Change window');
+    assert.equal(await ratioButton.getAttribute('title'),'Change ratio');
+    for(const width of [470,800,470,800,320]){
+      await dimension('width',width);
+      assert.ok(await page.locator('.rb-notch-change-label').isVisible(),'Change window text stays visible');
+      assert.ok(await page.locator('.rb-notch-logs-label').isVisible(),'Full logs status stays visible');
+      const firstRow=await page.locator('.rb-notch-window-controls').boundingBox(),secondRow=await page.locator('.rb-notch-sizing').boundingBox();
+      assert.equal(secondRow.y>firstRow.y+firstRow.height,width<700,'Rows stack when the window cannot fit the full notch');
+      const box=await notch.boundingBox();assert.ok(box.width<=width+.6||await notch.evaluate(el=>el.classList.contains('is-floating')),'Window notch fits the selection or detaches');
+      for(const child of await notch.locator('button:visible,input:visible').all()){const cb=await child.boundingBox();assert.ok(cb.x>=box.x-.6&&cb.x+cb.width<=box.x+box.width+.6,'Narrow notch controls stay inside');}
+      if(width===470)await page.screenshot({path:path.join(output,'window-stacked.png')});
+    }
     await ratio('4:3');await dimension('width',640);r=await rect();near(r.height,480,'Window dimensions honor ratio');
     const nativeWindow=await page.locator('[data-window="browser"]').boundingBox();near(nativeWindow.width,r.width,'Actual window width changes');near(nativeWindow.height,r.height,'Actual window height changes');
     const windowHandle=await page.locator('[data-window="browser"] .rb-window-resizer').boundingBox();await page.mouse.move(windowHandle.x+10,windowHandle.y+10);await page.mouse.down();await page.mouse.move(windowHandle.x+40,windowHandle.y+40,{steps:8});await page.mouse.up();near((await rect()).width/(await rect()).height,4/3,'Native window resizer respects locked ratio');await checkFields();

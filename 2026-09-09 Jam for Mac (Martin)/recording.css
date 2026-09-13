@@ -1,5 +1,9 @@
 /* The desktop is the capture space; the playground lives in its own sidebar. */
-.recording-scene{position:absolute;inset:0;overflow:hidden;color:#202020;user-select:none;touch-action:none}
+/* Clip without making a scroll container: focus must never pan the capture canvas. */
+html:has(.desktop[data-surface="recording"]),body:has(.desktop[data-surface="recording"]),.desktop[data-surface="recording"]{overflow:clip}
+/* The closed sidebar translates beyond the viewport; keep it out of scroll bounds. */
+body:has(.desktop[data-surface="recording"]){contain:paint}
+.recording-scene{position:absolute;inset:0;overflow:clip;color:#202020;user-select:none;touch-action:none}
 .desktop[data-surface="recording"] .desktop-caption{display:none}
 .rb-desktop-windows{position:absolute;inset:0;z-index:1}
 .rb-mock-window{position:absolute;background:#fff;border-radius:11px;overflow:hidden;box-shadow:0 0 0 .5px #0006,0 16px 36px #0004;min-width:0;min-height:0}
@@ -24,9 +28,14 @@
 .rb-capture-region::before{z-index:6;background:var(--capture-fill)}
 .rb-capture-region::after{z-index:36;border:var(--capture-border);outline:var(--capture-outline);outline-offset:-2px}
 .recording-scene[data-mode="screen"] .rb-capture-region{border-radius:0}
-.rb-capture-region.is-area{border-radius:0;--capture-border:1px solid white;--capture-outline:1px dashed #000;--capture-fill:#0000001b}
+.rb-capture-region.is-area{border-radius:0;--capture-border:1px solid var(--rb-camera-border-color,#666);--capture-outline:none;--capture-fill:#0000000a}
 .recording-scene[data-stage="idle"] .rb-capture-region.is-area{cursor:move;touch-action:none}
 .recording-scene[data-stage="idle"] .rb-capture-region.is-area::before{pointer-events:auto}
+/* Share the resizer palette and fine light edge; keep sizing guides quieter than handles. */
+.recording-scene[data-stage="idle"] .rb-capture-region.is-area::after{opacity:.65;filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color,#ffffffe6))}
+.rb-area-center{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;max-width:calc(100% - 12px);max-height:calc(100% - 12px);z-index:7;pointer-events:none;opacity:.45;overflow:visible}
+.rb-area-center path{fill:none;stroke:var(--rb-camera-border-color,#666);stroke-width:1;stroke-linecap:round;filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color,#ffffffe6))}
+
 .recording-scene:not([data-stage="idle"]) .rb-capture-region.is-area{--capture-fill:transparent;--capture-border:3px solid #ff3b30;--capture-outline:none}
 .rb-area-draw{position:absolute;inset:0;z-index:5;cursor:crosshair;background:transparent;border-radius:0;touch-action:none}.rb-area-draw:active{scale:1}
 .rb-area-handle{position:absolute;width:20px;height:20px;padding:0;border:0;background:transparent;pointer-events:auto;touch-action:none;z-index:37}
@@ -115,7 +124,8 @@
 .rb-camera-preview{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:#e4e1db;box-shadow:0 4px 14px #0003;transform:scale(1);opacity:1;transition:transform 300ms cubic-bezier(.2,0,0,1),opacity 180ms cubic-bezier(.2,0,0,1)}
 .rb-camera.is-following:not([data-media="live"]){visibility:hidden}
 .rb-camera.is-following:not([data-media="live"]) .rb-camera-preview{transform:scale(.25);opacity:0}
-@media(prefers-reduced-motion:reduce){.rb-camera-preview{transition:none}}
+.rb-camera.is-following.is-sizing-area .rb-camera-preview{transform:scale(.65);opacity:0;transition-duration:160ms,120ms}
+@media(prefers-reduced-motion:reduce){.rb-camera-preview{transition:none}.rb-camera.is-following.is-sizing-area .rb-camera-preview{transform:none}}
 
 @media(prefers-reduced-motion:reduce){.rb-camera-resize-orbit,.rb-camera-resize,.rb-camera-resize path,.rb-camera-slot-border circle{transition:none}}
 @media(prefers-reduced-motion:reduce){.rb-camera-pin{transition:opacity 140ms}.rb-camera-pin.is-holding{transform:none}}
