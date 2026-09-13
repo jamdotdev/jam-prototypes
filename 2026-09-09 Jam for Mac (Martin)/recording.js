@@ -7,7 +7,7 @@
   let W=desktop.clientWidth,H=desktop.clientHeight;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-  const symbols={close:'xmark',restart:'arrow.counterclockwise',pause:'pause.fill',play:'play.fill',stop:'stop.fill',record:'record.circle',window:'macwindow',area:'rectangle.dashed',display:'display',camera:'video.fill',cameraOff:'video.slash.fill',microphone:'mic.fill',microphoneOff:'mic.slash.fill',resize:'arrow.up.left.and.arrow.down.right',change:'arrow.2.squarepath',logs:'terminal',folder:'folder.fill',clock:'clock',document:'doc',download:'arrow.down.circle',cloud:'icloud',sidebar:'sidebar.left',minus:'minus',zoom:'arrow.up.backward.and.arrow.down.forward',follow:'cursorarrow.motionlines',mirror:'arrow.left.arrow.right',aspect:'aspectratio',horizontal:'rectangle',vertical:'rectangle.portrait',status:'circle.fill'};
+  const symbols={close:'xmark',restart:'arrow.counterclockwise',pause:'pause.fill',play:'play.fill',stop:'stop.fill',record:'record.circle',window:'macwindow',area:'rectangle.dashed',display:'display',camera:'video.fill',cameraOff:'video.slash.fill',microphone:'mic.fill',microphoneOff:'mic.slash.fill',resize:'arrow.up.left.and.arrow.down.right',change:'arrow.2.squarepath',logs:'terminal',folder:'folder.fill',clock:'clock',document:'doc',download:'arrow.down.circle',cloud:'icloud',sidebar:'sidebar.left',minus:'minus',zoom:'arrow.up.backward.and.arrow.down.forward',follow:'cursorarrow.motionlines',mirror:'arrow.left.arrow.right',rulers:'lines.measurement.horizontal.aligned.bottom',aspect:'aspectratio',horizontal:'rectangle',vertical:'rectangle.portrait',status:'circle.fill'};
   const icon=name=>`<span class="rb-sf" data-symbol="${symbols[name]}" style="--sf-image:url('assets/recording/sf/${symbols[name]}.png')" aria-hidden="true"></span>`;
   const lights='<div class="traffic-lights" aria-hidden="true"><span class="traffic close">'+icon('close')+'</span><span class="traffic minimize">'+icon('minus')+'</span><span class="traffic zoom">'+icon('zoom')+'</span></div>';
   root.innerHTML=`
@@ -63,8 +63,8 @@
   const defaultArea=()=>({x:W/4,y:H/4,width:W/2,height:H/2});
   const windows=defaultWindows();
   let area=defaultArea();
-  const selectionSizing={area:{preset:'custom',orientation:'horizontal'},finder:{preset:'custom',orientation:'horizontal'},browser:{preset:'custom',orientation:'horizontal'}};
-  let selectionNotch=null;
+  const selectionSizing={area:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},finder:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},browser:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}};
+  let selectionNotch=null,selectionRulers=null;
   let selectedWindow=null,stage='idle',elapsed=0,active=false,raf=0,lastFrame=0,drag=null;
   let openMenu=null,menuTrigger=null;
   let pointer={x:W/2,y:H/2,vx:0,vy:0,ax:0,ay:0},pointerTime=0,pointerClient=null;
@@ -113,7 +113,7 @@
   function syncCursor(){
     const bounds=captureBounds(),inside=pointer.x>=bounds.x&&pointer.x<=bounds.x+bounds.width&&pointer.y>=bounds.y&&pointer.y<=bounds.y+bounds.height;
     const frame=root.getBoundingClientRect();
-    const target=active&&pointerTime&&!drag&&(settings.mode!=='window'||selectedWindow)&&inside
+    const target=active&&pointerTime&&!drag&&!selectionRulers?.isDragging()&&(settings.mode!=='window'||selectedWindow)&&inside
       ?document.elementFromPoint(frame.left+pointer.x,frame.top+pointer.y):null;
     const action=target?.closest('button,a,input,select,textarea,[role="button"],[role="slider"],[role="menu"],.desktop-menubar,.toolbar,.pg-shell,.rb-window-titlebar,.rb-window-resizer,.rb-camera,.rb-belt,.rb-selection-notch');
     const next=target&&!action?target:null;
@@ -122,7 +122,7 @@
   }
   function captureBounds(){return settings.mode==='area'?{...area}:settings.mode==='window'&&selectedWindow?{...windows[selectedWindow]}:{x:0,y:0,width:W,height:H};}
   function isIdle(){return stage==='idle';}
-  function selectionState(name=settings.mode==='area'?'area':selectedWindow){return selectionSizing[name]||{preset:'custom',orientation:'horizontal'};}
+  function selectionState(name=settings.mode==='area'?'area':selectedWindow){return selectionSizing[name]||{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48};}
   function selectionBounds(windowMode=settings.mode==='window'){return {x:0,y:windowMode?28:0,width:W,height:Math.max(1,H-(windowMode?28:0))};}
   function selectionMinimum(windowMode=settings.mode==='window'){return windowMode?{width:320,height:220}:{width:50,height:50};}
   function applySelectionRect(rect){
@@ -173,6 +173,10 @@
   function syncCameraZoom(){
     $('.rb-camera-video').style.transform=`scale(${settings.cameraZoom}) scaleX(${settings.mirror?-1:1})`;
   }
+  function syncCameraSizing(){
+    const sizing=active&&isIdle()&&settings.mode==='area'&&settings.followCursor&&(drag?.kind==='area-resize'||selectionRulers?.isDragging());
+    bubble.classList.toggle('is-sizing-area',!!sizing);
+  }
   function syncSelection(){
     root.dataset.mode=settings.mode;root.dataset.stage=stage;root.dataset.picking=String(settings.mode==='window'&&!selectedWindow&&isIdle());
     const bounds=captureBounds(),idle=isIdle();
@@ -181,6 +185,7 @@
     region.classList.toggle('is-area',settings.mode==='area');
     region.classList.toggle('is-selected-window',settings.mode==='window'&&!!selectedWindow);
     region.tabIndex=settings.mode==='area'&&idle?0:-1;
+    selectionRulers?.render({enabled:active&&idle&&settings.mode==='area',key:settings.mode==='area'?'area':selectedWindow,state:selectionState(),rect:bounds});
     selectionNotch?.render({enabled:active&&idle&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
     $$('.rb-area-handle').forEach(el=>{el.hidden=settings.mode!=='area'||!idle;});
     $('.rb-area-draw').hidden=settings.mode!=='area'||!idle;
@@ -190,7 +195,7 @@
     $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-selected',el.dataset.window===selectedWindow&&settings.mode==='window'));
     const guide=$('.rb-bounds-guide');guide.hidden=!settings.showBounds;rectStyle(guide,bounds);
     bubble.hidden=!settings.camera||(settings.mode==='window'&&!selectedWindow); bubble.classList.toggle('is-following',settings.followCursor);bubble.tabIndex=settings.followCursor?-1:0;
-    syncCameraZoom();
+    syncCameraZoom();syncCameraSizing();
     if(!cameraPlaced)placeCamera();
     renderCamera(0);renderSlots();syncControls();syncCursor();cornerPin?.refresh();
   }
@@ -282,12 +287,18 @@
     clockStamp=performance.now();scheduleClock();
     syncSelection();$('.rb-capture-status').textContent=next==='idle'?'':next==='paused'?'Recording paused':next==='limit'?'Recording limit approaching':'Recording started';emit();wake();
   }
+  function inheritWindowArea(previousMode,nextMode){
+    if(previousMode!=='window'||nextMode!=='area'||!selectedWindow)return;
+    // Copy before clearing selection; a previous area ratio must not reshape the window.
+    area={...windows[selectedWindow]};
+    Object.assign(selectionSizing.area,{preset:'custom',orientation:area.width>=area.height?'horizontal':'vertical'});
+  }
   function setMode(mode){
     if(!['screen','window','area'].includes(mode))return;
-    rememberCameraPosition();if(!isIdle())setStage('idle');settings.mode=mode;selectedWindow=null;cameraPlaced=false;syncSelection();JamDefaults.changed('recording');emit();
+    rememberCameraPosition();if(!isIdle())setStage('idle');inheritWindowArea(settings.mode,mode);settings.mode=mode;selectedWindow=null;cameraPlaced=false;syncSelection();JamDefaults.changed('recording');emit();
   }
   function selectWindow(name){if(!windows[name])return;rememberCameraPosition();selectedWindow=name;cameraPlaced=false;syncSelection();emit();}
-  function resetSelection(){if(!isIdle())setStage('idle');closeMenu(false);selectedWindow=null;area=defaultArea();Object.assign(windows,defaultWindows());Object.values(selectionSizing).forEach(state=>Object.assign(state,{preset:'custom',orientation:'horizontal'}));cameraPlaced=false;fixedAnchor=null;cameraSnap=null;syncWindows();syncSelection();emit();}
+  function resetSelection(){if(!isIdle())setStage('idle');closeMenu(false);selectedWindow=null;area=defaultArea();Object.assign(windows,defaultWindows());Object.values(selectionSizing).forEach(state=>Object.assign(state,{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}));cameraPlaced=false;fixedAnchor=null;cameraSnap=null;syncWindows();syncSelection();emit();}
   function updateSettings(patch={}){
     const oldMode=settings.mode,oldFollow=settings.followCursor,oldCamera=settings.camera;
     if(('mode' in patch&&patch.mode!==oldMode)||('followCursor' in patch&&Boolean(patch.followCursor)!==oldFollow)||('camera' in patch&&!patch.camera))rememberCameraPosition();
@@ -305,7 +316,7 @@
       else settings.cameraMinSize=settings.cameraMaxSize;
     }
     settings.cameraSize=clamp(settings.cameraSize,settings.cameraMinSize,settings.cameraMaxSize);
-    if(oldMode!==settings.mode){selectedWindow=null;cameraPlaced=false;}
+    if(oldMode!==settings.mode){inheritWindowArea(oldMode,settings.mode);selectedWindow=null;cameraPlaced=false;}
     if(oldFollow!==settings.followCursor){cameraSnap=null;pointerTime=0;if(!settings.followCursor)cameraPlaced=false;}
     if(!settings.camera)camera.stop();
     else if(active&&!oldCamera)camera.request(camera.getState().deviceId);
@@ -483,7 +494,7 @@
   $('.rb-stop').addEventListener('click',finishRecording);$('.rb-restart').addEventListener('click',restart);
   $('.rb-close').addEventListener('click',()=>JamPlayground.setSurface('onboarding'));
   $$('.rb-window-selector').forEach(b=>b.addEventListener('click',()=>selectWindow(b.closest('[data-window]').dataset.window)));
-  function startDrag(event,kind,extra={}){if(event.button!==0||drag)return;cornerPin?.clear();if(document.activeElement?.closest('.rb-selection-notch input'))document.activeElement.blur();event.preventDefault();const p=local(event);drag={kind,start:p,pointerId:event.pointerId,target:event.currentTarget,shiftKey:event.shiftKey,altKey:event.altKey,...extra};event.currentTarget.setPointerCapture(event.pointerId);closeMenu(false);syncCursor();}
+  function startDrag(event,kind,extra={}){if(event.button!==0||drag||selectionRulers?.isDragging())return;cornerPin?.clear();if(document.activeElement?.closest('.rb-selection-notch input'))document.activeElement.blur();event.preventDefault();const p=local(event);drag={kind,start:p,pointerId:event.pointerId,target:event.currentTarget,shiftKey:event.shiftKey,altKey:event.altKey,...extra};event.currentTarget.setPointerCapture(event.pointerId);closeMenu(false);syncCursor();syncCameraSizing();}
   $$('.rb-window-titlebar').forEach(el=>{
     el.addEventListener('pointerdown',e=>{if(root.dataset.picking==='true')return;const name=el.closest('[data-window]').dataset.window;startDrag(e,'window',{name,initial:{...windows[name]}});el.closest('[data-window]').style.zIndex=String(++windowLayer);});
     el.addEventListener('keydown',e=>{const name=el.closest('[data-window]').dataset.window,r=windows[name],n=e.shiftKey?10:2;if(e.key==='ArrowLeft')r.x-=n;else if(e.key==='ArrowRight')r.x+=n;else if(e.key==='ArrowUp')r.y-=n;else if(e.key==='ArrowDown')r.y+=n;else return;e.preventDefault();r.x=clamp(r.x,0,W-r.width);r.y=clamp(r.y,28,H-r.height);syncWindows();syncSelection();});
@@ -577,12 +588,14 @@
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
     setRate:rate=>updateSettings({rate}),setLoop:loop=>updateSettings({loop}),subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},
   };
+  selectionRulers=JamSelectionRulers.create(region,{onChange:syncSelection,onHoverChange:syncCursor,onDragChange:()=>{syncCameraSizing();syncCursor();},onBegin:()=>{closeMenu(false);cornerPin?.clear();},canDrag:()=>!drag});
   selectionNotch=JamSelectionNotch.create(root,{icon,onSize:sizeSelection,onRatio:setSelectionRatio,onOrientation:setSelectionOrientation,
     onPreset:preset=>{
       const bounds=selectionBounds(),minimum=selectionMinimum();
       if(preset.width>bounds.width||preset.height>bounds.height||preset.width<minimum.width||preset.height<minimum.height)return;
       applySelectionRect(JamSelectionGeometry.size(captureBounds(),preset,bounds,minimum,JamSelectionGeometry.ratio(selectionState())));
     },
+    onToggleRulers:()=>{if(settings.mode!=='area')return;const state=selectionState();state.rulers=!state.rulers;syncSelection();},
     onChangeWindow:()=>{closeMenu(false);rememberCameraPosition();selectedWindow=null;syncSelection();emit();},
     onOpen:(menu,trigger)=>{closeMenu(false);openMenu=menu;menuTrigger=trigger;cornerPin?.clear();},
     onClose:menu=>{if(openMenu===menu){openMenu=null;menuTrigger=null;}},
