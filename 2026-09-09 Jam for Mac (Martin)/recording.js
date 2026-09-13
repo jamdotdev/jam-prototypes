@@ -29,7 +29,7 @@
     <div class="rb-capture-region" tabindex="0" role="group" aria-label="Recording area. Drag to move, arrow keys to nudge, Shift for ten pixels."><span class="rb-area-dimensions"></span>${['nw','n','ne','e','se','s','sw','w'].map(handle=>`<button class="rb-area-handle rb-handle-${handle}" data-handle="${handle}" aria-label="Resize recording area ${handle}"></button>`).join('')}<div class="rb-window-notch"><button type="button" class="rb-change-window">${icon("change")}Change window</button><span>${icon("logs")}Not capturing logs</span></div></div>
     <button class="rb-area-draw" aria-label="Draw a new recording area" hidden></button>
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
-    <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i data-slot="${name}"></i>`).join('')}</div>
+    <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}"></i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
     <div class="rb-belt" role="toolbar" aria-label="Recording controls">
       <div class="rb-belt-idle">
@@ -47,7 +47,7 @@
   `;
   const $=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
   const belt=$('.rb-belt'),bubble=$('.rb-camera'),region=$('.rb-capture-region');
-  const settings=JamDefaults.get('recording');
+  const settings={cameraZoom:1,...JamDefaults.get('recording')};
   function beltHome(width=IDLE_WIDTH){
     return {x:W/2,y:Math.max(60,H-44),width};
   }
@@ -70,7 +70,7 @@
   let transition=null,previewTime=0,previewPlaying=false,loopHold=0;
   const follower=JamCameraMotion.create({x:84,y:H-84,size:120});
   const listeners=new Set();
-  let fixedAnchor=null,cameraSnap=null,cursorElement=null,resizeAngle=45;
+  let fixedAnchor=null,cameraSnap=null,cursorElement=null,resizeAngle=45,cornerPin=null;
   const cameraPositions=loadCameraPositions();
   let clockStamp=0,clockTimer=0;
   const camera=JamRecordingCamera.create($('.rb-camera-video'),{onChange:syncCamera});
@@ -80,14 +80,14 @@
     $('.rb-camera-video').hidden=!live;$('.rb-camera-placeholder').hidden=live;
     $('.rb-camera-connect').hidden=live||s.status==='requesting';
     bubble.dataset.media=s.status;bubble.title=s.error||s.label||'Use Mac camera';
-    syncControls();emit();if(live)wake();
+    cornerPin?.refresh();syncControls();emit();if(live)wake();
   }
   function requestCamera(deviceId=''){
     // An explicit device choice must start only that device, not an extra default request.
     settings.camera=true;syncSelection();JamDefaults.changed('recording');emit();wake();
     return camera.request(deviceId);
   }
-  const ranges={cameraSize:[12,480],cameraMinSize:[12,480],cameraMaxSize:[12,480],followSize:[12,160],gap:[8,64],stiffness:[80,500],damping:[10,50],anticipation:[0,100],beltSpring:[80,500],beltDamping:[10,50],warningSeconds:[5,30],pulseStart:[600,1600],pulseEnd:[350,600],pulseStrength:[0,8],rate:[.5,2]};
+  const ranges={cameraZoom:[1,3],cameraSize:[12,480],cameraMinSize:[12,480],cameraMaxSize:[12,480],followSize:[12,160],gap:[8,64],stiffness:[80,500],damping:[10,50],anticipation:[0,100],beltSpring:[80,500],beltDamping:[10,50],warningSeconds:[5,30],pulseStart:[600,1600],pulseEnd:[350,600],pulseStrength:[0,8],rate:[.5,2]};
   function emit(){listeners.forEach(fn=>fn());}
   function rectStyle(el,r){el.style.left=`${r.x}px`;el.style.top=`${r.y}px`;el.style.width=`${r.width}px`;el.style.height=`${r.height}px`;}
   function local(event,constrain=true){
@@ -145,6 +145,9 @@
     fixedCamera=anchor?{x:anchor.x,y:anchor.y}:{x:b.x+b.width*saved.u,y:b.y+b.height*saved.v};
     cameraPlaced=true;follower.snap({...fixedCamera,size});
   }
+  function syncCameraZoom(){
+    $('.rb-camera-video').style.transform=`scale(${settings.cameraZoom}) scaleX(${settings.mirror?-1:1})`;
+  }
   function syncSelection(){
     root.dataset.mode=settings.mode;root.dataset.stage=stage;root.dataset.picking=String(settings.mode==='window'&&!selectedWindow&&isIdle());
     const bounds=captureBounds(),idle=isIdle();
@@ -163,9 +166,9 @@
     $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-selected',el.dataset.window===selectedWindow&&settings.mode==='window'));
     const guide=$('.rb-bounds-guide');guide.hidden=!settings.showBounds;rectStyle(guide,bounds);
     bubble.hidden=!settings.camera||(settings.mode==='window'&&!selectedWindow); bubble.classList.toggle('is-following',settings.followCursor);bubble.tabIndex=settings.followCursor?-1:0;
-    $('.rb-camera-video').style.transform=settings.mirror?'scaleX(-1)':'';
+    syncCameraZoom();
     if(!cameraPlaced)placeCamera();
-    renderCamera(0);renderSlots();syncControls();syncCursor();
+    renderCamera(0);renderSlots();syncControls();syncCursor();cornerPin?.refresh();
   }
   function syncControls(){
     $$('.rb-mode').forEach(el=>{el.setAttribute('aria-pressed',String(el.dataset.mode===settings.mode));el.disabled=!isIdle();});
@@ -321,10 +324,9 @@
     resizeAngle+=((direction.angle-resizeAngle+540)%360)-180;
     const orbit=$('.rb-camera-resize-orbit'),handle=$('.rb-camera-resize');
     orbit.style.transform=`rotate(${resizeAngle}deg)`;
-    // Keep the visible arc optically close; its 40px hit target extends outward.
+    // Only the gap follows the diameter; the arc and its centered hit area stay full size.
     const gap=clamp(size/30,3,8)+2,radius=size/2+gap-2;
-    const arcScale=clamp(size/120,.4,1);
-    handle.querySelector('path').setAttribute('transform',`translate(${2-2.08807*arcScale} ${20-13.4926*arcScale}) scale(${arcScale})`);
+    handle.querySelector('path').setAttribute('transform','translate(-0.08807 6.5074)');
     handle.style.setProperty('--resize-radius',`${radius}px`);handle.style.cursor=direction.cursor;
     handle.dataset.direction=direction.dock;
     handle.setAttribute('aria-label',`Resize camera bubble from ${direction.dock}. Arrow keys resize; Shift for ten pixels.`);
@@ -341,15 +343,29 @@
     const nearest=show?nearestSlot().name:null;
     for(const slot of cameraSlots()){const el=layer.querySelector(`[data-slot="${slot.name}"]`),diameter=Math.max(24,slot.size);rectStyle(el,{x:slot.x-diameter/2,y:slot.y-diameter/2,width:diameter,height:diameter});el.classList.toggle('is-nearest',slot.name===nearest);}
   }
-  function snapCamera(){
-    const target=nearestSlot();fixedAnchor=target.name;
-    cameraSnap={from:{...fixedCamera},to:target,time:0,velocity:cameraSnap?.velocity||{x:0,y:0}};
+  function snapCamera(target=nearestSlot(),from=follower.getState()){
+    fixedAnchor=target.name;
+    cameraSnap={from:{...from},to:target,time:0,velocity:cameraSnap?.velocity||{x:0,y:0}};
     if(reduced.matches){fixedCamera={x:target.x,y:target.y};cameraSnap=null;}
     rememberCameraPosition();renderCamera(0);wake();
   }
+  function pinCamera(name,keyboard=false){
+    if(!active||!isIdle()||!settings.camera||!settings.followCursor||camera.getState().status!=='live'||(settings.mode==='window'&&!selectedWindow))return;
+    const target=cameraSlots().find(slot=>slot.name===name&&['nw','ne','sw','se'].includes(name));
+    if(!target)return;
+    // Transfer the current follower pose into the same spring used for drag docking.
+    // updateSettings normally restores the previous dock when Follow is switched off.
+    const from=follower.getState();settings.followCursor=false;cameraPlaced=true;
+    fixedCamera={x:from.x,y:from.y};
+    snapCamera(target,from);
+    if(keyboard){fixedCamera={x:target.x,y:target.y};cameraSnap=null;}
+    syncSelection();rememberCameraPosition();JamDefaults.changed('recording');emit();
+    $('.rb-capture-status').textContent=`Camera pinned to ${{nw:'top left',ne:'top right',sw:'bottom left',se:'bottom right'}[name]}`;
+    if(keyboard)bubble.focus({preventScroll:true});
+  }
   function renderCamera(dt){
     if(!settings.camera)return;
-    const b=captureBounds(),size=settings.followCursor?settings.followSize:settings.cameraSize;
+    const b=captureBounds();let size=settings.followCursor?settings.followSize:settings.cameraSize;
     let value;
     // Stay at the restored dock until a real pointer position is available.
     if(settings.followCursor&&pointerClient){value=follower.step({pointer,bounds:b,pinOutside:true,size,gap:settings.gap,stiffness:settings.stiffness,damping:settings.damping,anticipation:settings.anticipation,dt,reducedMotion:reduced.matches});}
@@ -358,7 +374,10 @@
       if(cameraSnap){
         cameraSnap.time+=dt;if(anchor)cameraSnap.to=anchor;
         if(cameraSnap.time>=.6||reduced.matches){fixedCamera={x:cameraSnap.to.x,y:cameraSnap.to.y};cameraSnap=null;}
-        else for(const key of ['x','y']){const s=sample(cameraSnap.time,cameraSnap.from[key],cameraSnap.velocity[key],cameraSnap.to[key],440,38);fixedCamera[key]=s.value;}
+        else{
+          for(const key of ['x','y']){const s=sample(cameraSnap.time,cameraSnap.from[key],cameraSnap.velocity[key],cameraSnap.to[key],440,38);fixedCamera[key]=s.value;}
+          size=sample(cameraSnap.time,cameraSnap.from.size??size,0,size,440,38).value;
+        }
       }else if(anchor&&drag?.kind!=='camera')fixedCamera={x:anchor.x,y:anchor.y};
       const diameter=Math.max(12,Math.min(size,b.width-8,b.height-8)),r=diameter/2;
       fixedCamera.x=clamp(fixedCamera.x,b.x+r+4,b.x+b.width-r-4);fixedCamera.y=clamp(fixedCamera.y,b.y+r+4,b.y+b.height-r-4);
@@ -380,6 +399,7 @@
   function wake(){if(active&&!document.hidden&&!raf){lastFrame=0;raf=requestAnimationFrame(tick);}}
   function setActive(value){
     if(active&&!value){advanceClock();rememberCameraPosition();}active=Boolean(value);syncCursor();
+    if(!active)cornerPin?.clear();
     if(!active){cancelAnimationFrame(raf);clearTimeout(clockTimer);raf=0;lastFrame=0;clockStamp=0;closeMenu(false);drag=null;camera.stop();}
     else{clockStamp=performance.now();scheduleClock();layout();syncSelection();renderBelt();if(settings.camera)camera.request(camera.getState().deviceId);wake();}
   }
@@ -406,7 +426,7 @@
       for(const name of ['MacBook','AirPods Pro 3','ZoomAudioDevice','BoseQC Ultra Headphones','Mac Studio Display Microphone'])add(name,settings.microphone&&settings.microphoneDevice===name,()=>{settings.microphoneDevice=name;updateSettings({microphone:true});});
       separator();add('Don’t Record Microphone',!settings.microphone,()=>updateSettings({microphone:false}));
     }
-    openMenu=menu;menuTrigger=trigger;menu.hidden=false;trigger.setAttribute('aria-expanded','true');
+    openMenu=menu;menuTrigger=trigger;menu.hidden=false;trigger.setAttribute('aria-expanded','true');cornerPin?.clear();
     const tr=trigger.getBoundingClientRect(),rr=root.getBoundingClientRect(),s=rr.width/W;
     menu.style.left=`${clamp((tr.left-rr.left)/s,8,W-menu.offsetWidth-8)}px`;
     menu.style.top=`${Math.max(8,(tr.top-rr.top)/s-menu.offsetHeight-8)}px`;
@@ -435,7 +455,7 @@
   $('.rb-close').addEventListener('click',()=>JamPlayground.setSurface('onboarding'));
   $('.rb-change-window').addEventListener('click',()=>{rememberCameraPosition();selectedWindow=null;syncSelection();emit();});
   $$('.rb-window-selector').forEach(b=>b.addEventListener('click',()=>selectWindow(b.closest('[data-window]').dataset.window)));
-  function startDrag(event,kind,extra={}){if(event.button!==0||drag)return;event.preventDefault();const p=local(event);drag={kind,start:p,pointerId:event.pointerId,target:event.currentTarget,...extra};event.currentTarget.setPointerCapture(event.pointerId);closeMenu(false);syncCursor();}
+  function startDrag(event,kind,extra={}){if(event.button!==0||drag)return;cornerPin?.clear();event.preventDefault();const p=local(event);drag={kind,start:p,pointerId:event.pointerId,target:event.currentTarget,...extra};event.currentTarget.setPointerCapture(event.pointerId);closeMenu(false);syncCursor();}
   $$('.rb-window-titlebar').forEach(el=>{
     el.addEventListener('pointerdown',e=>{if(root.dataset.picking==='true')return;const name=el.closest('[data-window]').dataset.window;startDrag(e,'window',{name,initial:{...windows[name]}});el.closest('[data-window]').style.zIndex=String(++windowLayer);});
     el.addEventListener('keydown',e=>{const name=el.closest('[data-window]').dataset.window,r=windows[name],n=e.shiftKey?10:2;if(e.key==='ArrowLeft')r.x-=n;else if(e.key==='ArrowRight')r.x+=n;else if(e.key==='ArrowUp')r.y-=n;else if(e.key==='ArrowDown')r.y+=n;else return;e.preventDefault();r.x=clamp(r.x,0,W-r.width);r.y=clamp(r.y,28,H-r.height);syncWindows();syncSelection();});
@@ -523,6 +543,10 @@
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
     setRate:rate=>updateSettings({rate}),setLoop:loop=>updateSettings({loop}),subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},
   };
+  cornerPin=JamCameraPin.create(root,{local,onPin:pinCamera,context:()=>({
+    enabled:active&&isIdle()&&settings.camera&&settings.followCursor&&camera.getState().status==='live'&&!drag&&!openMenu&&(settings.mode!=='window'||!!selectedWindow),
+    key:cameraPositionKey(),window:settings.mode==='window'?selectedWindow:null,bounds:captureBounds(),slots:cameraSlots(),
+  })});
   syncWindows();
   JamDefaults.register('recording',{groups:['recording'],read:()=>({recording:{...settings}}),apply:values=>updateSettings(values.recording),onReset(){clearTimeout(clockTimer);clockStamp=0;fixedAnchor=null;cameraSnap=null;stage='idle';elapsed=0;previewPlaying=false;previewTime=0;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};resetSelection();renderBelt();emit();}});
   syncSelection();renderBelt();setActive(JamPlayground.getSurface()==='recording');
