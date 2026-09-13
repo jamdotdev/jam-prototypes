@@ -26,7 +26,7 @@
       </article>
     </div>
     <div class="rb-selection-mask" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-    <div class="rb-capture-region" tabindex="0" role="group" aria-label="Recording area. Drag to move, arrow keys to nudge, Shift for ten pixels."><span class="rb-area-dimensions"></span>${['nw','n','ne','e','se','s','sw','w'].map(handle=>`<button class="rb-area-handle rb-handle-${handle}" data-handle="${handle}" aria-label="Resize recording area ${handle}"></button>`).join('')}</div>
+    <div class="rb-capture-region" tabindex="0" role="group" aria-label="Recording area. Drag to move, arrow keys to nudge, Shift for ten pixels.">${['nw','n','ne','e','se','s','sw','w'].map(handle=>`<button class="rb-area-handle rb-handle-${handle}" data-handle="${handle}" aria-label="Resize recording area ${handle}"></button>`).join('')}</div>
     <button class="rb-area-draw" aria-label="Draw a new recording area" hidden></button>
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
@@ -181,7 +181,6 @@
     region.classList.toggle('is-area',settings.mode==='area');
     region.classList.toggle('is-selected-window',settings.mode==='window'&&!!selectedWindow);
     region.tabIndex=settings.mode==='area'&&idle?0:-1;
-    $('.rb-area-dimensions').textContent=`${Math.round(bounds.width)} × ${Math.round(bounds.height)}`;
     selectionNotch?.render({enabled:active&&idle&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
     $$('.rb-area-handle').forEach(el=>{el.hidden=settings.mode!=='area'||!idle;});
     $('.rb-area-draw').hidden=settings.mode!=='area'||!idle;
