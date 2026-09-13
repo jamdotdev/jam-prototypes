@@ -1,6 +1,6 @@
 window.JamDefaultValues = {
   "version": 1,
-  "revision": 16,
+  "revision": 17,
   "groups": {
     "welcome": {
       "settings": {
@@ -101,6 +101,7 @@ window.JamDefaultValues = {
       "loop": false
     },
     "recording": {
+      "cameraZoom": 1.45,
       "cameraMinSize": 44,
       "cameraMaxSize": 172,
       "warningSeconds": 10,
@@ -112,8 +113,8 @@ window.JamDefaultValues = {
       "microphone": true,
       "cameraDevice": "FaceTime HD Camera (467C:1317)",
       "microphoneDevice": "AirPods Pro 3",
-      "cameraSize": 55,
-      "followCursor": true,
+      "cameraSize": 172,
+      "followCursor": false,
       "followSize": 44,
       "mirror": true,
       "gap": 14,

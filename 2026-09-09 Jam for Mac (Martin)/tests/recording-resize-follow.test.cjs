@@ -36,6 +36,7 @@ function environment({size=120,min=12,max=240,followSize=120,anchor='sw',hasCapt
  globalThis.state=()=>({releases,releaseWasClean,snaps,remembered,wakes,changes,selectionSyncs,cursorSyncs,focused,dragging:!!drag,resizing:classes.has('is-resizing'),pointerClient,pointerTime,camera:follower.getState(),fixedCamera:{...fixedCamera}});
  globalThis.update=updateSettings;
  globalThis.gapAt=size=>{renderCameraResizer(size);return properties.get('--resize-radius');};
+ globalThis.arcAt=size=>{renderCameraResizer(size);return attributes.get('transform');};
  globalThis.frame=()=>renderCamera(1/60);
  `,context);
  return context;
@@ -78,6 +79,7 @@ function environment({size=120,min=12,max=240,followSize=120,anchor='sw',hasCapt
 }
 {
  const e=environment();assert.equal(e.gapAt(12),'9px');assert.equal(e.gapAt(120),'64px');assert.equal(e.gapAt(240),'128px');assert.equal(e.gapAt(480),'248px');
+ const fullSizeArc=e.arcAt(120);for(const size of [12,24,48,96,240,480])assert.equal(e.arcAt(size),fullSizeArc,'The visible resizer stays the same size across bubble diameters');
 }
 for(const target of [12,96,160]){
  const e=environment({followSize:48});e.update({followSize:target});e.begin();e.resize(30);

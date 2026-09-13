@@ -34,7 +34,7 @@ def with_player_settings(group, value, fallback=None):
     """Fill only the fields added with the shared Player, retaining saved values."""
     if group == "recording" and isinstance(value, dict):
         fallback = fallback or {}
-        added = {"cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4}
+        added = {"cameraZoom": 1, "cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4}
         return {**{key: fallback.get(key, default) for key, default in added.items()}, **value}
     if group in ("handoff", "permissions") and isinstance(value, dict):
         fallback = fallback or {}
@@ -108,7 +108,7 @@ def validate_default_values(group, value):
     if group == "onboarding":
         return value["lensZoom"] in (1.5, 2, 3, 4) and between(value["lensSize"], 88, 176)
     if group == "recording":
-        bounds = {"cameraSize": (12, 480), "cameraMinSize": (12, 480), "cameraMaxSize": (12, 480), "followSize": (12, 160), "gap": (8, 64),
+        bounds = {"cameraZoom": (1, 3), "cameraSize": (12, 480), "cameraMinSize": (12, 480), "cameraMaxSize": (12, 480), "followSize": (12, 160), "gap": (8, 64),
                   "stiffness": (80, 500), "damping": (10, 50), "anticipation": (0, 100),
                   "beltSpring": (80, 500), "beltDamping": (10, 50),
                   "warningSeconds": (5, 30), "pulseStart": (600, 1600), "pulseEnd": (350, 600), "pulseStrength": (0, 8)}

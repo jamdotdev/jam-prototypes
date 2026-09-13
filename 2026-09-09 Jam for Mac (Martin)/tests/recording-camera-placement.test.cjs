@@ -10,6 +10,7 @@ function environment(saved='{}'){
  vm.runInContext(fs.readFileSync(path.join(directory,'recording-camera.js'),'utf8'),context);
  vm.runInContext(`
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+ let cornerPin=null;
  let W=1000,H=700,active=false,raf=0,lastFrame=0,clockStamp=0,clockTimer=0,drag=null,pointerTime=0,pointerClient=null;
  let stage='idle',selectedWindow=null,area={x:100,y:80,width:500,height:400};
  const windows={finder:{x:80,y:40,width:420,height:360},browser:{x:300,y:100,width:600,height:450}};

@@ -38,6 +38,7 @@
         readout('camera-status','Camera',()=>R().getCameraStatus()),
         toggle('camera','Camera bubble',()=>R().getSettings().camera,value=>value?R().requestCamera(R().getCameraState().deviceId):R().updateSettings({camera:false})),
         recordingSetting('cameraSize','Bubble size',()=>R().getSettings().cameraMinSize,()=>R().getSettings().cameraMaxSize,1,'px'),
+        recordingSetting('cameraZoom','Camera zoom',1,3,.05,'×'),
         recordingSetting('cameraMinSize','Minimum size',12,()=>R().getSettings().cameraMaxSize,1,'px'),
         recordingSetting('cameraMaxSize','Maximum size',()=>R().getSettings().cameraMinSize,480,1,'px'),
         recordingToggle('followCursor','Follow cursor'),
