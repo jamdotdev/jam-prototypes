@@ -55,6 +55,9 @@ const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${
     await page.keyboard.down('Shift');await page.mouse.move(startX+30,startY);let afterShift=await rect();near(afterShift.width,beforeShift.width,'Shift entry has no width jump');near(afterShift.height,beforeShift.height,'Shift entry has no height jump');
     await page.mouse.move(startX+60,startY);afterShift=await rect();near(afterShift.width/afterShift.height,beforeShift.width/beforeShift.height,'Shift locks shape at moment of press');await page.mouse.up();await page.keyboard.up('Shift');
     await ratio('16:9');await dimension('width',600);const locked=await rect();await dragHandle('se',30,70,['Shift']);r=await rect();near(r.width/r.height,16/9,'Shift does not override preset');assert.ok(r.height>locked.height);
+    assert.equal(await page.locator('.rb-area-dimensions').count(),0,'Dimensions appear only in the sizing notch');
+    const bottomHandle=await page.locator('.rb-handle-s').boundingBox();
+    assert.ok(await page.evaluate(({x,y})=>document.elementFromPoint(x,y)?.classList.contains('rb-handle-s'),{x:bottomHandle.x+bottomHandle.width/2,y:bottomHandle.y+14}),'Bottom handle stays reachable over the notch lip');
     await page.screenshot({path:path.join(output,'area-locked.png')});
     await ratioButton.click();await page.screenshot({path:path.join(output,'area-ratio-menu.png')});await page.keyboard.press('Escape');
     // New drawings retain explicit ratio and never include the notch in the capture bounds.
@@ -62,7 +65,7 @@ const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${
     await ratio('custom');await dimension('width',50);await dimension('height',50);r=await rect();
     await page.mouse.move(r.x+25,r.y+25);await page.mouse.down();await page.mouse.move(60,999,{steps:8});await page.mouse.up();
     assert.ok(await notch.evaluate(el=>el.classList.contains('is-inset')),'Small area at bottom keeps notch inside canvas');
-    const bottomNotch=await notch.boundingBox();assert.ok(bottomNotch.y+bottomNotch.height<=1000,'Bottom notch remains visible');await checkFields();
+    const bottomNotch=await notch.boundingBox();assert.ok(bottomNotch.y+bottomNotch.height<=1000,'Bottom notch remains visible');await checkFields();await ratioButton.click();assert.ok(await page.locator('#rb-ratio-menu').isVisible(),'Inset notch stays interactive');await page.keyboard.press('Escape');
     await mode('window');assert.ok(!await notch.isVisible());await page.evaluate(()=>JamRecording.selectWindow('browser'));assert.ok(await notch.isVisible());assert.ok(await page.locator('.rb-notch-window-controls').isVisible());
     await ratio('4:3');await dimension('width',640);r=await rect();near(r.height,480,'Window dimensions honor ratio');
     const nativeWindow=await page.locator('[data-window="browser"]').boundingBox();near(nativeWindow.width,r.width,'Actual window width changes');near(nativeWindow.height,r.height,'Actual window height changes');
