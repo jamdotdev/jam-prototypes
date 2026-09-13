@@ -1,0 +1,28 @@
+.rb-selection-notch{position:absolute;z-index:35;display:flex;width:max-content;align-items:center;gap:4px;padding:8px;background:#1e1e1e;color:#ffffff8c;border-radius:0 0 18px 18px;box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59;font-size:12px;font-weight:500;white-space:nowrap;cursor:default;pointer-events:auto}
+.rb-selection-notch.is-inset{border-radius:18px 18px 0 0}
+.rb-notch-window-controls,.rb-notch-sizing{display:flex;align-items:center;gap:4px;min-width:0}
+.rb-selection-notch button{position:relative;display:flex;align-items:center;justify-content:center;gap:4px;min-width:40px;height:24px;padding:0 12px;border-radius:10px;background:transparent;color:inherit;font-size:12px;line-height:16px;white-space:nowrap;cursor:default;transition:background-color 120ms ease,scale 120ms cubic-bezier(.2,0,0,1)}
+.rb-selection-notch button::after{content:'';position:absolute;inset:-8px 0}
+.rb-selection-notch button:active{scale:.96}.rb-selection-notch button:focus-visible{outline:2px solid #9ff065;outline-offset:2px}
+.rb-selection-notch .rb-sf{flex:none;width:16px;height:16px}
+.rb-notch-logs{display:flex;align-items:center;gap:4px;padding:0 12px;height:24px}.rb-notch-logs .rb-sf{width:8px;height:8px;opacity:.7}
+.rb-notch-separator{height:20px;width:1px;background:#ffffff26;margin:0 4px}
+.rb-selection-notch .rb-notch-ratio{padding:0 8px}.rb-notch-ratio span:not(.rb-sf):empty{display:none}
+.rb-selection-notch .rb-notch-resize{background:#ffffff12;color:#ffffffd9;padding:0 16px}
+.rb-notch-field{position:relative;display:flex;align-items:center;height:24px;min-width:0}
+.rb-notch-field::before{content:'';position:absolute;inset:-8px 0}.rb-notch-field input{position:relative}
+.rb-notch-field .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.rb-notch-field input{box-sizing:border-box;width:54px;min-width:40px;height:24px;padding:0 7px;border:1px solid #ffffff0a;border-radius:9px;background:#1e1e1e;color:#ffffffd9;font-family:inherit;font-size:12px;font-weight:500;line-height:16px;font-variant-numeric:tabular-nums;text-align:center;user-select:text;cursor:text;outline:none}
+.rb-notch-field:focus-within input{border-color:#9ff065;box-shadow:0 0 0 2px #9ff06522}.rb-notch-field input[aria-invalid="true"]{border-color:#ff9d8e}
+.rb-notch-times{color:#ffffff60;padding:0 1px}
+.rb-selection-notch.is-ratio-locked .rb-notch-ratio{background:#9ff06538;color:#9ff065}.rb-selection-notch.is-ratio-locked input{color:#d8ffc2fa}
+.rb-sizing-menu.native-menu{position:absolute;z-index:46;min-width:116px;max-width:220px;padding:6px;border-radius:13px;background:#e7e7e7eb;backdrop-filter:blur(36px) saturate(1.1);-webkit-backdrop-filter:blur(36px) saturate(1.1);font-size:11px}
+.rb-sizing-menu .native-menu-item{min-height:23px;height:23px;font-size:11px;line-height:16px;padding:3px 12px 3px 24px;border-radius:5px;font-variant-numeric:tabular-nums}
+.rb-sizing-menu .native-menu-item:disabled{opacity:.3}.rb-sizing-menu .native-menu-item:disabled:focus{background:transparent;color:inherit}
+.rb-sizing-menu-note{width:166px;white-space:normal;color:#666;font-size:10px;line-height:14px;padding:4px 6px;margin:4px 0 0}
+.rb-notch-orientation{display:flex;height:24px;background:#00000010;border-radius:12px;padding:2px;gap:2px}
+.rb-notch-orientation button{display:grid;place-items:center;flex:1;min-width:46px;padding:0;height:20px;border-radius:11px;background:transparent;color:#222;cursor:default}
+.rb-notch-orientation .rb-sf{width:14px;height:14px}.rb-notch-orientation button[aria-pressed="true"]{background:#ffffffed;box-shadow:0 1px 3px #0002}.rb-notch-orientation button:focus-visible{outline:2px solid #0069de;outline-offset:1px}
+@media(hover:hover) and (pointer:fine){.rb-selection-notch button:hover{background-color:#ffffff12}.rb-selection-notch.is-ratio-locked .rb-notch-ratio:hover{background-color:#9ff06548}}
+.rb-selection-notch.is-window.is-compact{flex-wrap:wrap;justify-content:center}.rb-selection-notch.is-compact .rb-notch-window-controls{justify-content:center;width:100%}.rb-selection-notch.is-compact .rb-notch-window-controls .rb-notch-separator:last-child{display:none}.rb-selection-notch.is-compact .rb-notch-logs,.rb-selection-notch.is-compact .rb-notch-change{font-size:10px;padding-inline:7px}
+@media(prefers-reduced-motion:reduce){.rb-selection-notch button{transition:none}.rb-selection-notch button:active{scale:1}}

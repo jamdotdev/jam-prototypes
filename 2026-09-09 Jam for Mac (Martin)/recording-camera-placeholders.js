@@ -1,0 +1,94 @@
+(() => {
+  'use strict';
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const borders = new WeakMap();
+  const palettes = new WeakMap();
+
+  function paintPalette(root, settings) {
+    const colors = [settings.placeholderContrastColor, settings.placeholderContrastActiveColor, settings.placeholderContrastEdgeColor];
+    const key = JSON.stringify(colors);
+    if (palettes.get(root) === key) return;
+    palettes.set(root, key);
+    ['color', 'active-color', 'edge-color'].forEach((name, index) => root.style.setProperty(`--rb-camera-border-${name}`, colors[index]));
+  }
+
+  function borderMarkup() {
+    return '<svg class="rb-camera-slot-border" aria-hidden="true"><circle fill="none"/></svg>';
+  }
+
+  function dashPattern(size, width, dash, gap) {
+    const radius = Math.max(.5, (size - width) / 2), circumference = 2 * Math.PI * radius;
+    // Fit complete repeats to avoid a doubled dash or a tiny gap at the seam.
+    const count = Math.max(1, Math.round(circumference / (dash + gap)));
+    const period = circumference / count;
+    return { radius, count, dash: period * dash / (dash + gap), gap: period * gap / (dash + gap) };
+  }
+
+  function paintBorder(element, size, settings, active = false, emphasized = active) {
+    const svg = element.querySelector('.rb-camera-slot-border'), circle = svg.querySelector('circle');
+    const contrast = settings.placeholderPinContrast !== false;
+    const key = JSON.stringify([size, settings.placeholderStroke, settings.placeholderDash, settings.placeholderGap]);
+    let border = borders.get(element);
+    if (border?.key !== key) {
+      const pattern = dashPattern(size, settings.placeholderStroke, settings.placeholderDash, settings.placeholderGap);
+      border = { key, circle, pattern };
+      borders.set(element, border);
+      svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+      circle.setAttribute('cx', size / 2); circle.setAttribute('cy', size / 2);
+      circle.setAttribute('r', pattern.radius);
+      circle.setAttribute('stroke-dasharray', `${pattern.dash} ${pattern.gap}`);
+      circle.setAttribute('transform', `rotate(-90 ${size / 2} ${size / 2})`);
+    }
+    svg.classList.toggle('has-pin-contrast', contrast);
+    circle.setAttribute('stroke', contrast ? (active ? settings.placeholderContrastActiveColor : settings.placeholderContrastColor) : settings.placeholderColor);
+    // Keep the centerline and dash pattern stable as the interaction stroke grows.
+    circle.setAttribute('stroke-width', settings.placeholderStroke + (emphasized ? settings.placeholderActiveStroke : 0));
+    circle.setAttribute('stroke-opacity', contrast ? (active ? 1 : .85) : (active ? settings.placeholderActiveOpacity : settings.placeholderOpacity) / 100);
+  }
+
+  function holdFrames(pattern) {
+    return Array.from({ length: pattern.count + 1 }, (_, closed) => ({
+      offset: closed / pattern.count,
+      strokeDasharray: Array.from({ length: pattern.count }, (_, index) => index < closed
+        ? `${pattern.dash + pattern.gap} 0` : `${pattern.dash} ${pattern.gap}`).join(' '),
+    }));
+  }
+
+  function holdBorder(element, duration) {
+    const border = borders.get(element);
+    // The existing border gains one connected gap at a time, clockwise from twelve.
+    return border.circle.animate(holdFrames(border.pattern), { duration, easing: 'linear', fill: 'forwards' });
+  }
+
+  function createOverlay(root) {
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.classList.add('rb-camera-drag-overlay'); svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = '<defs><mask id="rb-camera-slot-cutouts" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" style="mask-type:luminance"><rect fill="white"/></mask></defs><rect class="rb-camera-overlay-fill" mask="url(#rb-camera-slot-cutouts)"/>';
+    const mask = svg.querySelector('mask'), maskRect = mask.querySelector('rect'), fill = svg.querySelector('.rb-camera-overlay-fill');
+    const holes = Array.from({ length: 8 }, () => {
+      const circle = document.createElementNS(svgNS, 'circle'); circle.setAttribute('fill', 'black'); mask.append(circle); return circle;
+    });
+    root.append(svg);
+    let previous = '';
+    return {
+      update(bounds, slots, visible, settings) {
+        svg.classList.toggle('is-visible', visible);
+        if (!visible) return;
+        const key = JSON.stringify([bounds, slots, settings.placeholderOverlayColor, settings.placeholderOverlayOpacity]);
+        if (key === previous) return;
+        previous = key;
+        for (const rect of [mask, maskRect, fill]) for (const [attribute, value] of Object.entries(bounds)) {
+          rect.setAttribute(attribute, value);
+        }
+        slots.forEach((slot, index) => {
+          holes[index].setAttribute('cx', slot.x); holes[index].setAttribute('cy', slot.y);
+          holes[index].setAttribute('r', Math.max(24, slot.size) / 2);
+        });
+        fill.setAttribute('fill', settings.placeholderOverlayColor);
+        fill.setAttribute('fill-opacity', settings.placeholderOverlayOpacity / 100);
+      },
+    };
+  }
+
+  globalThis.JamCameraPlaceholders = { borderMarkup, paintPalette, paintBorder, holdBorder, createOverlay, dashPattern, holdFrames };
+})();

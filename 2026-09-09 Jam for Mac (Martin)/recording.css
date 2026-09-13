@@ -2,7 +2,7 @@
 .recording-scene{position:absolute;inset:0;overflow:hidden;color:#202020;user-select:none;touch-action:none}
 .desktop[data-surface="recording"] .desktop-caption{display:none}
 .rb-desktop-windows{position:absolute;inset:0;z-index:1}
-.rb-mock-window{position:absolute;background:#fff;border-radius:11px;overflow:hidden;box-shadow:0 0 0 .5px #0006,0 16px 36px #0004;min-width:min(320px,100%);min-height:min(220px,100%)}
+.rb-mock-window{position:absolute;background:#fff;border-radius:11px;overflow:hidden;box-shadow:0 0 0 .5px #0006,0 16px 36px #0004;min-width:0;min-height:0}
 .rb-browser{z-index:2}.rb-finder{z-index:1}
 .rb-window-titlebar{height:43px;display:flex;align-items:center;background:#f3f1f4;box-shadow:0 .5px 0 #0002;position:relative;cursor:grab;padding:0 14px;gap:16px;touch-action:none}
 .rb-window-titlebar:active{cursor:grabbing}.rb-window-titlebar .traffic-lights{padding:0;gap:8px;flex:none}.rb-window-titlebar .traffic{width:12px;height:12px}
@@ -29,7 +29,7 @@
 .rb-area-handle{position:absolute;width:20px;height:20px;padding:0;border:0;background:transparent;pointer-events:auto;touch-action:none;z-index:2}
 .rb-area-handle::after{content:'';position:absolute;inset:6px;border-radius:50%;background:#999;box-shadow:inset 0 0 0 1px white,0 0 0 1px #0005}
 .rb-area-handle:active{scale:1}.rb-handle-nw{left:-10px;top:-10px;cursor:nwse-resize}.rb-handle-n{left:calc(50% - 10px);top:-10px;cursor:ns-resize}.rb-handle-ne{right:-10px;top:-10px;cursor:nesw-resize}.rb-handle-e{right:-10px;top:calc(50% - 10px);cursor:ew-resize}.rb-handle-se{right:-10px;bottom:-10px;cursor:nwse-resize}.rb-handle-s{left:calc(50% - 10px);bottom:-10px;cursor:ns-resize}.rb-handle-sw{left:-10px;bottom:-10px;cursor:nesw-resize}.rb-handle-w{left:-10px;top:calc(50% - 10px);cursor:ew-resize}
-.rb-window-notch{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);display:flex;align-items:center;height:24px;background:#29282b;color:#aaa;box-shadow:0 1px 3px #0003;border-radius:0 0 6px 6px;white-space:nowrap;font-size:10px;pointer-events:auto}.rb-window-notch button{background:transparent;color:#fff;padding:0 10px;height:24px;border-radius:0;font-size:10px}.rb-window-notch span{border-left:1px solid #666;padding:0 10px}
+
 .rb-bounds-guide{position:absolute;z-index:8;border:1px dashed #a7f374;box-shadow:inset 0 0 0 4px #a7f37415;pointer-events:none}
 .rb-camera{position:absolute;left:0;top:0;z-index:32;overflow:visible;border-radius:50%;cursor:grab;touch-action:none}
 .rb-camera:active{cursor:grabbing}.rb-camera img{width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;display:block}.rb-camera-preview::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 .5px #00000030;pointer-events:none}
@@ -38,9 +38,11 @@
 .rb-camera-resize{position:absolute;left:-18px;top:0;right:auto;bottom:auto;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;transform:translateX(var(--resize-radius,64px)) translateY(-50%);opacity:0;visibility:hidden;pointer-events:auto;transition:opacity 140ms cubic-bezier(.2,0,0,1),visibility 0s 160ms}
 .rb-camera-resize::before{content:'';position:absolute;inset:-4px;background:transparent}
 .rb-camera-resize svg{width:40px;height:40px;overflow:visible;pointer-events:none;transform:translateX(18px)}
-.rb-camera-resize path{stroke:#666;stroke-opacity:.85;stroke-width:3;stroke-linecap:round;filter:drop-shadow(0 0 .75px #ffffffe6);transition:stroke 160ms cubic-bezier(.2,0,0,1),stroke-width 160ms cubic-bezier(.2,0,0,1),stroke-opacity 160ms cubic-bezier(.2,0,0,1)}
+.rb-camera-resize path{stroke:var(--rb-camera-border-color,#666);stroke-opacity:.85;stroke-width:3}
+.rb-camera-resize path,.rb-camera-slot-border circle{stroke-linecap:round;transition:stroke 160ms cubic-bezier(.2,0,0,1),stroke-width 160ms cubic-bezier(.2,0,0,1),stroke-opacity 160ms cubic-bezier(.2,0,0,1)}
+.rb-camera-resize path,.rb-camera-slot-border.has-pin-contrast circle{filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color,#ffffffe6))}
 .rb-camera:hover .rb-camera-resize,.rb-camera:focus-within .rb-camera-resize,.rb-camera.is-resizing .rb-camera-resize{opacity:1;visibility:visible;transition-delay:0s}
-.rb-camera-resize:hover path,.rb-camera-resize:focus-visible path,.rb-camera.is-resizing .rb-camera-resize path{stroke:#333;stroke-width:4;stroke-opacity:1}
+.rb-camera-resize:hover path,.rb-camera-resize:focus-visible path,.rb-camera.is-resizing .rb-camera-resize path{stroke:var(--rb-camera-border-active-color,#333);stroke-width:4;stroke-opacity:1}
 .rb-camera-resize:active{scale:1}.rb-camera.is-resizing .rb-camera-resize-orbit{transition:none}
 .rb-camera.is-following{pointer-events:none}.rb-camera.is-following .rb-camera-resize{display:none}
 .rb-belt{position:absolute;top:0;left:0;transform-origin:top left;height:52px;z-index:12;border-radius:26px;background:rgba(246,246,246,.85);backdrop-filter:blur(30px) saturate(1.2);-webkit-backdrop-filter:blur(30px) saturate(1.2);box-shadow:0 0 1px #00000045,0 0 0 1px #00000003,0 20px 25px -5px #0000001f,0 10px 10px -5px #0000000f;cursor:grab}
@@ -59,7 +61,7 @@
 .rb-device-menu.native-menu{position:absolute;z-index:45;min-width:230px;width:230px;max-width:none;max-height:none;border-radius:12px;font-size:11px;padding:5px;background:#e7e7e7eb;backdrop-filter:blur(36px) saturate(1.1);-webkit-backdrop-filter:blur(36px) saturate(1.1)}
 .rb-device-menu .native-menu-item{font-size:11px;line-height:16px;height:24px;min-height:24px;padding:3px 9px 3px 24px;text-overflow:ellipsis;overflow:hidden}
 .rb-capture-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-@media(hover:hover) and (pointer:fine){.rb-icon-button:hover{background:#0000000c}.rb-device:hover{background:#0000001e}.rb-record:hover,.rb-stop:hover{filter:brightness(.96)}.rb-mode:not([aria-pressed="true"]):hover{background:#ffffff70}.rb-window-notch button:hover{background:#ffffff12}}
+@media(hover:hover) and (pointer:fine){.rb-icon-button:hover{background:#0000000c}.rb-device:hover{background:#0000001e}.rb-record:hover,.rb-stop:hover{filter:brightness(.96)}.rb-mode:not([aria-pressed="true"]):hover{background:#ffffff70}}
 @media(prefers-reduced-motion:reduce){.recording-scene button,.rb-camera-resize{transition:none}}
 
 /* Edge hit zones span each edge; the visible dots stay eight pixels. */
@@ -69,7 +71,7 @@
 
 .recording-scene[data-stage="paused"] .rb-capture-region{border-color:#a7f374}
 
-.rb-window-notch{bottom:-38px;width:341px;height:36px;justify-content:center;border-radius:0 0 18px 18px;font-size:13px}.rb-window-notch button{height:36px;font-size:13px;padding:0 16px}.rb-window-notch span{padding:0 16px}
+
 
 .rb-selection-app{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);flex-direction:column;align-items:center;gap:8px}.rb-selection-app>img{width:49px;height:64px;object-fit:contain}.rb-selection-app .rb-selection-callout{position:static;transform:none;height:22px;padding:4px 18px;font-size:11px;line-height:14px}.rb-window-selector:hover .rb-selection-app,.rb-window-selector:focus-visible .rb-selection-app{display:flex}
 
@@ -82,20 +84,22 @@
 .rb-finder-body aside b{display:flex;align-items:center;gap:6px;padding-inline:6px}.rb-finder-body aside .rb-sf{width:16px;height:16px;color:#78757d}
 .rb-file-folder{width:56px;height:43px;background:none;box-shadow:none;border-radius:0;color:#61bde9}.rb-file-folder .rb-sf{width:100%;height:100%}
 .rb-window-resizer{color:#777;display:grid;place-items:center;opacity:0}.rb-mock-window:hover .rb-window-resizer,.rb-window-resizer:focus-visible{opacity:1}.rb-window-resizer .rb-sf{width:12px;height:12px}
-.rb-window-notch button,.rb-window-notch>span{display:flex;align-items:center;gap:5px}.rb-window-notch .rb-sf{width:16px;height:16px;padding:0;border:0}
+
 .rb-camera video{width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;display:block}
 .rb-camera-placeholder{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;background:#d9d7dc;color:#85818d}.rb-camera-placeholder .rb-sf{width:45%;height:45%}
 .rb-camera-connect{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;background:#ddd9e3;color:#66616d}.rb-camera-connect .rb-sf{width:40%;height:40%}
 .rb-camera::before{content:'';position:absolute;left:50%;top:50%;width:max(100%,40px);height:max(100%,40px);transform:translate(-50%,-50%);border-radius:50%}
 .rb-camera-error{padding:8px 10px;color:#65616a;font-size:11px;line-height:1.45}
 .rb-camera-slots{position:absolute;inset:0;z-index:31;pointer-events:none;opacity:0;transition:opacity 140ms cubic-bezier(.23,1,.32,1)}
-.rb-camera-slots.is-visible{opacity:1}.rb-camera-slot{position:absolute;display:block;border:1.5px dashed #ffffffa0;border-radius:50%;background:#ffffff0c;box-shadow:0 0 0 1px #00000018;transform:scale(.96);transition:transform 180ms cubic-bezier(.23,1,.32,1),background-color 140ms,border-color 140ms}
-.rb-camera-slots.is-visible i{transform:scale(1)}.rb-camera-slots i.is-nearest{border-color:#fff;background:#ffffff28;box-shadow:0 0 0 3px #ffffff12}
-.rb-camera-pin{z-index:31;padding:0;opacity:0;visibility:hidden;pointer-events:none;cursor:pointer;touch-action:none;transition:opacity 140ms cubic-bezier(.2,0,0,1),transform 180ms cubic-bezier(.2,0,0,1),background-color 140ms,visibility 0s 140ms}
+.rb-camera-slots.is-visible{opacity:1}.rb-camera-slot{position:absolute;display:block;border:0;border-radius:50%;background:transparent;box-shadow:none;transform:scale(.96);transition:transform 180ms cubic-bezier(.23,1,.32,1)}
+.rb-camera-slots.is-visible i{transform:scale(1)}
+.rb-camera-slot-border{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.rb-camera-drag-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none;opacity:0;transition:opacity 160ms cubic-bezier(.2,0,0,1)}
+.rb-camera-drag-overlay.is-visible{opacity:1}
+.recording-scene.is-camera-dragging .rb-capture-region.is-area{background:transparent}
+.rb-camera-pin{z-index:31;padding:0;opacity:0;visibility:hidden;pointer-events:none;cursor:pointer;touch-action:none;transition:opacity 140ms cubic-bezier(.2,0,0,1),transform 180ms cubic-bezier(.2,0,0,1),visibility 0s 140ms}
 .rb-camera-pin.is-visible{opacity:1;visibility:visible;pointer-events:auto;transform:scale(1);transition-delay:0s}
-.rb-camera-pin.is-holding{transform:scale(.96);background:#ffffff28;border-color:#fff}
-.rb-camera-pin svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-.rb-camera-pin circle{fill:none;stroke:white;stroke-width:2;vector-effect:non-scaling-stroke;stroke-dasharray:100;stroke-dashoffset:100;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;filter:drop-shadow(0 1px 1px #0006)}
+.rb-camera-pin.is-holding{transform:scale(.96)}
 .rb-camera-pin-label{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);width:max-content;padding:5px 8px;border-radius:6px;background:#252429e6;box-shadow:0 1px 3px #0002;color:#fff;font:400 11px/16px -apple-system,BlinkMacSystemFont,sans-serif;pointer-events:none}
 .rb-camera-pin[data-corner$="e"] .rb-camera-pin-label{left:auto;right:calc(100% + 10px)}
 .rb-stop{position:relative;overflow:visible;transform-origin:center}.rb-urgency-ring{position:absolute;inset:-2px;border:2px solid #ff8d28;border-radius:inherit;pointer-events:none;opacity:0}
@@ -110,5 +114,6 @@
 .rb-camera.is-following:not([data-media="live"]) .rb-camera-preview{transform:scale(.25);opacity:0}
 @media(prefers-reduced-motion:reduce){.rb-camera-preview{transition:none}}
 
-@media(prefers-reduced-motion:reduce){.rb-camera-resize-orbit,.rb-camera-resize,.rb-camera-resize path{transition:none}}
+@media(prefers-reduced-motion:reduce){.rb-camera-resize-orbit,.rb-camera-resize,.rb-camera-resize path,.rb-camera-slot-border circle{transition:none}}
 @media(prefers-reduced-motion:reduce){.rb-camera-pin{transition:opacity 140ms}.rb-camera-pin.is-holding{transform:none}}
+@media(prefers-reduced-motion:reduce){.rb-camera-drag-overlay,.rb-camera-slot{transition:opacity 140ms}.rb-camera-slots i.is-nearest{transform:scale(1)}}

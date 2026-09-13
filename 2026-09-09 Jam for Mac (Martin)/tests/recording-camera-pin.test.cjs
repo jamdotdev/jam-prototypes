@@ -9,14 +9,15 @@ function extract(name) {
 }
 class Element {
   constructor(parent = null) {
-    this.parent = parent; this.dataset = {}; this.style = {}; this.listeners = new Map(); this.attributes = {};
+    this.parent = parent; this.dataset = {}; this.style = {}; this.listeners = new Map(); this.attributes = {}; this.nodes = new Map();
     this.classes = new Set(); this.classList = { toggle: (key, on) => on ? this.classes.add(key) : this.classes.delete(key) };
   }
   append(child) { child.parent = this; this.child = child; }
   contains(el) { for (; el; el = el.parent) if (el === this) return true; return false; }
   closest(selector) { return selector === '[data-window]' ? this.window || null : this.action ? this : null; }
   setAttribute(key, value) { this.attributes[key] = value; }
-  querySelector() { return { animate: () => ({ cancel() {} }) }; }
+  querySelector(selector) { if (!this.nodes.has(selector)) this.nodes.set(selector, new Element(this)); return this.nodes.get(selector); }
+  animate(frames, options) { this.animation = { frames, options, canceled: false, cancel() { this.canceled = true; } }; return this.animation; }
   addEventListener(type, fn, options = {}) {
     const list = this.listeners.get(type) || []; list.push(fn); this.listeners.set(type, list);
     options.signal?.addEventListener('abort', () => this.listeners.set(type, list.filter(item => item !== fn)), { once: true });
@@ -45,6 +46,7 @@ function environment(mode = 'screen', reducedMotion = false) {
     clearTimeout(id) { timers.delete(id); },
   });
   // The actual pin eligibility, geometry, docking spring and settings remain under test.
+  vm.runInContext(fs.readFileSync(path.join(directory, 'recording-camera-placeholders.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(directory, 'recording-camera-pin.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(directory, 'recording-camera-motion.js'), 'utf8'), context);
   const defaults = fs.readFileSync(path.join(directory, 'playground-defaults-data.js'), 'utf8').replace('window.JamDefaultValues', 'globalThis.JamDefaultValues');
@@ -54,7 +56,7 @@ function environment(mode = 'screen', reducedMotion = false) {
   const factory = source.slice(factoryStart + 'context:'.length, factoryEnd);
   vm.runInContext(`
     const clamp=(n,a,b)=>Math.max(a,Math.min(b,n)),reduced={matches:${reducedMotion}};
-    const settings={...JamDefaultValues.groups.recording,camera:true,cameraSize:120,followSize:44,followCursor:true,mode:${JSON.stringify(mode)}};
+    const settings={...JamDefaultValues.groups.recording,placeholderActiveStroke:1,placeholderContrastColor:'#666666',placeholderContrastActiveColor:'#333333',placeholderContrastEdgeColor:'#ffffff',camera:true,cameraSize:120,followSize:44,followCursor:true,mode:${JSON.stringify(mode)}};
     let W=1000,H=700,active=true,stage='idle',selectedWindow=${mode === 'window' ? "'browser'" : 'null'},drag=null,openMenu=null,media='live';
     let area={x:200,y:120,width:600,height:450},windows={browser:{x:200,y:120,width:600,height:450}};
     let fixedCamera={x:350,y:300},fixedAnchor=null,cameraSnap=null,cameraPlaced=true,pointerClient={clientX:400,clientY:300},pointer={x:400,y:300};
@@ -84,8 +86,19 @@ function environment(mode = 'screen', reducedMotion = false) {
 for (const mode of ['screen', 'window', 'area']) for (const corner of ['nw','ne','sw','se']) {
   const e=environment(mode), slot=e.engine.slots().find(s=>s.name===corner);
   e.move(slot.x,slot.y); assert.ok(e.button.classes.has('is-visible'), `${mode} ${corner} is discoverable`);
+  const border=e.button.querySelector('.rb-camera-slot-border').querySelector('circle');
+  assert.equal(border.attributes['stroke-opacity'],.85);
+  assert.equal(border.attributes.stroke,'#666666');
+  const baseWidth=border.attributes['stroke-width'],radius=border.attributes.r,dashes=border.attributes['stroke-dasharray'];
   assert.equal(e.button.dataset.corner,corner);
   assert.ok(e.down(slot.x,slot.y).stopped, 'Corner holds cannot start area or window drags');
+  assert.equal(border.attributes['stroke-opacity'],1);
+  assert.equal(border.attributes.stroke,'#333333');
+  assert.equal(border.attributes['stroke-width'],baseWidth+1);
+  assert.equal(border.attributes.r,radius);assert.equal(border.attributes['stroke-dasharray'],dashes,'Holding thickens the same dashed circle');
+  assert.equal(border.animation.options.duration,500);
+  assert.ok(border.animation.frames.length>2, 'The existing dashed border connects gap by gap');
+  assert.ok(border.animation.frames.every(frame=>!('strokeDashoffset' in frame)), 'No separate inset progress ring');
   e.time(499); assert.equal(e.engine.state().settings.followCursor,true); assert.equal(e.engine.state().saves,0);
   const before=e.engine.state().camera;
   e.time(1); const after=e.engine.state();
@@ -115,6 +128,27 @@ for (const cancel of ['release','move','outside','cancel','capture','blur','hidd
 }
 for(const kind of ['action','sidebar','other-window']){
   const e=environment('window'),p=e.engine.slots()[0];e.hit(kind);e.move(p.x,p.y);e.down(p.x,p.y);e.time(600);assert.equal(e.engine.state().saves,0,`Never intercept ${kind}`);assert.ok(!e.button.classes.has('is-visible'));e.engine.cornerPin.destroy();
+}
+{
+  const e=environment(),p=e.engine.slots()[0];e.move(p.x,p.y);
+  const border=e.button.querySelector('.rb-camera-slot-border').querySelector('circle'),baseWidth=border.attributes['stroke-width'];
+  e.engine.change({placeholderActiveStroke:2.5});e.down(p.x,p.y);
+  assert.equal(border.attributes['stroke-width'],baseWidth+2.5,'The hold uses the playground increase');
+  e.time(250);e.up();assert.equal(border.attributes['stroke-width'],baseWidth,'Releasing restores the base stroke');
+  assert.equal(e.pending(),0);
+  e.down(p.x,p.y);e.time(250);e.engine.change({placeholderActiveStroke:.5});e.time(500);
+  assert.equal(border.attributes['stroke-width'],baseWidth);assert.equal(e.engine.state().saves,0,'Changing the increase cancels a stale held gesture');
+  e.engine.cornerPin.destroy();
+}
+{
+  const e=environment(),p=e.engine.slots()[0];e.move(p.x,p.y);
+  const border=e.button.querySelector('.rb-camera-slot-border').querySelector('circle');
+  e.engine.change({placeholderContrastColor:'#445566',placeholderContrastActiveColor:'#112233'});
+  assert.equal(border.attributes.stroke,'#445566','Normal pin stroke follows the playground color immediately');
+  e.down(p.x,p.y);assert.equal(border.attributes.stroke,'#112233','Held pin stroke uses its own playground color');
+  e.time(250);e.engine.change({placeholderContrastEdgeColor:'#ffffcc'});e.time(500);
+  assert.equal(e.engine.state().saves,0,'Changing contrast styling cancels a held pin instead of finishing an outdated gesture');
+  assert.equal(e.pending(),0);e.engine.cornerPin.destroy();
 }
 {
   const e=environment('screen',true),p=e.engine.slots()[0];e.move(p.x,p.y);e.down(p.x,p.y);e.time(500);assert.equal(e.engine.state().snapping,false);assert.equal(e.engine.state().camera.size,120);assert.equal(e.engine.state().camera.x,p.x);e.engine.cornerPin.destroy();

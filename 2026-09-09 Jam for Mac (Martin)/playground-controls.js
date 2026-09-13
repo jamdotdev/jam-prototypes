@@ -23,7 +23,7 @@
         const refresh=()=>{const text=String(item.get());if(value.textContent!==text)value.textContent=text;};refresh();refreshers.push(refresh);readouts.push(refresh);return;
       }
       const props=()=>({label:resolve(item.label),value:item.get(),checked:item.get(),min:resolve(item.min),max:resolve(item.max),step:item.step,unit:item.unit,options:item.options,onChange(value){item.set(value);refresh();}});
-      const factory={slider:'mountSlider',toggle:'mountToggle',select:'mountSelectControl',segments:'mountSegmentedControl'}[item.type];
+      const factory={slider:'mountSlider',toggle:'mountToggle',select:'mountSelectControl',segments:'mountSegmentedControl',color:'mountColorControl'}[item.type];
       const component=DialKit[factory](target,props());mounts.push(component);
       const refresh=()=>{
         component.update(props());
