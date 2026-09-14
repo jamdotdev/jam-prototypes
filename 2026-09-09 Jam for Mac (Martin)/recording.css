@@ -105,7 +105,7 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-camera::before{content:'';position:absolute;left:50%;top:50%;width:max(100%,40px);height:max(100%,40px);transform:translate(-50%,-50%);border-radius:50%}
 .rb-camera-error{padding:8px 10px;color:#65616a;font-size:11px;line-height:1.45}
 .rb-camera-slots{position:absolute;inset:0;z-index:31;pointer-events:none;opacity:0;transition:opacity 140ms cubic-bezier(.23,1,.32,1)}
-.rb-camera-slots.is-visible{opacity:1}.rb-camera-slot{position:absolute;display:block;border:0;border-radius:50%;background:transparent;box-shadow:none;transform:scale(.96);transition:transform 180ms cubic-bezier(.23,1,.32,1)}
+.rb-camera-slots.is-visible{opacity:1}.rb-camera-slot{position:absolute;display:block;border:0;border-radius:50%;background:transparent;box-shadow:none;transform:scale(.96);transition:transform 180ms cubic-bezier(.23,1,.32,1),scale 180ms cubic-bezier(.23,1,.32,1),opacity 140ms cubic-bezier(.23,1,.32,1)}
 .rb-camera-slots.is-visible i{transform:scale(1)}
 .rb-camera-slot-border{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .rb-camera-drag-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none;opacity:0;transition:opacity 160ms cubic-bezier(.2,0,0,1)}
@@ -119,7 +119,7 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-camera-pin-label{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);width:max-content;padding:5px 8px;border-radius:6px;background:#252429e6;box-shadow:0 1px 3px #0002;color:#fff;font:400 11px/16px -apple-system,BlinkMacSystemFont,sans-serif;pointer-events:none}
 .rb-camera-pin[data-corner$="e"] .rb-camera-pin-label{left:auto;right:calc(100% + 10px)}
 .rb-stop{position:relative;overflow:visible;transform-origin:center}.rb-urgency-ring{position:absolute;inset:-2px;border:2px solid #ff8d28;border-radius:inherit;pointer-events:none;opacity:0}
-.desktop[data-surface="recording"] .rb-custom-pointer{cursor:url('assets/recording/cursor.svg') 0 0,default!important}
+.desktop[data-surface="recording"] .rb-custom-pointer{cursor:url('assets/recording/cursor.svg') 4 3,default!important}
 @media(prefers-reduced-motion:reduce){.rb-camera-slots,.rb-camera-slots i{transition:none}}
 
 .rb-pause{position:relative}.rb-pause-icon,.rb-resume-icon{position:absolute;inset:0;display:grid;place-items:center;transition:opacity 200ms cubic-bezier(.2,0,0,1),scale 200ms cubic-bezier(.2,0,0,1),filter 200ms cubic-bezier(.2,0,0,1)}.rb-resume-icon,.rb-pause.is-paused .rb-pause-icon{opacity:0;scale:.25;filter:blur(4px)}.rb-pause.is-paused .rb-resume-icon{opacity:1;scale:1;filter:blur(0)}
@@ -134,3 +134,7 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 @media(prefers-reduced-motion:reduce){.rb-camera-resize-orbit,.rb-camera-resize,.rb-camera-resize path,.rb-camera-slot-border circle{transition:none}}
 @media(prefers-reduced-motion:reduce){.rb-camera-pin{transition:opacity 140ms}.rb-camera-pin.is-holding{transform:none}}
 @media(prefers-reduced-motion:reduce){.rb-camera-drag-overlay,.rb-camera-slot{transition:opacity 140ms}.rb-camera-slots i.is-nearest{transform:scale(1)}}
+
+/* Match cutout emphasis to its placeholder without changing the docking target. */
+.rb-camera-drag-overlay mask circle{transform-box:fill-box;transform-origin:center;transition:scale 180ms cubic-bezier(.23,1,.32,1),opacity 140ms cubic-bezier(.23,1,.32,1)}
+@media(prefers-reduced-motion:reduce){.rb-camera-slot,.rb-camera-drag-overlay mask circle{scale:1!important;transition:opacity 140ms}}

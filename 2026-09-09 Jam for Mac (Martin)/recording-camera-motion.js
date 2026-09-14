@@ -55,10 +55,11 @@
   }
 
   function create(initial = {}) {
-    let state = { x: finite(initial.x), y: finite(initial.y), size: Math.max(12, finite(initial.size, 96)), side: 'bottom-right' };
+    let state = { x: finite(initial.x), y: finite(initial.y), size: Math.max(12, finite(initial.size, 96)), side: 'bottom-right', motionScale: 1 };
     let vx = 0, vy = 0, direction = 1, attachment = 1, parked = null, wasOutside = false;
     function snap(next = {}) {
       state = { ...state, x: finite(next.x, state.x), y: finite(next.y, state.y), size: Math.max(12, finite(next.size, state.size)) };
+      state.motionScale = 1;
       vx = vy = 0; attachment = 1; parked = null; wasOutside = false;
       return { ...state };
     }
@@ -82,6 +83,16 @@
         minY: bounds.y + inset + r, maxY: bounds.y + bounds.height - inset - r,
       };
       const outside = Boolean(options.pinOutside) && (pointer.x < bounds.x || pointer.x > bounds.x + bounds.width || pointer.y < bounds.y || pointer.y > bounds.y + bounds.height);
+      // Use speed for sustained motion and acceleration for a gentle initial response.
+      // Scale is visual only: keep containment and cursor clearance at the full size.
+      const shrink = clamp(finite(options.shrink), 0, 30) / 100;
+      const speed = Math.hypot(finite(p.vx), finite(p.vy));
+      const acceleration = Math.hypot(finite(p.ax), finite(p.ay));
+      const energy = outside ? 0 : clamp(speed / 1400 + Math.min(acceleration / 20000, 1) * .2, 0, 1);
+      const targetScale = 1 - shrink * energy;
+      state.motionScale = options.reducedMotion || shrink === 0 ? 1
+        : state.motionScale + (targetScale - state.motionScale) * (1 - Math.exp(-dt * (targetScale < state.motionScale ? 22 : 14)));
+      if (Math.abs(state.motionScale - targetScale) < .0001) state.motionScale = targetScale;
       if (!options.pinOutside) { parked = null; attachment = 1; }
       if (outside && !wasOutside) {
         // Latch the exit location once. Moving outside must not drag the parked

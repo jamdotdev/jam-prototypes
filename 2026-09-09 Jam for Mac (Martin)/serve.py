@@ -34,7 +34,7 @@ def with_player_settings(group, value, fallback=None):
     """Fill only the fields added with the shared Player, retaining saved values."""
     if group == "recording" and isinstance(value, dict):
         fallback = fallback or {}
-        added = {"placeholderContrastColor": "rgba(0, 0, 0, 0.45)", "placeholderContrastHoverColor": "rgba(0, 0, 0, 0.65)", "placeholderContrastActiveColor": "#000000", "placeholderContrastEdgeColor": "#ffffff",
+        added = {"followShrink": 10, "placeholderTargetScale": 1.1, "placeholderOtherOpacity": 50, "placeholderContrastColor": "rgba(0, 0, 0, 0.45)", "placeholderContrastHoverColor": "rgba(0, 0, 0, 0.65)", "placeholderContrastActiveColor": "#000000", "placeholderContrastEdgeColor": "#ffffff",
                  "placeholderPinContrast": True, "placeholderColor": "#ffffff", "placeholderStroke": 1, "placeholderActiveStroke": 1, "placeholderDash": 4, "placeholderGap": 8,
                  "placeholderOpacity": 50, "placeholderActiveOpacity": 100,
                  "placeholderOverlayColor": "#000000", "placeholderOverlayOpacity": 32,
@@ -138,7 +138,7 @@ def validate_default_values(group, value):
     if group == "onboarding":
         return value["lensZoom"] in (1.5, 2, 3, 4) and between(value["lensSize"], 88, 176)
     if group == "recording":
-        bounds = {"placeholderStroke": (.5, 4), "placeholderActiveStroke": (0, 4), "placeholderDash": (1, 16), "placeholderGap": (1, 24),
+        bounds = {"followShrink": (0, 30), "placeholderTargetScale": (1, 1.3), "placeholderOtherOpacity": (0, 100), "placeholderStroke": (.5, 4), "placeholderActiveStroke": (0, 4), "placeholderDash": (1, 16), "placeholderGap": (1, 24),
                   "placeholderOpacity": (0, 100), "placeholderActiveOpacity": (0, 100), "placeholderOverlayOpacity": (0, 80),
                   "cameraZoom": (1, 3), "cameraSize": (12, 480), "cameraMinSize": (12, 480), "cameraMaxSize": (12, 480), "followSize": (12, 160), "gap": (8, 64),
                   "stiffness": (80, 500), "damping": (10, 50), "anticipation": (0, 100),

@@ -1,6 +1,6 @@
 window.JamDefaultValues = {
   "version": 1,
-  "revision": 30,
+  "revision": 34,
   "groups": {
     "welcome": {
       "settings": {
@@ -101,7 +101,11 @@ window.JamDefaultValues = {
       "loop": false
     },
     "recording": {
+      "followShrink": 14,
+      "placeholderTargetScale": 1.1,
+      "placeholderOtherOpacity": 50,
       "placeholderContrastColor": "rgba(0, 0, 0, 0.45)",
+      "placeholderContrastHoverColor": "rgba(0, 0, 0, 0.65)",
       "placeholderContrastActiveColor": "#000000",
       "placeholderContrastEdgeColor": "#00000000",
       "placeholderPinContrast": true,
@@ -121,25 +125,24 @@ window.JamDefaultValues = {
       "pulseStart": 1000,
       "pulseEnd": 350,
       "pulseStrength": 4,
-      "mode": "window",
+      "mode": "screen",
       "camera": true,
       "microphone": true,
-      "cameraDevice": "Studio Display Camera (15bc:0000)",
+      "cameraDevice": "Martin\u2019s iPhone Camera",
       "microphoneDevice": "AirPods Pro 3",
       "cameraSize": 128,
-      "followCursor": false,
-      "followSize": 44,
+      "followCursor": true,
+      "followSize": 68,
       "mirror": true,
       "gap": 14,
       "stiffness": 170,
       "damping": 22,
-      "anticipation": 64,
+      "anticipation": 54,
       "beltSpring": 280,
       "beltDamping": 28,
       "showBounds": false,
       "rate": 1,
-      "loop": false,
-      "placeholderContrastHoverColor": "rgba(0, 0, 0, 0.65)"
+      "loop": false
     }
   }
 };
