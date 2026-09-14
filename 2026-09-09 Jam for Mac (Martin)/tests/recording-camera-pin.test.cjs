@@ -87,7 +87,7 @@ for (const mode of ['screen', 'window', 'area']) for (const corner of ['nw','ne'
   const e=environment(mode), slot=e.engine.slots().find(s=>s.name===corner);
   e.move(slot.x,slot.y); assert.ok(e.button.classes.has('is-visible'), `${mode} ${corner} is discoverable`);
   const border=e.button.querySelector('.rb-camera-slot-border').querySelector('circle');
-  assert.equal(border.attributes['stroke-opacity'],.85);
+  assert.equal(border.attributes['stroke-opacity'],1);
   assert.equal(border.attributes.stroke,'#666666');
   const baseWidth=border.attributes['stroke-width'],radius=border.attributes.r,dashes=border.attributes['stroke-dasharray'];
   assert.equal(e.button.dataset.corner,corner);
@@ -136,6 +136,7 @@ for(const kind of ['action','sidebar','other-window']){
   assert.equal(border.attributes['stroke-width'],baseWidth+2.5,'The hold uses the playground increase');
   e.time(250);e.up();assert.equal(border.attributes['stroke-width'],baseWidth,'Releasing restores the base stroke');
   assert.equal(e.pending(),0);
+  assert.equal(border.attributes.stroke,'#666666','Release restores the shared default color');
   e.down(p.x,p.y);e.time(250);e.engine.change({placeholderActiveStroke:.5});e.time(500);
   assert.equal(border.attributes['stroke-width'],baseWidth);assert.equal(e.engine.state().saves,0,'Changing the increase cancels a stale held gesture');
   e.engine.cornerPin.destroy();
@@ -144,7 +145,7 @@ for(const kind of ['action','sidebar','other-window']){
   const e=environment(),p=e.engine.slots()[0];e.move(p.x,p.y);
   const border=e.button.querySelector('.rb-camera-slot-border').querySelector('circle');
   e.engine.change({placeholderContrastColor:'#445566',placeholderContrastActiveColor:'#112233'});
-  assert.equal(border.attributes.stroke,'#445566','Normal pin stroke follows the playground color immediately');
+  assert.equal(border.attributes.stroke,'#445566','Visible pin uses the default palette until pressed');
   e.down(p.x,p.y);assert.equal(border.attributes.stroke,'#112233','Held pin stroke uses its own playground color');
   e.time(250);e.engine.change({placeholderContrastEdgeColor:'#ffffcc'});e.time(500);
   assert.equal(e.engine.state().saves,0,'Changing contrast styling cancels a held pin instead of finishing an outdated gesture');

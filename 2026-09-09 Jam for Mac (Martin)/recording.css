@@ -3,7 +3,8 @@
 html:has(.desktop[data-surface="recording"]),body:has(.desktop[data-surface="recording"]),.desktop[data-surface="recording"]{overflow:clip}
 /* The closed sidebar translates beyond the viewport; keep it out of scroll bounds. */
 body:has(.desktop[data-surface="recording"]){contain:paint}
-.recording-scene{position:absolute;inset:0;overflow:clip;color:#202020;user-select:none;touch-action:none}
+/* Figma border/overlay/{default,hover,active}; alpha lives in the shared color. */
+.recording-scene{--rb-camera-border-color:rgba(0,0,0,.45);--rb-camera-border-hover-color:rgba(0,0,0,.65);--rb-camera-border-active-color:#000;--rb-camera-border-edge-color:transparent;position:absolute;inset:0;overflow:clip;color:#202020;user-select:none;touch-action:none}
 .desktop[data-surface="recording"] .desktop-caption{display:none}
 .rb-desktop-windows{position:absolute;inset:0;z-index:1}
 .rb-mock-window{position:absolute;background:#fff;border-radius:11px;overflow:hidden;box-shadow:0 0 0 .5px #0006,0 16px 36px #0004;min-width:0;min-height:0}
@@ -28,13 +29,13 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-capture-region::before{z-index:6;background:var(--capture-fill)}
 .rb-capture-region::after{z-index:36;border:var(--capture-border);outline:var(--capture-outline);outline-offset:-2px}
 .recording-scene[data-mode="screen"] .rb-capture-region{border-radius:0}
-.rb-capture-region.is-area{border-radius:0;--capture-border:1px solid var(--rb-camera-border-color,#666);--capture-outline:none;--capture-fill:#0000000a}
+.rb-capture-region.is-area{border-radius:0;--capture-border:1px solid var(--rb-camera-border-color);--capture-outline:none;--capture-fill:#0000000a}
 .recording-scene[data-stage="idle"] .rb-capture-region.is-area{cursor:move;touch-action:none}
 .recording-scene[data-stage="idle"] .rb-capture-region.is-area::before{pointer-events:auto}
-/* Share the resizer palette and fine light edge; keep sizing guides quieter than handles. */
-.recording-scene[data-stage="idle"] .rb-capture-region.is-area::after{opacity:.65;filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color,#ffffffe6))}
-.rb-area-center{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;max-width:calc(100% - 12px);max-height:calc(100% - 12px);z-index:7;pointer-events:none;opacity:.45;overflow:visible}
-.rb-area-center path{fill:none;stroke:var(--rb-camera-border-color,#666);stroke-width:1;stroke-linecap:round;filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color,#ffffffe6))}
+/* Sizing guides use the same default alpha and contrast edge as the handles. */
+.recording-scene[data-stage="idle"] .rb-capture-region.is-area::after{filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color))}
+.rb-area-center{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;max-width:calc(100% - 12px);max-height:calc(100% - 12px);z-index:7;pointer-events:none;overflow:visible}
+.rb-area-center path{fill:none;stroke:var(--rb-camera-border-color);stroke-width:1;stroke-linecap:round;filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color))}
 
 .recording-scene:not([data-stage="idle"]) .rb-capture-region.is-area{--capture-fill:transparent;--capture-border:3px solid #ff3b30;--capture-outline:none}
 .rb-area-draw{position:absolute;inset:0;z-index:5;cursor:crosshair;background:transparent;border-radius:0;touch-action:none}.rb-area-draw:active{scale:1}
@@ -45,16 +46,17 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-bounds-guide{position:absolute;z-index:8;border:1px dashed #a7f374;box-shadow:inset 0 0 0 4px #a7f37415;pointer-events:none}
 .rb-camera{position:absolute;left:0;top:0;z-index:32;overflow:visible;border-radius:50%;cursor:grab;touch-action:none}
 .rb-camera:active{cursor:grabbing}.rb-camera img{width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;display:block}.rb-camera-preview::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 .5px #00000030;pointer-events:none}
-/* Neutral gray with a light edge keeps the curved handle visible over desktop and window backgrounds. */
+/* Shared state colors also drive rulers and placement borders. */
 .rb-camera-resize-orbit{position:absolute;left:50%;top:50%;width:0;height:0;z-index:2;transition:transform 260ms cubic-bezier(.2,0,0,1);pointer-events:none}
 .rb-camera-resize{position:absolute;left:-18px;top:0;right:auto;bottom:auto;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;transform:translateX(var(--resize-radius,64px)) translateY(-50%);opacity:0;visibility:hidden;pointer-events:auto;transition:opacity 140ms cubic-bezier(.2,0,0,1),visibility 0s 160ms}
 .rb-camera-resize::before{content:'';position:absolute;inset:-4px;background:transparent}
 .rb-camera-resize svg{width:40px;height:40px;overflow:visible;pointer-events:none;transform:translateX(18px)}
-.rb-camera-resize path{stroke:var(--rb-camera-border-color,#666);stroke-opacity:.85;stroke-width:3}
+.rb-camera-resize path{stroke:var(--rb-camera-border-color);stroke-opacity:1;stroke-width:3}
 .rb-camera-resize path,.rb-camera-slot-border circle{stroke-linecap:round;transition:stroke 160ms cubic-bezier(.2,0,0,1),stroke-width 160ms cubic-bezier(.2,0,0,1),stroke-opacity 160ms cubic-bezier(.2,0,0,1)}
-.rb-camera-resize path,.rb-camera-slot-border.has-pin-contrast circle{filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color,#ffffffe6))}
+.rb-camera-resize path,.rb-camera-slot-border.has-pin-contrast circle{filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color))}
 .rb-camera:hover .rb-camera-resize,.rb-camera:focus-within .rb-camera-resize,.rb-camera.is-resizing .rb-camera-resize{opacity:1;visibility:visible;transition-delay:0s}
-.rb-camera-resize:hover path,.rb-camera-resize:focus-visible path,.rb-camera.is-resizing .rb-camera-resize path{stroke:var(--rb-camera-border-active-color,#333);stroke-width:4;stroke-opacity:1}
+.rb-camera-resize:hover path,.rb-camera-resize:focus-visible path{stroke:var(--rb-camera-border-hover-color);stroke-width:4}
+.rb-camera.is-resizing .rb-camera-resize path{stroke:var(--rb-camera-border-active-color);stroke-width:4}
 .rb-camera-resize:active{scale:1}.rb-camera.is-resizing .rb-camera-resize-orbit{transition:none}
 .rb-camera.is-following{pointer-events:none}.rb-camera.is-following .rb-camera-resize{display:none}
 .rb-belt{position:absolute;top:0;left:0;transform-origin:top left;height:52px;z-index:12;border-radius:26px;background:rgba(246,246,246,.85);backdrop-filter:blur(30px) saturate(1.2);-webkit-backdrop-filter:blur(30px) saturate(1.2);box-shadow:0 0 1px #00000045,0 0 0 1px #00000003,0 20px 25px -5px #0000001f,0 10px 10px -5px #0000000f;cursor:grab}
@@ -110,6 +112,8 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-camera-drag-overlay.is-visible{opacity:1}
 .recording-scene.is-camera-dragging .rb-capture-region.is-area{--capture-fill:transparent}
 .rb-camera-pin{z-index:31;padding:0;opacity:0;visibility:hidden;pointer-events:none;cursor:pointer;touch-action:none;transition:opacity 140ms cubic-bezier(.2,0,0,1),transform 180ms cubic-bezier(.2,0,0,1),visibility 0s 140ms}
+/* Keep the pin target easy to press without enlarging its shared placement border. */
+.rb-camera-pin::before{content:'';position:absolute;inset:min(0px,calc((100% - 40px)/2));border-radius:50%}
 .rb-camera-pin.is-visible{opacity:1;visibility:visible;pointer-events:auto;transform:scale(1);transition-delay:0s}
 .rb-camera-pin.is-holding{transform:scale(.96)}
 .rb-camera-pin-label{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);width:max-content;padding:5px 8px;border-radius:6px;background:#252429e6;box-shadow:0 1px 3px #0002;color:#fff;font:400 11px/16px -apple-system,BlinkMacSystemFont,sans-serif;pointer-events:none}

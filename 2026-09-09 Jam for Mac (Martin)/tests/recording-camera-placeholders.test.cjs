@@ -10,13 +10,13 @@ class Element {
 const context=vm.createContext({document:{createElementNS:()=>new Element()},window:{}});
 vm.runInContext(fs.readFileSync(path.join(directory,'playground-defaults-data.js'),'utf8'),context);
 vm.runInContext(fs.readFileSync(path.join(directory,'recording-camera-placeholders.js'),'utf8'),context);
-const P=context.JamCameraPlaceholders,settings={...context.window.JamDefaultValues.groups.recording,placeholderActiveStroke:1,placeholderContrastColor:'#666666',placeholderContrastActiveColor:'#333333',placeholderContrastEdgeColor:'#ffffff',placeholderStroke:1,placeholderOpacity:50,placeholderActiveOpacity:100,placeholderOverlayOpacity:32};
+const P=context.JamCameraPlaceholders,settings={...context.window.JamDefaultValues.groups.recording,placeholderActiveStroke:1,placeholderContrastColor:'#666666',placeholderContrastHoverColor:'#555555',placeholderContrastActiveColor:'#333333',placeholderContrastEdgeColor:'#ffffff',placeholderStroke:1,placeholderOpacity:50,placeholderActiveOpacity:100,placeholderOverlayOpacity:32};
 {
   const root=new Element();P.paintPalette(root,settings);
-  assert.deepEqual(root.style.values,{'--rb-camera-border-color':'#666666','--rb-camera-border-active-color':'#333333','--rb-camera-border-edge-color':'#ffffff'});
-  P.paintPalette(root,{...settings});assert.equal(root.style.writes,3,'Pointer movement does not rewrite the inherited palette');
+  assert.deepEqual(root.style.values,{'--rb-camera-border-color':'#666666','--rb-camera-border-hover-color':'#555555','--rb-camera-border-active-color':'#333333','--rb-camera-border-edge-color':'#ffffff'});
+  P.paintPalette(root,{...settings});assert.equal(root.style.writes,4,'Pointer movement does not rewrite the inherited palette');
   P.paintPalette(root,{...settings,placeholderContrastColor:'#445566',placeholderContrastActiveColor:'#112233',placeholderContrastEdgeColor:'#fffffff2'});
-  assert.deepEqual(root.style.values,{'--rb-camera-border-color':'#445566','--rb-camera-border-active-color':'#112233','--rb-camera-border-edge-color':'#fffffff2'},'Both borders inherit live normal, active and edge colors');
+  assert.deepEqual(root.style.values,{'--rb-camera-border-color':'#445566','--rb-camera-border-hover-color':'#555555','--rb-camera-border-active-color':'#112233','--rb-camera-border-edge-color':'#fffffff2'},'Both borders inherit live normal, active and edge colors');
 }
 for(const size of [12,24,44,56,96,172,240,480])for(const width of [.5,1,4])for(const dash of [1,4,16])for(const gap of [1,8,24]){
   const pattern=P.dashPattern(size,width,dash,gap),frames=P.holdFrames(pattern);
@@ -31,34 +31,26 @@ for(const size of [12,24,44,56,96,172,240,480])for(const width of [.5,1,4])for(c
   }
 }
 {
-  const custom={...settings,placeholderPinContrast:false};
-  const element=new Element();P.paintBorder(element,172,custom);
-  const svg=element.querySelector('.rb-camera-slot-border'),circle=svg.querySelector('circle');
-  assert.equal(circle.attributes['stroke-width'],1);assert.equal(circle.attributes['stroke-opacity'],.5);
-  const dash=circle.attributes['stroke-dasharray'];P.paintBorder(element,172,custom,true);
-  assert.equal(circle.attributes['stroke-opacity'],1);assert.equal(circle.attributes['stroke-dasharray'],dash);
-  assert.equal(circle.attributes['stroke-width'],2);
-  const hold=P.holdBorder(element,500);assert.equal(hold.options.duration,500);assert.equal(hold.options.easing,'linear');hold.cancel();assert.equal(hold.canceled,true);
-  P.paintBorder(element,96,{...custom,placeholderColor:'#ff0000',placeholderStroke:2,placeholderDash:8,placeholderGap:12,placeholderOpacity:25});
-  assert.equal(svg.attributes.viewBox,'0 0 96 96');assert.equal(circle.attributes.stroke,'#ff0000');assert.equal(circle.attributes['stroke-width'],2);assert.equal(circle.attributes['stroke-opacity'],.25);
-  P.paintBorder(element,96,settings);
-  assert.equal(circle.attributes.stroke,'#666666');assert.equal(circle.attributes['stroke-opacity'],.85);
-  assert.ok(svg.classes.has('has-pin-contrast'));
-  const pinDashes=circle.attributes['stroke-dasharray'];P.paintBorder(element,96,settings,true);
-  assert.equal(circle.attributes.stroke,'#333333');assert.equal(circle.attributes['stroke-opacity'],1);
-  assert.equal(circle.attributes['stroke-dasharray'],pinDashes,'Contrast retains the same hold geometry');
-  P.paintBorder(element,96,{...settings,placeholderPinContrast:false,placeholderColor:'#ff0000'});
-  assert.equal(circle.attributes.stroke,'#ff0000');assert.equal(circle.attributes['stroke-opacity'],.5);
-  assert.ok(!svg.classes.has('has-pin-contrast'),'Custom styling applies when Border contrast is off');
+  const element=new Element(),circle=element.querySelector('.rb-camera-slot-border').querySelector('circle');
+  // Old placeholder-only controls cannot compound alpha or opt out of the shared palette.
+  for(const active of [false,true])for(const contrast of [false,true]){
+    P.paintBorder(element,96,{...settings,placeholderPinContrast:contrast,placeholderColor:'#ff0000',placeholderOpacity:25,placeholderActiveOpacity:70},active);
+    assert.equal(circle.attributes.stroke,active?'#333333':'#666666');
+    assert.equal(circle.attributes['stroke-opacity'],1);
+    assert.equal(circle.attributes['stroke-width'],active?2:1);
+  }
+  const dash=circle.attributes['stroke-dasharray'];
+  const hold=P.holdBorder(element,500);assert.equal(hold.options.duration,500);hold.cancel();assert.equal(hold.canceled,true);
+  P.paintBorder(element,96,settings);assert.equal(circle.attributes['stroke-dasharray'],dash);
 }
 {
   for(const size of [24,44,56,96,172,240])for(const width of [.5,1.5,4])for(const increase of [0,.5,1,4]){
     const element=new Element(),circle=element.querySelector('.rb-camera-slot-border').querySelector('circle');
     const style={...settings,placeholderStroke:width,placeholderActiveStroke:increase};
     P.paintBorder(element,size,style);const radius=circle.attributes.r,dashes=circle.attributes['stroke-dasharray'];
-    P.paintBorder(element,size,style,true,true);assert.equal(circle.attributes['stroke-width'],width+increase);
+    P.paintBorder(element,size,style,true);assert.equal(circle.attributes['stroke-width'],width+increase);
     assert.equal(circle.attributes.r,radius);assert.equal(circle.attributes['stroke-dasharray'],dashes,'Emphasis preserves the dash geometry during a hold');
-    P.paintBorder(element,size,style,true,false);assert.equal(circle.attributes['stroke-width'],width,'Other drag placements keep their base width');
+    P.paintBorder(element,size,style,false);assert.equal(circle.attributes['stroke-width'],width,'Other drag placements keep their base width');
     assert.equal(circle.attributes['stroke-opacity'],1,'All placements still brighten during dragging');
     P.paintBorder(element,size,style);assert.equal(circle.attributes['stroke-width'],width);
   }
@@ -68,9 +60,9 @@ for(const size of [12,24,44,56,96,172,240,480])for(const width of [.5,1,4])for(c
     const element=new Element(),svg=element.querySelector('.rb-camera-slot-border'),circle=svg.querySelector('circle');
     for(const contrast of [true,false,true,undefined]){
       P.paintBorder(element,size,{...settings,placeholderPinContrast:contrast,placeholderColor:'#ff0000',placeholderOpacity:25,placeholderActiveOpacity:70},active);
-      assert.equal(svg.classes.has('has-pin-contrast'),contrast!==false,'Every placeholder uses contrast by default, including older saved settings');
-      assert.equal(circle.attributes.stroke,contrast===false?'#ff0000':active?'#333333':'#666666');
-      assert.equal(circle.attributes['stroke-opacity'],contrast===false?(active ? .7 : .25):active?1:.85);
+      assert.equal(svg.classes.has('has-pin-contrast'),true,'Every placeholder uses the shared palette, including older saved settings');
+      assert.equal(circle.attributes.stroke,active?'#333333':'#666666');
+      assert.equal(circle.attributes['stroke-opacity'],1);
     }
   }
 }
@@ -123,7 +115,7 @@ for(const size of [12,24,44,56,96,172,240,480])for(const width of [.5,1,4])for(c
     for(const slot of layer.nodes.values()){
       const svg=slot.querySelector('.rb-camera-slot-border'),circle=svg.querySelector('circle');
       assert.ok(svg.classes.has('has-pin-contrast'),'All eight drag placements have the same light edge as Press to pin');
-      assert.equal(circle.attributes.stroke,'#333333');assert.equal(circle.attributes['stroke-opacity'],1);
+      assert.equal(circle.attributes.stroke,slot.classes.has('is-nearest')?'#333333':'#666666');assert.equal(circle.attributes['stroke-opacity'],1);
       assert.equal(circle.attributes['stroke-width'],slot.classes.has('is-nearest')?2:1,'Only the snap destination thickens');
       assert.equal(circle.animation,undefined,'Drag highlighting responds without a gap-fill animation');
     }
@@ -140,11 +132,11 @@ for(const size of [12,24,44,56,96,172,240,480])for(const width of [.5,1,4])for(c
     integration.render('camera',false,true,bounds);
     for(const slot of layer.nodes.values()){
       const svg=slot.querySelector('.rb-camera-slot-border'),circle=svg.querySelector('circle');
-      assert.ok(!svg.classes.has('has-pin-contrast'));assert.equal(circle.attributes.stroke,'#ff0000');assert.equal(circle.attributes['stroke-opacity'],.7);
+      assert.ok(svg.classes.has('has-pin-contrast'));assert.equal(circle.attributes.stroke,slot.classes.has('is-nearest')?'#333333':'#666666');assert.equal(circle.attributes['stroke-opacity'],1);
     }
     settings.placeholderPinContrast=true;
     integration.render('camera',false,true,bounds);
-    for(const slot of layer.nodes.values())assert.equal(slot.querySelector('.rb-camera-slot-border').querySelector('circle').attributes.stroke,'#333333','Contrast reapplies immediately without changing placement geometry');
+    for(const slot of layer.nodes.values())assert.equal(slot.querySelector('.rb-camera-slot-border').querySelector('circle').attributes.stroke,slot.classes.has('is-nearest')?'#333333':'#666666','Legacy flags do not change the shared palette');
   }
   for(const [kind,follow,active] of [[null,false,true],['camera-resize',false,true],['camera',true,true],['camera',false,false]]){
     integration.render(kind,follow,active);assert.ok(!root.classes.has('is-camera-dragging'));assert.ok(!layer.classes.has('is-visible'));assert.equal(integration.calls.at(-1).visible,false);

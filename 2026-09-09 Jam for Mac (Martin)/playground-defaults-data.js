@@ -1,6 +1,6 @@
 window.JamDefaultValues = {
   "version": 1,
-  "revision": 23,
+  "revision": 30,
   "groups": {
     "welcome": {
       "settings": {
@@ -101,19 +101,19 @@ window.JamDefaultValues = {
       "loop": false
     },
     "recording": {
-      "placeholderActiveStroke": 1,
-      "placeholderContrastColor": "#666666",
-      "placeholderContrastActiveColor": "#333333",
-      "placeholderContrastEdgeColor": "#fffffff2",
+      "placeholderContrastColor": "rgba(0, 0, 0, 0.45)",
+      "placeholderContrastActiveColor": "#000000",
+      "placeholderContrastEdgeColor": "#00000000",
       "placeholderPinContrast": true,
       "placeholderColor": "#ffffffcf",
-      "placeholderStroke": 1.5,
+      "placeholderStroke": 0.5,
+      "placeholderActiveStroke": 0.5,
       "placeholderDash": 3,
       "placeholderGap": 6,
       "placeholderOpacity": 100,
       "placeholderActiveOpacity": 83,
       "placeholderOverlayColor": "#000000",
-      "placeholderOverlayOpacity": 15,
+      "placeholderOverlayOpacity": 20,
       "cameraZoom": 1.45,
       "cameraMinSize": 44,
       "cameraMaxSize": 172,
@@ -121,12 +121,12 @@ window.JamDefaultValues = {
       "pulseStart": 1000,
       "pulseEnd": 350,
       "pulseStrength": 4,
-      "mode": "area",
+      "mode": "window",
       "camera": true,
       "microphone": true,
-      "cameraDevice": "FaceTime HD Camera (467C:1317)",
+      "cameraDevice": "Studio Display Camera (15bc:0000)",
       "microphoneDevice": "AirPods Pro 3",
-      "cameraSize": 53,
+      "cameraSize": 128,
       "followCursor": false,
       "followSize": 44,
       "mirror": true,
@@ -138,7 +138,8 @@ window.JamDefaultValues = {
       "beltDamping": 28,
       "showBounds": false,
       "rate": 1,
-      "loop": false
+      "loop": false,
+      "placeholderContrastHoverColor": "rgba(0, 0, 0, 0.65)"
     }
   }
 };

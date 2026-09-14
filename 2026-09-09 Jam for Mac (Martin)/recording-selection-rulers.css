@@ -1,14 +1,17 @@
 .rb-selection-rulers{position:absolute;inset:0;pointer-events:none}
 .rb-selection-rulers .rb-area-center{display:block;width:16px;height:16px}
-.rb-ruler-line{position:absolute;z-index:7;opacity:.45;pointer-events:none;filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color,#ffffffe6))}
-.rb-ruler-line.is-left,.rb-ruler-line.is-right{top:0;bottom:0;border-left:1px dashed var(--rb-camera-border-color,#666)}
-.rb-ruler-line.is-top,.rb-ruler-line.is-bottom{left:0;right:0;border-top:1px dashed var(--rb-camera-border-color,#666)}
+.rb-ruler-line{position:absolute;z-index:7;pointer-events:none;filter:drop-shadow(0 0 .75px var(--rb-camera-border-edge-color))}
+.rb-ruler-line.is-left,.rb-ruler-line.is-right{top:0;bottom:0;border-left:1px dashed var(--rb-camera-border-color)}
+.rb-ruler-line.is-top,.rb-ruler-line.is-bottom{left:0;right:0;border-top:1px dashed var(--rb-camera-border-color)}
+.rb-ruler-line:has(+ .rb-ruler-handle.is-revealed){border-color:var(--rb-camera-border-hover-color)}
+.rb-ruler-line:has(+ .rb-ruler-handle.is-dragging){border-color:var(--rb-camera-border-active-color)}
 .rb-ruler-handle{position:absolute;z-index:8;display:grid;place-items:center;transform:translate(-50%,-50%);width:40px;height:40px;padding:0;border:0;border-radius:8px;background:transparent;opacity:0;pointer-events:none;touch-action:none;cursor:ew-resize;transition:opacity 120ms cubic-bezier(.2,0,0,1)}
 .rb-ruler-handle.is-top,.rb-ruler-handle.is-bottom{cursor:ns-resize}
-.rb-ruler-handle span{display:block;width:4px;height:16px;border-radius:2px;background:var(--rb-camera-border-color,#666);box-shadow:0 0 0 .75px var(--rb-camera-border-edge-color,#ffffffe6);opacity:.7;pointer-events:none}
+.rb-ruler-handle span{display:block;width:4px;height:16px;border-radius:2px;background:var(--rb-camera-border-color);box-shadow:0 0 0 .75px var(--rb-camera-border-edge-color);pointer-events:none}
 .rb-ruler-handle.is-top span,.rb-ruler-handle.is-bottom span{width:16px;height:4px}
-.rb-ruler-handle:active{scale:1}.rb-ruler-handle.is-dragging span,.rb-ruler-handle:focus-visible span{opacity:1;background:var(--rb-camera-border-active-color,#333)}
-@media(hover:hover) and (pointer:fine){.rb-ruler-handle:hover span{opacity:1}}
+.rb-ruler-handle:active{scale:1}
+.rb-ruler-handle.is-revealed span,.rb-ruler-handle:focus-visible span{background:var(--rb-camera-border-hover-color)}
+.rb-ruler-handle.is-dragging span{background:var(--rb-camera-border-active-color)}
 .rb-ruler-distance{position:absolute;z-index:39;padding:4px 7px;border-radius:6px;background:#202020eb;box-shadow:0 1px 4px #0003;color:#fff;font:500 11px/16px -apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 
 .rb-ruler-handle.is-revealed{opacity:1;pointer-events:auto}
