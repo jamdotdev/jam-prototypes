@@ -308,7 +308,7 @@
       else if(typeof settings[key]==='boolean')settings[key]=Boolean(patch[key]);
       else if(key==='mode'&&['screen','window','area'].includes(patch.mode))settings.mode=patch.mode;
       else if(key==='cameraDevice'&&typeof patch[key]==='string'&&patch[key].length<=64)settings[key]=patch[key];
-      else if(['placeholderColor','placeholderContrastColor','placeholderContrastActiveColor','placeholderContrastEdgeColor','placeholderOverlayColor'].includes(key)&&typeof patch[key]==='string'&&patch[key].length<=64&&CSS.supports('color',patch[key])&&!/var\(|currentcolor|inherit|initial|unset/i.test(patch[key]))settings[key]=patch[key];
+      else if(['placeholderColor','placeholderContrastColor','placeholderContrastHoverColor','placeholderContrastActiveColor','placeholderContrastEdgeColor','placeholderOverlayColor'].includes(key)&&typeof patch[key]==='string'&&patch[key].length<=64&&CSS.supports('color',patch[key])&&!/var\(|currentcolor|inherit|initial|unset/i.test(patch[key]))settings[key]=patch[key];
       else if(key==='microphoneDevice'&&['MacBook','AirPods Pro 3','ZoomAudioDevice','BoseQC Ultra Headphones','Mac Studio Display Microphone'].includes(patch[key]))settings[key]=patch[key];
     }
     if(settings.cameraMinSize>settings.cameraMaxSize){
@@ -380,7 +380,7 @@
     root.classList.toggle('is-camera-dragging',show);
     const slots=cameraSlots();cameraDragOverlay.update(captureBounds(),slots,show,settings);
     const nearest=show?nearestSlot().name:null;
-    for(const slot of slots){const el=layer.querySelector(`[data-slot="${slot.name}"]`),diameter=Math.max(24,slot.size);rectStyle(el,{x:slot.x-diameter/2,y:slot.y-diameter/2,width:diameter,height:diameter});el.classList.toggle('is-nearest',slot.name===nearest);JamCameraPlaceholders.paintBorder(el,diameter,settings,show,slot.name===nearest);}
+    for(const slot of slots){const el=layer.querySelector(`[data-slot="${slot.name}"]`),diameter=Math.max(24,slot.size);rectStyle(el,{x:slot.x-diameter/2,y:slot.y-diameter/2,width:diameter,height:diameter});el.classList.toggle('is-nearest',slot.name===nearest);JamCameraPlaceholders.paintBorder(el,diameter,settings,show&&slot.name===nearest);}
   }
   function snapCamera(target=nearestSlot(),from=follower.getState()){
     fixedAnchor=target.name;
@@ -602,7 +602,7 @@
   });
   cornerPin=JamCameraPin.create(root,{local,onPin:pinCamera,context:()=>({
     enabled:active&&isIdle()&&settings.camera&&settings.followCursor&&camera.getState().status==='live'&&!drag&&!openMenu&&(settings.mode!=='window'||!!selectedWindow),
-    key:cameraPositionKey(),window:settings.mode==='window'?selectedWindow:null,bounds:captureBounds(),slots:cameraSlots(),style:{placeholderPinContrast:settings.placeholderPinContrast,placeholderContrastColor:settings.placeholderContrastColor,placeholderContrastActiveColor:settings.placeholderContrastActiveColor,placeholderContrastEdgeColor:settings.placeholderContrastEdgeColor,placeholderColor:settings.placeholderColor,placeholderStroke:settings.placeholderStroke,placeholderActiveStroke:settings.placeholderActiveStroke,placeholderDash:settings.placeholderDash,placeholderGap:settings.placeholderGap,placeholderOpacity:settings.placeholderOpacity,placeholderActiveOpacity:settings.placeholderActiveOpacity},
+    key:cameraPositionKey(),window:settings.mode==='window'?selectedWindow:null,bounds:captureBounds(),slots:cameraSlots(),style:JamCameraPlaceholders.borderStyle(settings),
   })});
   syncWindows();
   JamDefaults.register('recording',{groups:['recording'],read:()=>({recording:{...settings}}),apply:values=>updateSettings(values.recording),onReset(){clearTimeout(clockTimer);clockStamp=0;fixedAnchor=null;cameraSnap=null;stage='idle';elapsed=0;previewPlaying=false;previewTime=0;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};resetSelection();renderBelt();emit();}});

@@ -45,7 +45,7 @@
       button.tabIndex = candidate ? 0 : -1;
       button.setAttribute('aria-hidden', String(!candidate));
       if (!candidate) return;
-      const diameter = Math.max(40, candidate.size);
+      const diameter = Math.max(24, candidate.size);
       Object.assign(button.style, {
         left: `${candidate.x - diameter / 2}px`, top: `${candidate.y - diameter / 2}px`,
         width: `${diameter}px`, height: `${diameter}px`,

@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory() as temporary:
     for color in ("#abc", "#1234", "#12345678", "transparent", "rgb(10 20 30 / .5)",
                   "rgba(1, 2, 3, .5)", "hsl(.25turn 50% 50%)", "oklch(.5 .2 90)",
                   "color(display-p3 .1 .2 .3)"):
-        for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor"):
+        for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastHoverColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor"):
             assert scope["validate_default_values"]("recording", {**camera, key: color}), (key, color)
     assert saved["groups"]["welcome"] == original["groups"]["welcome"]
     for increase in (0, .5, 1, 4):
@@ -50,12 +50,17 @@ with tempfile.TemporaryDirectory() as temporary:
     saved = scope["update_defaults"]({"version": 1, "groups": {"recording": legacy_stroke}})
     assert saved["groups"]["recording"] == styled, "Older previews preserve the active stroke increase"
     assert scope["with_player_settings"]("recording", legacy_stroke)["placeholderActiveStroke"] == 1
+    hover = {**styled, "placeholderContrastHoverColor": "rgba(20, 30, 40, .65)"}
+    scope["update_defaults"]({"version": 1, "groups": {"recording": hover}})
+    old_client = {key: value for key, value in hover.items() if key != "placeholderContrastHoverColor"}
+    assert scope["update_defaults"]({"version": 1, "groups": {"recording": old_client}})["groups"]["recording"] == hover
+    scope["update_defaults"]({"version": 1, "groups": {"recording": styled}})
     legacy_colors = {key: value for key, value in styled.items() if not key.startswith("placeholderContrast")}
     saved = scope["update_defaults"]({"version": 1, "groups": {"recording": legacy_colors}})
     assert saved["groups"]["recording"] == styled, "Older previews preserve tuned contrast colors"
     migrated = scope["with_player_settings"]("recording", legacy_colors)
-    assert migrated["placeholderContrastColor"] == "#666666"
-    assert migrated["placeholderContrastActiveColor"] == "#333333"
+    assert migrated["placeholderContrastColor"] == "rgba(0, 0, 0, 0.45)"
+    assert migrated["placeholderContrastActiveColor"] == "#000000"
     assert migrated["placeholderContrastEdgeColor"] == "#ffffff"
     legacy = {key: value for key, value in styled.items() if not key.startswith("placeholder")}
     saved = scope["update_defaults"]({"version": 1, "groups": {"recording": legacy}})

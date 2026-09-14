@@ -46,20 +46,17 @@
         recordingSetting('followSize','Follower size',12,160,1,'px'),
         recordingToggle('mirror','Mirror camera'),
       ]),
-      section('camera-borders','Camera borders',[
+      section('camera-borders','Overlay borders',[
         recordingColor('placeholderContrastColor','Default color'),
+        recordingColor('placeholderContrastHoverColor','Hover color'),
         recordingColor('placeholderContrastActiveColor','Active color'),
         recordingColor('placeholderContrastEdgeColor','Edge color'),
       ]),
       section('placeholders','Camera placeholders',[
-        recordingToggle('placeholderPinContrast','Border contrast'),
-        recordingColor('placeholderColor','Border color'),
         recordingSetting('placeholderStroke','Stroke width',.5,4,.5,'px'),
         recordingSetting('placeholderActiveStroke','Active stroke increase',0,4,.5,'px'),
         recordingSetting('placeholderDash','Dash length',1,16,1,'px'),
         recordingSetting('placeholderGap','Gap length',1,24,1,'px'),
-        recordingSetting('placeholderOpacity','Border opacity',0,100,1,'%'),
-        recordingSetting('placeholderActiveOpacity','Active opacity',0,100,1,'%'),
         recordingColor('placeholderOverlayColor','Overlay color'),
         recordingSetting('placeholderOverlayOpacity','Overlay opacity',0,80,1,'%'),
       ]),

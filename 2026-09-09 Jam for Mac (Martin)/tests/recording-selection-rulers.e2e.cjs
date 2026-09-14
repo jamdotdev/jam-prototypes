@@ -13,7 +13,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     await toggle.click();assert.equal(await toggle.getAttribute('aria-pressed'),'true');assert.ok(await cross.isVisible());
     let s=await state();assert.equal(s.sizing.marginX,48);assert.equal(s.sizing.marginY,48);
     const c=await cross.boundingBox(),r=await page.locator('.rb-capture-region').boundingBox();assert.equal(c.width,16);assert.equal(c.height,16);assert.ok(Math.abs(c.x+8-r.x-r.width/2)<.1&&Math.abs(c.y+8-r.y-r.height/2)<.1);
-    assert.deepEqual(await page.locator('.rb-ruler-line.is-left').evaluate(el=>({border:getComputedStyle(el).borderLeftStyle,opacity:getComputedStyle(el).opacity})),{border:'dashed',opacity:'0.45'});
+    assert.deepEqual(await page.locator('.rb-ruler-line.is-left').evaluate(el=>({border:getComputedStyle(el).borderLeftStyle,opacity:getComputedStyle(el).opacity})),{border:'dashed',opacity:'1'});
     const revealed=page.locator('.rb-ruler-handle.is-revealed');
     assert.equal(await revealed.count(),0,'No grip is shown away from rulers');
     await page.mouse.move(r.x+48+10,r.y+160);

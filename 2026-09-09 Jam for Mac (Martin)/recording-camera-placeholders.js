@@ -5,11 +5,16 @@
   const palettes = new WeakMap();
 
   function paintPalette(root, settings) {
-    const colors = [settings.placeholderContrastColor, settings.placeholderContrastActiveColor, settings.placeholderContrastEdgeColor];
+    const colors = [settings.placeholderContrastColor, settings.placeholderContrastHoverColor, settings.placeholderContrastActiveColor, settings.placeholderContrastEdgeColor];
     const key = JSON.stringify(colors);
     if (palettes.get(root) === key) return;
     palettes.set(root, key);
-    ['color', 'active-color', 'edge-color'].forEach((name, index) => root.style.setProperty(`--rb-camera-border-${name}`, colors[index]));
+    ['color', 'hover-color', 'active-color', 'edge-color'].forEach((name, index) => root.style.setProperty(`--rb-camera-border-${name}`, colors[index]));
+  }
+
+  // Snapshot every placeholder setting from the same source used by the overlay.
+  function borderStyle(settings) {
+    return Object.fromEntries(Object.entries(settings).filter(([key]) => key.startsWith('placeholder')));
   }
 
   function borderMarkup() {
@@ -24,9 +29,10 @@
     return { radius, count, dash: period * dash / (dash + gap), gap: period * gap / (dash + gap) };
   }
 
-  function paintBorder(element, size, settings, active = false, emphasized = active) {
+  function paintBorder(element, size, settings, active = false) {
     const svg = element.querySelector('.rb-camera-slot-border'), circle = svg.querySelector('circle');
-    const contrast = settings.placeholderPinContrast !== false;
+    // State color includes its alpha. Legacy per-placeholder opacity/color overrides
+    // remain readable in saved presets, but no longer diverge from shared borders.
     const key = JSON.stringify([size, settings.placeholderStroke, settings.placeholderDash, settings.placeholderGap]);
     let border = borders.get(element);
     if (border?.key !== key) {
@@ -39,11 +45,11 @@
       circle.setAttribute('stroke-dasharray', `${pattern.dash} ${pattern.gap}`);
       circle.setAttribute('transform', `rotate(-90 ${size / 2} ${size / 2})`);
     }
-    svg.classList.toggle('has-pin-contrast', contrast);
-    circle.setAttribute('stroke', contrast ? (active ? settings.placeholderContrastActiveColor : settings.placeholderContrastColor) : settings.placeholderColor);
+    svg.classList.toggle('has-pin-contrast', true);
+    circle.setAttribute('stroke', active ? settings.placeholderContrastActiveColor : settings.placeholderContrastColor);
     // Keep the centerline and dash pattern stable as the interaction stroke grows.
-    circle.setAttribute('stroke-width', settings.placeholderStroke + (emphasized ? settings.placeholderActiveStroke : 0));
-    circle.setAttribute('stroke-opacity', contrast ? (active ? 1 : .85) : (active ? settings.placeholderActiveOpacity : settings.placeholderOpacity) / 100);
+    circle.setAttribute('stroke-width', settings.placeholderStroke + (active ? settings.placeholderActiveStroke : 0));
+    circle.setAttribute('stroke-opacity', 1);
   }
 
   function holdFrames(pattern) {
@@ -90,5 +96,5 @@
     };
   }
 
-  globalThis.JamCameraPlaceholders = { borderMarkup, paintPalette, paintBorder, holdBorder, createOverlay, dashPattern, holdFrames };
+  globalThis.JamCameraPlaceholders = { borderMarkup, borderStyle, paintPalette, paintBorder, holdBorder, createOverlay, dashPattern, holdFrames };
 })();

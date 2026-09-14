@@ -34,7 +34,7 @@ def with_player_settings(group, value, fallback=None):
     """Fill only the fields added with the shared Player, retaining saved values."""
     if group == "recording" and isinstance(value, dict):
         fallback = fallback or {}
-        added = {"placeholderContrastColor": "#666666", "placeholderContrastActiveColor": "#333333", "placeholderContrastEdgeColor": "#ffffff",
+        added = {"placeholderContrastColor": "rgba(0, 0, 0, 0.45)", "placeholderContrastHoverColor": "rgba(0, 0, 0, 0.65)", "placeholderContrastActiveColor": "#000000", "placeholderContrastEdgeColor": "#ffffff",
                  "placeholderPinContrast": True, "placeholderColor": "#ffffff", "placeholderStroke": 1, "placeholderActiveStroke": 1, "placeholderDash": 4, "placeholderGap": 8,
                  "placeholderOpacity": 50, "placeholderActiveOpacity": 100,
                  "placeholderOverlayColor": "#000000", "placeholderOverlayOpacity": 32,
@@ -146,7 +146,7 @@ def validate_default_values(group, value):
                   "warningSeconds": (5, 30), "pulseStart": (600, 1600), "pulseEnd": (350, 600), "pulseStrength": (0, 8)}
         flags = ("placeholderPinContrast", "camera", "microphone", "followCursor", "mirror", "showBounds", "loop")
         return (value["cameraMinSize"] <= value["cameraSize"] <= value["cameraMaxSize"] and
-                all(valid_color(value[key]) for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor")) and
+                all(valid_color(value[key]) for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastHoverColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor")) and
                 value["mode"] in ("screen", "window", "area") and
                 isinstance(value["cameraDevice"], str) and 0 < len(value["cameraDevice"]) <= 64 and
                 value["microphoneDevice"] in ("MacBook", "AirPods Pro 3", "ZoomAudioDevice", "BoseQC Ultra Headphones", "Mac Studio Display Microphone") and
