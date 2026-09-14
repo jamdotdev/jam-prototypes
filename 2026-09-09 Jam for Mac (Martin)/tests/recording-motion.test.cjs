@@ -125,3 +125,21 @@ for(const size of [12,96,160]){
  }
 }
 console.log('PASS: nearest-edge pinning, continuous reconnect, interruption, moving bounds and reduced motion at 12/96/160px.');
+
+// Motion shrink is bounded, frame-rate independent, reversible and visual only.
+for (const hz of [30,60,120]) for (const shrink of [0,10,30]) {
+ const motion=JamCameraMotion.create({x:500,y:300,size:96});
+ const opts={bounds,size:96,shrink,dt:1/hz,pinOutside:true};
+ let s;
+ for(let i=0;i<hz;i++)s=motion.step({...opts,pointer:{x:500,y:300,vx:2400,ax:20000}});
+ assert(Math.abs(s.motionScale-(1-shrink/100))<.001);
+ assert.equal(s.size,96,'Visual shrink does not alter saved size or collision geometry');
+ for(let i=0;i<hz;i++)s=motion.step({...opts,pointer:{x:500,y:300}});
+ assert.equal(s.motionScale,1,'Rest restores the original visual size');
+ for(let i=0;i<hz;i++)motion.step({...opts,pointer:{x:500,y:300,vx:2400}});
+ for(let i=0;i<hz;i++)s=motion.step({...opts,pointer:{x:-100,y:300,vx:2400}});
+ assert.equal(s.motionScale,1,'Moving outside cannot keep the parked bubble shrunk');
+ assert.equal(motion.step({...opts,pointer:{x:500,y:300,vx:2400},reducedMotion:true}).motionScale,1);
+ motion.snap({x:500,y:300});assert.equal(motion.getState().motionScale,1);
+}
+console.log('PASS: motion shrink limits, rest recovery, parking, reduced motion and frame-rate independence.');

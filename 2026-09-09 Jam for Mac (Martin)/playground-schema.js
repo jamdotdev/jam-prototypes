@@ -53,6 +53,8 @@
         recordingColor('placeholderContrastEdgeColor','Edge color'),
       ]),
       section('placeholders','Camera placeholders',[
+        recordingSetting('placeholderTargetScale','Target scale',1,1.3,.01,'×'),
+        recordingSetting('placeholderOtherOpacity','Other placeholders',0,100,1,'%'),
         recordingSetting('placeholderStroke','Stroke width',.5,4,.5,'px'),
         recordingSetting('placeholderActiveStroke','Active stroke increase',0,4,.5,'px'),
         recordingSetting('placeholderDash','Dash length',1,16,1,'px'),
@@ -65,6 +67,7 @@
         recordingSetting('beltDamping','Damping',10,50,1,''),
       ]),
       section('follower','Cursor follower',[
+        recordingSetting('followShrink','Motion shrink',0,30,1,'%'),
         recordingSetting('gap','Cursor gap',8,64,2,'px'),
         recordingSetting('stiffness','Stiffness',80,500,10,''),
         recordingSetting('damping','Damping',10,50,1,''),

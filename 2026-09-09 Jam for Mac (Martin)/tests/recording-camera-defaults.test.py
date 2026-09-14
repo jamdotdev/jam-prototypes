@@ -39,6 +39,15 @@ with tempfile.TemporaryDirectory() as temporary:
     assert scope["read_defaults"]() == saved
     old = scope["with_player_settings"]("recording", legacy)
     assert old["cameraZoom"] == 1
+    tuned = {**camera, "followShrink": 22, "placeholderTargetScale": 1.23, "placeholderOtherOpacity": 38}
+    scope["update_defaults"]({"version": 1, "groups": {"recording": tuned}})
+    old_client = {k: v for k, v in tuned.items() if k not in ("followShrink", "placeholderTargetScale", "placeholderOtherOpacity")}
+    assert scope["update_defaults"]({"version": 1, "groups": {"recording": old_client}})["groups"]["recording"] == tuned
+    for key, low, high in (("followShrink",0,30),("placeholderTargetScale",1,1.3),("placeholderOtherOpacity",0,100)):
+        for valid in (low,high):
+            assert scope["validate_default_values"]("recording",{**tuned,key:valid})
+        for invalid in (low-1,high+1,True,float("nan")):
+            assert not scope["validate_default_values"]("recording",{**tuned,key:invalid})
     placeholder = {key: value for key, value in camera.items() if key.startswith("placeholder")}
     assert placeholder["placeholderPinContrast"] is True
     styled = {**camera, "placeholderColor": "#ff8833", "placeholderContrastColor": "#445566",

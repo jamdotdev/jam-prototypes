@@ -37,7 +37,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
     box=await render({key:'window',mode:'window',rect:{x:100,y:100,width:800,height:300}});assert.ok(!box.compact&&!box.floating);
     box=await render({rect:{x:100,y:100,width:470,height:300}});assert.ok(box.compact&&!box.floating,'Stack before detaching');
     box=await render({rect:{x:100,y:100,width:200,height:300}});assert.ok(box.compact&&box.floating,'Stacked window detaches when still too wide');
-    assert.equal(await page.locator('#notch-fixture .rb-notch-logs-label').innerText(),'Not capturing logs');
+    assert.equal(await page.locator('#notch-fixture .rb-notch-logs-label').innerText(),'No logs');
     assert.equal(await page.locator('#notch-fixture .rb-notch-ratio').getAttribute('title'),'Change ratio');
     await page.emulateMedia({reducedMotion:'reduce'});box=await size(800);assert.equal(box.animations,0,'Reduced motion applies immediately');
     await page.emulateMedia({reducedMotion:'no-preference'});

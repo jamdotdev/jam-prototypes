@@ -17,6 +17,12 @@
     return Object.fromEntries(Object.entries(settings).filter(([key]) => key.startsWith('placeholder')));
   }
 
+  // Borders and transparent cutouts use the same visual emphasis, never snap geometry.
+  function paintPlacement(element, settings, targeted, visible) {
+    element.style.scale = String(visible && targeted ? settings.placeholderTargetScale ?? 1 : 1);
+    element.style.opacity = String(visible && !targeted ? (settings.placeholderOtherOpacity ?? 100) / 100 : 1);
+  }
+
   function borderMarkup() {
     return '<svg class="rb-camera-slot-border" aria-hidden="true"><circle fill="none"/></svg>';
   }
@@ -77,10 +83,10 @@
     root.append(svg);
     let previous = '';
     return {
-      update(bounds, slots, visible, settings) {
+      update(bounds, slots, visible, settings, nearest = null) {
         svg.classList.toggle('is-visible', visible);
         if (!visible) return;
-        const key = JSON.stringify([bounds, slots, settings.placeholderOverlayColor, settings.placeholderOverlayOpacity]);
+        const key = JSON.stringify([bounds, slots, settings.placeholderOverlayColor, settings.placeholderOverlayOpacity, settings.placeholderTargetScale, settings.placeholderOtherOpacity, nearest]);
         if (key === previous) return;
         previous = key;
         for (const rect of [mask, maskRect, fill]) for (const [attribute, value] of Object.entries(bounds)) {
@@ -89,6 +95,7 @@
         slots.forEach((slot, index) => {
           holes[index].setAttribute('cx', slot.x); holes[index].setAttribute('cy', slot.y);
           holes[index].setAttribute('r', Math.max(24, slot.size) / 2);
+          paintPlacement(holes[index], settings, slot.name === nearest, visible);
         });
         fill.setAttribute('fill', settings.placeholderOverlayColor);
         fill.setAttribute('fill-opacity', settings.placeholderOverlayOpacity / 100);
@@ -96,5 +103,5 @@
     };
   }
 
-  globalThis.JamCameraPlaceholders = { borderMarkup, borderStyle, paintPalette, paintBorder, holdBorder, createOverlay, dashPattern, holdFrames };
+  globalThis.JamCameraPlaceholders = { paintPlacement, borderMarkup, borderStyle, paintPalette, paintBorder, holdBorder, createOverlay, dashPattern, holdFrames };
 })();

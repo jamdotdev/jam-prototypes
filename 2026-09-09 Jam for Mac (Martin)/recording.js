@@ -90,7 +90,7 @@
     settings.camera=true;syncSelection();JamDefaults.changed('recording');emit();wake();
     return camera.request(deviceId);
   }
-  const ranges={placeholderStroke:[.5,4],placeholderActiveStroke:[0,4],placeholderDash:[1,16],placeholderGap:[1,24],placeholderOpacity:[0,100],placeholderActiveOpacity:[0,100],placeholderOverlayOpacity:[0,80],cameraZoom:[1,3],cameraSize:[12,480],cameraMinSize:[12,480],cameraMaxSize:[12,480],followSize:[12,160],gap:[8,64],stiffness:[80,500],damping:[10,50],anticipation:[0,100],beltSpring:[80,500],beltDamping:[10,50],warningSeconds:[5,30],pulseStart:[600,1600],pulseEnd:[350,600],pulseStrength:[0,8],rate:[.5,2]};
+  const ranges={followShrink:[0,30],placeholderTargetScale:[1,1.3],placeholderOtherOpacity:[0,100],placeholderStroke:[.5,4],placeholderActiveStroke:[0,4],placeholderDash:[1,16],placeholderGap:[1,24],placeholderOpacity:[0,100],placeholderActiveOpacity:[0,100],placeholderOverlayOpacity:[0,80],cameraZoom:[1,3],cameraSize:[12,480],cameraMinSize:[12,480],cameraMaxSize:[12,480],followSize:[12,160],gap:[8,64],stiffness:[80,500],damping:[10,50],anticipation:[0,100],beltSpring:[80,500],beltDamping:[10,50],warningSeconds:[5,30],pulseStart:[600,1600],pulseEnd:[350,600],pulseStrength:[0,8],rate:[.5,2]};
   function emit(){listeners.forEach(fn=>fn());}
   function rectStyle(el,r){el.style.left=`${r.x}px`;el.style.top=`${r.y}px`;el.style.width=`${r.width}px`;el.style.height=`${r.height}px`;}
   function local(event,constrain=true){
@@ -378,9 +378,9 @@
     JamCameraPlaceholders.paintPalette(root,settings);
     const show=active&&drag?.kind==='camera'&&!settings.followCursor,layer=$('.rb-camera-slots');layer.classList.toggle('is-visible',show);
     root.classList.toggle('is-camera-dragging',show);
-    const slots=cameraSlots();cameraDragOverlay.update(captureBounds(),slots,show,settings);
-    const nearest=show?nearestSlot().name:null;
-    for(const slot of slots){const el=layer.querySelector(`[data-slot="${slot.name}"]`),diameter=Math.max(24,slot.size);rectStyle(el,{x:slot.x-diameter/2,y:slot.y-diameter/2,width:diameter,height:diameter});el.classList.toggle('is-nearest',slot.name===nearest);JamCameraPlaceholders.paintBorder(el,diameter,settings,show&&slot.name===nearest);}
+    const slots=cameraSlots(),nearest=show?nearestSlot().name:null;
+    cameraDragOverlay.update(captureBounds(),slots,show,settings,nearest);
+    for(const slot of slots){const el=layer.querySelector(`[data-slot="${slot.name}"]`),diameter=Math.max(24,slot.size);rectStyle(el,{x:slot.x-diameter/2,y:slot.y-diameter/2,width:diameter,height:diameter});el.classList.toggle('is-nearest',slot.name===nearest);JamCameraPlaceholders.paintPlacement(el,settings,slot.name===nearest,show);JamCameraPlaceholders.paintBorder(el,diameter,settings,show&&slot.name===nearest);}
   }
   function snapCamera(target=nearestSlot(),from=follower.getState()){
     fixedAnchor=target.name;
@@ -407,7 +407,7 @@
     const b=captureBounds();let size=settings.followCursor?settings.followSize:settings.cameraSize;
     let value;
     // Stay at the restored dock until a real pointer position is available.
-    if(settings.followCursor&&pointerClient){value=follower.step({pointer,bounds:b,pinOutside:true,size,gap:settings.gap,stiffness:settings.stiffness,damping:settings.damping,anticipation:settings.anticipation,dt,reducedMotion:reduced.matches});}
+    if(settings.followCursor&&pointerClient){value=follower.step({pointer,bounds:b,pinOutside:true,size,gap:settings.gap,stiffness:settings.stiffness,damping:settings.damping,anticipation:settings.anticipation,shrink:settings.followShrink,dt,reducedMotion:reduced.matches});}
     else{
       const anchor=fixedAnchor&&cameraSlots().find(slot=>slot.name===fixedAnchor);
       if(cameraSnap){
@@ -423,7 +423,7 @@
       value={...fixedCamera,size:diameter};follower.snap(value);
     }
     renderCameraResizer(value.size);bubble.dataset.small=String(value.size<48);
-    bubble.style.width=`${value.size}px`;bubble.style.height=`${value.size}px`;bubble.style.transform=`translate3d(${value.x-value.size/2}px,${value.y-value.size/2}px,0)`;
+    bubble.style.width=`${value.size}px`;bubble.style.height=`${value.size}px`;bubble.style.transform=`translate3d(${value.x-value.size/2}px,${value.y-value.size/2}px,0) scale(${value.motionScale??1})`;
     bubble.dataset.side=value.side||'fixed';bubble.dataset.followState=settings.followCursor?(value.mode||'following'):'fixed';
   }
   function tick(now){
