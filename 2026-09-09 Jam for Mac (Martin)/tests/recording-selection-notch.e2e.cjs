@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
-const url=process.env.RECORDING_TEST_URL||'http://127.0.0.1:8766/?surface=recording';
+const url=process.env.RECORDING_TEST_URL||'http://127.0.0.1:8765/?surface=recording';
 const output=process.env.RECORDING_TEST_OUTPUT||'/tmp/jam-notch-e2e';fs.mkdirSync(output,{recursive:true});
 const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${message}: ${actual} != ${expected}`);
 (async()=>{
