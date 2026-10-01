@@ -138,3 +138,34 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 /* Match cutout emphasis to its placeholder without changing the docking target. */
 .rb-camera-drag-overlay mask circle{transform-box:fill-box;transform-origin:center;transition:scale 180ms cubic-bezier(.23,1,.32,1),opacity 140ms cubic-bezier(.23,1,.32,1)}
 @media(prefers-reduced-motion:reduce){.rb-camera-slot,.rb-camera-drag-overlay mask circle{scale:1!important;transition:opacity 140ms}}
+
+/* One-click window picker: the hover card carries the record action and the window's logs status. */
+.rb-window-picker{display:none;position:absolute;inset:0;z-index:5;cursor:pointer;transition:background-color 100ms var(--ease)}
+.recording-scene[data-picking="true"][data-one-click="true"] .rb-window-picker{display:block}
+.recording-scene[data-one-click="true"] .rb-window-selector{display:none!important}
+.recording-scene[data-picker-start="button"] .rb-window-picker{cursor:default}
+.rb-window-picker:hover,.rb-window-picker:has(:focus-visible),.rb-window-picker.is-menu-open{background:#ff383c59}
+.rb-picker-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);display:flex;flex-direction:column;align-items:center;gap:10px;width:max-content;max-width:calc(100% - 24px);padding:18px 18px 14px;border-radius:20px;color:#fff;background:#1f1d22e6;backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 0 0 .5px #ffffff26,0 14px 32px #0004;opacity:0;pointer-events:none;transition:opacity 140ms var(--ease),transform 180ms var(--ease)}
+.rb-window-picker:hover .rb-picker-card,.rb-window-picker:has(:focus-visible) .rb-picker-card,.rb-window-picker.is-menu-open .rb-picker-card{opacity:1;transform:translate(-50%,-50%);pointer-events:auto}
+.rb-picker-app{display:flex;flex-direction:column;align-items:center;gap:6px}.rb-picker-app strong{font-size:17px;font-weight:650;letter-spacing:-.2px}
+.rb-app-icon{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 2px 3px #0005)}
+.rb-app-icon.is-finder{display:grid;place-items:center;border-radius:12px;background:linear-gradient(#5ac8fa,#1e7cf0);color:#fff}.rb-app-icon.is-finder .rb-sf{width:26px;height:26px}
+.rb-picker-size{display:flex;align-items:center;gap:6px;font-size:11px;color:#ffffffb3;font-variant-numeric:tabular-nums}
+.rb-picker-resize,.rb-picker-extension{height:22px;white-space:nowrap;flex:none;padding:0 9px;border-radius:6px;background:#ffffff1f;color:#fff;font-size:11px}
+.rb-picker-actions{display:flex;gap:2px;margin-top:2px}
+.rb-picker-start,.rb-picker-options{height:36px;display:flex;align-items:center;background:#ff383c;color:#fff;font-size:13px;font-weight:550}
+.rb-picker-start{gap:6px;padding:0 14px 0 12px;border-radius:18px 4px 4px 18px}.rb-picker-options{width:30px;justify-content:center;border-radius:4px 18px 18px 4px}
+.rb-picker-start .rb-sf{width:16px;height:16px}
+.rb-chevron{width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;rotate:45deg;translate:-1px -2px}
+.rb-picker-logs{display:flex;align-items:center;gap:10px;min-width:220px;max-width:300px;margin-top:4px;padding:8px 10px;border-radius:10px;background:#ffffff12;font-size:11px;line-height:14px;text-align:left}
+.rb-logs-dot{flex:none;width:8px;height:8px;border-radius:50%;background:#8e8a94}.rb-picker-logs[data-state="connected"] .rb-logs-dot{background:#5fd35a;box-shadow:0 0 0 3px #5fd35a33}
+.rb-logs-copy{display:flex;flex-direction:column;flex:1}.rb-logs-copy b{font-weight:600}.rb-logs-copy small{font-size:10px;color:#ffffff99}
+.rb-picker-logs[data-state="connected"] b{color:#8be36b}
+@media(hover:hover) and (pointer:fine){.rb-picker-start:hover,.rb-picker-options:hover{filter:brightness(1.08)}.rb-picker-resize:hover,.rb-picker-extension:hover{background:#ffffff2e}}
+
+.rb-countdown{position:absolute;z-index:37;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none}
+.rb-countdown-dial{width:104px;height:104px;display:grid;place-items:center;border-radius:50%;color:#fff;background:#1f1d22d9;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 0 0 .5px #ffffff26,0 14px 32px #0004;font-size:52px;font-weight:600;font-variant-numeric:tabular-nums}
+.rb-countdown-number.is-ticking{animation:rb-countdown-tick 420ms var(--ease)}
+@keyframes rb-countdown-tick{from{opacity:0;scale:1.35}to{opacity:1;scale:1}}
+@media(prefers-reduced-motion:reduce){.rb-countdown-number.is-ticking{animation:none}.rb-picker-card{transition:none}}
+.rb-countdown-cancel{pointer-events:auto;height:26px;padding:0 12px;border-radius:13px;background:#1f1d22d9;color:#fff;font-size:11px}

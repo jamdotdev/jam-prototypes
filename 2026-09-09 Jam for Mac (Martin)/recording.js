@@ -10,18 +10,21 @@
   const symbols={close:'xmark',restart:'arrow.counterclockwise',pause:'pause.fill',play:'play.fill',stop:'stop.fill',record:'record.circle',window:'macwindow',area:'rectangle.dashed',display:'display',camera:'video.fill',cameraOff:'video.slash.fill',microphone:'mic.fill',microphoneOff:'mic.slash.fill',resize:'arrow.up.left.and.arrow.down.right',change:'arrow.2.squarepath',logs:'terminal',folder:'folder.fill',clock:'clock',document:'doc',download:'arrow.down.circle',cloud:'icloud',sidebar:'sidebar.left',minus:'minus',zoom:'arrow.up.backward.and.arrow.down.forward',follow:'cursorarrow.motionlines',mirror:'arrow.left.arrow.right',rulers:'lines.measurement.horizontal.aligned.bottom',aspect:'aspectratio',horizontal:'rectangle',vertical:'rectangle.portrait',status:'circle.fill'};
   const icon=name=>`<span class="rb-sf" data-symbol="${symbols[name]}" style="--sf-image:url('assets/recording/sf/${symbols[name]}.png')" aria-hidden="true"></span>`;
   const lights='<div class="traffic-lights" aria-hidden="true"><span class="traffic close">'+icon('close')+'</span><span class="traffic minimize">'+icon('minus')+'</span><span class="traffic zoom">'+icon('zoom')+'</span></div>';
+  const picker=(name,app,art)=>`<div class="rb-window-picker" data-picker="${name}"><div class="rb-picker-card" role="group" aria-label="Record ${app} window"><div class="rb-picker-app">${art}<strong>${app}</strong></div><div class="rb-picker-size"><span class="rb-picker-dimensions"></span><button type="button" class="rb-picker-resize" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-picker-menu">Resize</button></div><div class="rb-picker-actions"><button type="button" class="rb-picker-start">${icon('record')}<span>Start recording</span></button><button type="button" class="rb-picker-options" aria-label="Recording options" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-picker-menu"><i class="rb-chevron" aria-hidden="true"></i></button></div><div class="rb-picker-logs" hidden></div></div></div>`;
   root.innerHTML=`
     <div class="rb-desktop-windows">
       <article class="rb-mock-window rb-finder" data-window="finder" aria-label="Finder window">
         <header class="rb-window-titlebar" tabindex="0" aria-label="Move Finder window">${lights}<strong>Design files</strong><span class="rb-window-drag-icon">${icon("sidebar")}</span></header>
         <div class="rb-finder-body"><aside><span>Favorites</span><b>${icon("clock")}Recents</b><b class="selected">${icon("document")}Documents</b><b>${icon("download")}Downloads</b><span>iCloud</span><b>${icon("cloud")}iCloud Drive</b></aside><div class="rb-files">${['Brand assets','Design system','Recordings','Feedback'].map((name,i)=>`<div><span class="rb-file-folder">${icon("folder")}</span><span>${name}</span><small>${[12,8,4,6][i]} items</small></div>`).join('')}</div></div>
         <button class="rb-window-selector" aria-label="Select Finder window"><span class="rb-selection-callout">Click to select this window</span></button>
+        ${picker('finder','Finder',`<span class="rb-app-icon is-finder">${icon('folder')}</span>`)}
         <button class="rb-window-resizer" aria-label="Resize Finder window">${icon("resize")}</button>
       </article>
       <article class="rb-mock-window rb-browser" data-window="browser" aria-label="Browser window">
         <header class="rb-window-titlebar" tabindex="0" aria-label="Move browser window">${lights}<div class="rb-browser-address">jam.dev / design-system</div><span class="rb-window-drag-icon">${icon("sidebar")}</span></header>
         <div class="rb-browser-content"><div class="rb-browser-nav"><img src="assets/strawberry.svg" alt="Jam"><strong>Design system</strong><span>Foundations</span><span>Components</span></div><div class="rb-design-document"><span class="rb-eyebrow">MADE FOR YOUR TEAM</span><h2>A little more<br>room for ideas.</h2><p>A shared place for everything we’re building.</p><div class="rb-design-cards"><div><img src="assets/welcome/sticker-squiggle.svg" alt=""><span>Make it playful.</span></div><div><img src="assets/welcome/sticker-cursor.svg" alt=""><span>Keep it simple.</span></div><div><img src="assets/welcome/sticker-star.svg" alt=""><span>Make it yours.</span></div></div></div></div>
         <button class="rb-window-selector" aria-label="Select browser window"><span class="rb-selection-app"><img src="assets/recording/chrome.png" alt=""><span class="rb-selection-callout">Click to select this window</span></span></button>
+        ${picker('browser','Google Chrome','<img class="rb-app-icon" src="assets/recording/chrome-logo.svg" alt="">')}
         <button class="rb-window-resizer" aria-label="Resize browser window">${icon("resize")}</button>
       </article>
     </div>
@@ -41,7 +44,9 @@
       </div>
       <div class="rb-belt-active" hidden><button class="rb-icon-button rb-restart" title="Restart recording" aria-label="Restart recording">${icon('restart')}</button><div class="rb-active-controls"><button class="rb-icon-button rb-pause" title="Pause recording" aria-label="Pause recording"><span class="rb-pause-icon">${icon('pause')}</span><span class="rb-resume-icon">${icon('play')}</span></button><button class="rb-stop" title="Stop recording" aria-label="Stop recording">${icon('stop')}<span class="rb-stop-time">0:00</span><i class="rb-urgency-ring" aria-hidden="true"></i></button></div></div>
     </div>
+    <div class="rb-countdown" aria-hidden="true" hidden><div class="rb-countdown-dial"><span class="rb-countdown-number"></span></div><button type="button" class="rb-countdown-cancel">Cancel</button></div>
     <div class="native-menu rb-device-menu" id="rb-camera-menu" role="menu" aria-label="Camera" hidden></div>
+    <div class="native-menu rb-device-menu rb-picker-menu" id="rb-picker-menu" role="menu" aria-label="Window recording" hidden></div>
     <div class="native-menu rb-device-menu" id="rb-microphone-menu" role="menu" aria-label="Microphone" hidden></div>
     <div class="rb-capture-status" role="status" aria-live="polite"></div>
   `;
@@ -66,7 +71,7 @@
   const selectionSizing={area:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},finder:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},browser:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}};
   let selectionNotch=null,selectionRulers=null;
   let selectedWindow=null,stage='idle',elapsed=0,active=false,raf=0,lastFrame=0,drag=null;
-  let openMenu=null,menuTrigger=null;
+  let openMenu=null,menuTrigger=null,countdown=null;
   let pointer={x:W/2,y:H/2,vx:0,vy:0,ax:0,ay:0},pointerTime=0,pointerClient=null;
   let fixedCamera={x:84,y:H-84},cameraPlaced=false;
   let pose=beltHome(),velocity={x:0,y:0,width:0};
@@ -144,7 +149,7 @@
     const rect=captureBounds();selectionState().orientation=orientation;
     applySelectionRect(JamSelectionGeometry.size(rect,{width:rect.height,height:rect.width},selectionBounds(),selectionMinimum(),JamSelectionGeometry.ratio(selectionState())));
   }
-  function syncWindows(){for(const [name,value]of Object.entries(windows))rectStyle($(`[data-window="${name}"]`),value);}
+  function syncWindows(){for(const [name,value]of Object.entries(windows)){rectStyle($(`[data-window="${name}"]`),value);$(`[data-picker="${name}"] .rb-picker-dimensions`).textContent=`${Math.round(value.width)} × ${Math.round(value.height)}`;}}
   function loadCameraPositions(){
     try{
       const saved=JSON.parse(sessionStorage.getItem('jam-recording-camera-positions-v1')||'{}'),valid={};
@@ -178,7 +183,7 @@
     bubble.classList.toggle('is-sizing-area',!!sizing);
   }
   function syncSelection(){
-    root.dataset.mode=settings.mode;root.dataset.stage=stage;root.dataset.picking=String(settings.mode==='window'&&!selectedWindow&&isIdle());
+    root.dataset.mode=settings.mode;root.dataset.stage=stage;root.dataset.picking=String(settings.mode==='window'&&!selectedWindow&&isIdle());root.dataset.oneClick=String(!!settings.oneClick);root.dataset.pickerStart=settings.pickerStart;
     const bounds=captureBounds(),idle=isIdle();
     region.hidden=settings.mode==='window'&&!selectedWindow;
     rectStyle(region,bounds);
@@ -186,7 +191,7 @@
     region.classList.toggle('is-selected-window',settings.mode==='window'&&!!selectedWindow);
     region.tabIndex=settings.mode==='area'&&idle?0:-1;
     selectionRulers?.render({enabled:active&&idle&&settings.mode==='area',key:settings.mode==='area'?'area':selectedWindow,state:selectionState(),rect:bounds});
-    selectionNotch?.render({enabled:active&&idle&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
+    selectionNotch?.render({enabled:active&&idle&&!countdown&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),changeWindow:!settings.oneClick,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
     $$('.rb-area-handle').forEach(el=>{el.hidden=settings.mode!=='area'||!idle;});
     $('.rb-area-draw').hidden=settings.mode!=='area'||!idle;
     const mask=$('.rb-selection-mask');mask.hidden=settings.mode!=='area';
@@ -197,12 +202,45 @@
     bubble.hidden=!settings.camera||(settings.mode==='window'&&!selectedWindow); bubble.classList.toggle('is-following',settings.followCursor);bubble.tabIndex=settings.followCursor?-1:0;
     syncCameraZoom();syncCameraSizing();
     if(!cameraPlaced)placeCamera();
+    syncPickers();renderCountdown();
     renderCamera(0);renderSlots();syncControls();syncCursor();cornerPin?.refresh();
+  }
+  function windowLogs(name){
+    if(name!=='browser')return null;
+    return settings.browserLogs==='connected'?{state:'connected',label:'Capturing logs',title:'Logs will be captured',detail:'Jam extension connected'}:{state:'unavailable',label:'Logs unavailable',title:'Logs unavailable',detail:'Jam extension not installed'};
+  }
+  function syncPickers(){
+    $$('.rb-window-picker').forEach(el=>{
+      const logs=windowLogs(el.dataset.picker),line=el.querySelector('.rb-picker-logs');
+      line.hidden=!logs;if(!logs)return;
+      if(line.dataset.state!==logs.state){
+        line.dataset.state=logs.state;
+        line.innerHTML=`<i class="rb-logs-dot" aria-hidden="true"></i><span class="rb-logs-copy"><b>${logs.title}</b><small>${logs.detail}</small></span>${logs.state==='connected'?'':'<button type="button" class="rb-picker-extension">Get extension</button>'}`;
+      }
+    });
+  }
+  function startWindowRecording(name){
+    if(!windows[name]||!isIdle()||countdown)return;
+    closeMenu(false);selectWindow(name);
+    if(!settings.countdown){setStage('recording');return;}
+    countdown={name,remaining:settings.countdown,timer:0};
+    const step=()=>{if(!countdown)return;countdown.remaining--;if(countdown.remaining>0){renderCountdown();countdown.timer=setTimeout(step,1000);return;}countdown=null;setStage('recording');};
+    countdown.timer=setTimeout(step,1000);syncSelection();$('.rb-capture-status').textContent=`Recording starts in ${countdown.remaining} seconds`;emit();
+  }
+  function cancelCountdown(){
+    if(!countdown)return;
+    clearTimeout(countdown.timer);countdown=null;selectedWindow=null;cameraPlaced=false;$('.rb-capture-status').textContent='Recording cancelled';syncSelection();emit();
+  }
+  function renderCountdown(){
+    const el=$('.rb-countdown');el.hidden=!countdown;if(!countdown)return;
+    rectStyle(el,windows[countdown.name]);
+    const number=$('.rb-countdown-number');
+    if(number.textContent!==String(countdown.remaining)){number.textContent=String(countdown.remaining);number.classList.remove('is-ticking');void number.offsetWidth;number.classList.add('is-ticking');}
   }
   function syncControls(){
     $$('.rb-mode').forEach(el=>{el.setAttribute('aria-pressed',String(el.dataset.mode===settings.mode));el.disabled=!isIdle();});
-    $('.rb-record-label').textContent=`Record ${settings.mode}`;
-    $('.rb-record').disabled=settings.mode==='window'&&!selectedWindow;
+    $('.rb-record-label').textContent=settings.oneClick&&settings.mode==='window'&&!selectedWindow?'Choose a window':`Record ${settings.mode}`;
+    $('.rb-record').disabled=settings.mode==='window'&&!selectedWindow||!!countdown;
     $('.rb-camera-label').textContent=settings.camera?(camera.getState().label||'Use camera'):'No Camera';
     $('.rb-microphone-label').textContent=settings.microphone?settings.microphoneDevice:'No Microphone';
     $('#rb-camera-button').setAttribute('aria-label',`Camera: ${settings.camera?(camera.getState().label||'Use Mac camera'):'No Camera'}`);
@@ -280,7 +318,7 @@
     if(!advanceClock())return;
     closeMenu(false);
     const previous=stage;stage=next;
-    if(next==='idle'){elapsed=0;animateBelt(beltHome(IDLE_WIDTH));}
+    if(next==='idle'){elapsed=0;if(settings.oneClick&&settings.mode==='window')selectedWindow=null;animateBelt(beltHome(IDLE_WIDTH));}
     else if(previous==='idle'){elapsed=next==='limit'?LIMIT-settings.warningSeconds:0;animateBelt(beltHome(ACTIVE_WIDTH));}
     else if(next==='limit')elapsed=LIMIT-settings.warningSeconds;
     else if(next==='recording'&&previous==='limit')elapsed=0;
@@ -307,6 +345,9 @@
       if(ranges[key]&&Number.isFinite(Number(patch[key])))settings[key]=clamp(Number(patch[key]),...ranges[key]);
       else if(typeof settings[key]==='boolean')settings[key]=Boolean(patch[key]);
       else if(key==='mode'&&['screen','window','area'].includes(patch.mode))settings.mode=patch.mode;
+      else if(key==='pickerStart'&&['window','button'].includes(patch[key]))settings[key]=patch[key];
+      else if(key==='browserLogs'&&['connected','unavailable'].includes(patch[key]))settings[key]=patch[key];
+      else if(key==='countdown'&&[0,3,5].includes(Number(patch[key])))settings[key]=Number(patch[key]);
       else if(key==='cameraDevice'&&typeof patch[key]==='string'&&patch[key].length<=64)settings[key]=patch[key];
       else if(['placeholderColor','placeholderContrastColor','placeholderContrastHoverColor','placeholderContrastActiveColor','placeholderContrastEdgeColor','placeholderOverlayColor'].includes(key)&&typeof patch[key]==='string'&&patch[key].length<=64&&CSS.supports('color',patch[key])&&!/var\(|currentcolor|inherit|initial|unset/i.test(patch[key]))settings[key]=patch[key];
       else if(key==='microphoneDevice'&&['MacBook','AirPods Pro 3','ZoomAudioDevice','BoseQC Ultra Headphones','Mac Studio Display Microphone'].includes(patch[key]))settings[key]=patch[key];
@@ -446,11 +487,11 @@
     if(settings.mode==='window'&&!selectedWindow)selectWindow('browser');
     stage='recording';elapsed=0;clockStamp=performance.now();scheduleClock();velocity={x:0,y:0,width:0};animateBelt(beltHome(ACTIVE_WIDTH),beltHome(IDLE_WIDTH));syncSelection();emit();
   }
-  function finishRecording(){clearTimeout(clockTimer);clockStamp=0;stage='idle';elapsed=0;previewPlaying=false;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};syncSelection();renderBelt();JamPlayground.setSurface('draft');JamPlayground.notify('Recording preview complete');}
+  function finishRecording(){clearTimeout(clockTimer);clockStamp=0;stage='idle';if(settings.oneClick&&settings.mode==='window')selectedWindow=null;elapsed=0;previewPlaying=false;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};syncSelection();renderBelt();JamPlayground.setSurface('draft');JamPlayground.notify('Recording preview complete');}
   function menuItem(label,checked,run,role='menuitemradio'){
     const b=document.createElement('button');b.className='native-menu-item';b.type='button';b.role=role;b.tabIndex=-1;b.textContent=label;b.setAttribute('aria-checked',String(checked));b.addEventListener('click',()=>{run();closeMenu();});b.addEventListener('pointermove',()=>b.focus({preventScroll:true}));return b;
   }
-  function closeMenu(restore=true){if(!openMenu)return;if(selectionNotch?.owns(openMenu)){selectionNotch.close(restore);return;}openMenu.hidden=true;menuTrigger?.setAttribute('aria-expanded','false');if(restore)menuTrigger?.focus({preventScroll:true});openMenu=null;menuTrigger=null;}
+  function closeMenu(restore=true){if(!openMenu)return;if(selectionNotch?.owns(openMenu)){selectionNotch.close(restore);return;}$$('.rb-window-picker.is-menu-open').forEach(el=>el.classList.remove('is-menu-open'));openMenu.hidden=true;menuTrigger?.setAttribute('aria-expanded','false');if(restore)menuTrigger?.focus({preventScroll:true});openMenu=null;menuTrigger=null;}
   function showMenu(kind){
     const menu=$(`#rb-${kind}-menu`),trigger=$(`#rb-${kind}-button`);if(openMenu===menu){closeMenu();return;}closeMenu(false);
     menu.replaceChildren();const add=(...args)=>menu.append(menuItem(...args)),separator=()=>{const s=document.createElement('div');s.className='native-menu-separator';s.role='separator';menu.append(s);};
@@ -481,6 +522,7 @@
       if(event.key.length===1&&!event.metaKey&&!event.ctrlKey&&event.key!==' '){typeBuffer+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typeBuffer='',500);next=items.findIndex(b=>b.textContent.toLowerCase().startsWith(typeBuffer));}
       if(next>=0){event.preventDefault();items[next].focus();}return;
     }
+    if(event.key==='Escape'&&countdown){event.preventDefault();cancelCountdown();return;}
     if(event.key==='Escape'&&isIdle()){if(selectedWindow&&settings.mode==='window'){rememberCameraPosition();selectedWindow=null;syncSelection();}else JamPlayground.setSurface('onboarding');}
     if(event.target===bubble&&!settings.followCursor){if(event.key.startsWith('Arrow')){fixedAnchor=null;cameraSnap=null;}const amount=event.shiftKey?10:2;let used=true;if(event.key==='ArrowLeft')fixedCamera.x-=amount;else if(event.key==='ArrowRight')fixedCamera.x+=amount;else if(event.key==='ArrowUp')fixedCamera.y-=amount;else if(event.key==='ArrowDown')fixedCamera.y+=amount;else if(event.key==='+'||event.key==='=')resizeCamera(settings.cameraSize+4,event);else if(event.key==='-')resizeCamera(settings.cameraSize-4,event);else used=false;if(used){event.preventDefault();renderCamera(0);rememberCameraPosition();}}
     if(event.target===region&&settings.mode==='area'&&isIdle()){let x=area.x,y=area.y,n=event.shiftKey?10:1;if(event.key==='ArrowLeft')x-=n;else if(event.key==='ArrowRight')x+=n;else if(event.key==='ArrowUp')y-=n;else if(event.key==='ArrowDown')y+=n;else return;event.preventDefault();area.x=clamp(x,0,W-area.width);area.y=clamp(y,0,H-area.height);syncSelection();}
@@ -488,12 +530,48 @@
   document.addEventListener('pointerdown',e=>{if(openMenu&&!openMenu.contains(e.target)&&e.target!==menuTrigger&&!menuTrigger.contains(e.target))closeMenu(false);},true);
   $('.rb-camera-connect').addEventListener('click',e=>{if(e.detail===0)requestCamera();});
   $('#rb-camera-button').addEventListener('click',()=>showMenu('camera'));$('#rb-microphone-button').addEventListener('click',()=>showMenu('microphone'));
-  $$('.rb-mode').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+  $$('.rb-mode').forEach(b=>b.addEventListener('click',()=>{cancelCountdown();setMode(b.dataset.mode);}));
   $('.rb-record').addEventListener('click',()=>setStage('recording'));
   $('.rb-pause').addEventListener('click',()=>setStage(stage==='paused'?'recording':'paused'));
   $('.rb-stop').addEventListener('click',finishRecording);$('.rb-restart').addEventListener('click',restart);
   $('.rb-close').addEventListener('click',()=>JamPlayground.setSurface('onboarding'));
   $$('.rb-window-selector').forEach(b=>b.addEventListener('click',()=>selectWindow(b.closest('[data-window]').dataset.window)));
+  function showPickerMenu(trigger,name,kind){
+    const menu=$('#rb-picker-menu');if(openMenu===menu&&menuTrigger===trigger){closeMenu();return;}closeMenu(false);
+    menu.replaceChildren();const add=(...args)=>menu.append(menuItem(...args));
+    if(kind==='resize'){
+      const bounds=selectionBounds(true),minimum=selectionMinimum(true),rect=windows[name];
+      menu.setAttribute('aria-label','Resize window');
+      for(const preset of JamSelectionGeometry.presets(selectionState(name))){
+        const item=menuItem(preset.label,Math.abs(rect.width-preset.width)<.5&&Math.abs(rect.height-preset.height)<.5,()=>{Object.assign(windows[name],JamSelectionGeometry.size(windows[name],preset,bounds,minimum));syncWindows();syncSelection();emit();});
+        item.disabled=preset.width>bounds.width||preset.height>bounds.height;menu.append(item);
+      }
+    }else{
+      menu.setAttribute('aria-label','Recording options');
+      const label=document.createElement('div');label.className='native-menu-label';label.textContent='Countdown';menu.append(label);
+      for(const [value,text] of [[0,'Start immediately'],[3,'3 second countdown'],[5,'5 second countdown']])add(text,settings.countdown===value,()=>updateSettings({countdown:value}));
+    }
+    trigger.closest('.rb-window-picker').classList.add('is-menu-open');
+    openMenu=menu;menuTrigger=trigger;menu.hidden=false;trigger.setAttribute('aria-expanded','true');cornerPin?.clear();
+    const tr=trigger.getBoundingClientRect(),rr=root.getBoundingClientRect(),s=rr.width/W,below=(tr.bottom-rr.top)/s+6;
+    menu.style.left=`${clamp((tr.left-rr.left)/s,8,W-menu.offsetWidth-8)}px`;
+    menu.style.top=`${below+menu.offsetHeight<=H-8?below:Math.max(8,(tr.top-rr.top)/s-menu.offsetHeight-6)}px`;
+    (menu.querySelector('[aria-checked="true"]:not(:disabled)')||menu.querySelector('button:not(:disabled)'))?.focus({preventScroll:true});
+  }
+  $$('.rb-window-picker').forEach(el=>{
+    const name=el.dataset.picker;
+    // A card kept open by keyboard focus gives way once the pointer moves to another window.
+    el.addEventListener('pointerenter',()=>{const focused=document.activeElement?.closest('.rb-window-picker');if(focused&&focused!==el&&!openMenu)document.activeElement.blur();});
+    el.addEventListener('click',e=>{
+      if(e.target.closest('.rb-picker-resize'))return showPickerMenu(e.target.closest('button'),name,'resize');
+      if(e.target.closest('.rb-picker-options'))return showPickerMenu(e.target.closest('button'),name,'options');
+      if(e.target.closest('.rb-picker-extension'))return JamPlayground.notify('Opens the Jam extension in the Chrome Web Store');
+      if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('button'))startWindowRecording(name);
+    });
+  });
+  $('.rb-countdown-cancel').addEventListener('click',cancelCountdown);
+  // Focus usually stays on the page after a click, outside the scene's own key handling.
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&countdown&&!e.defaultPrevented){e.preventDefault();cancelCountdown();}});
   function startDrag(event,kind,extra={}){if(event.button!==0||drag||selectionRulers?.isDragging())return;cornerPin?.clear();if(document.activeElement?.closest('.rb-selection-notch input'))document.activeElement.blur();event.preventDefault();const p=local(event);drag={kind,start:p,pointerId:event.pointerId,target:event.currentTarget,shiftKey:event.shiftKey,altKey:event.altKey,...extra};event.currentTarget.setPointerCapture(event.pointerId);closeMenu(false);syncCursor();syncCameraSizing();}
   $$('.rb-window-titlebar').forEach(el=>{
     el.addEventListener('pointerdown',e=>{if(root.dataset.picking==='true')return;const name=el.closest('[data-window]').dataset.window;startDrag(e,'window',{name,initial:{...windows[name]}});el.closest('[data-window]').style.zIndex=String(++windowLayer);});
@@ -581,8 +659,8 @@
   // The sidebar sits outside the desktop; recording geometry follows the desktop bounds.
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
-    getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
-    updateSettings,setMode,setStage,selectWindow,resetSelection,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
+    getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,countdown:countdown?.remaining??0,area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
+    updateSettings,setMode:mode=>{cancelCountdown();setMode(mode);},setStage:next=>{cancelCountdown();setStage(next);},selectWindow,startWindowRecording,cancelCountdown,resetSelection:()=>{cancelCountdown();resetSelection();},setActive:value=>{if(!value)cancelCountdown();setActive(value);},layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
@@ -605,6 +683,6 @@
     key:cameraPositionKey(),window:settings.mode==='window'?selectedWindow:null,bounds:captureBounds(),slots:cameraSlots(),style:JamCameraPlaceholders.borderStyle(settings),
   })});
   syncWindows();
-  JamDefaults.register('recording',{groups:['recording'],read:()=>({recording:{...settings}}),apply:values=>updateSettings(values.recording),onReset(){clearTimeout(clockTimer);clockStamp=0;fixedAnchor=null;cameraSnap=null;stage='idle';elapsed=0;previewPlaying=false;previewTime=0;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};resetSelection();renderBelt();emit();}});
+  JamDefaults.register('recording',{groups:['recording'],read:()=>({recording:{...settings}}),apply:values=>updateSettings(values.recording),onReset(){cancelCountdown();clearTimeout(clockTimer);clockStamp=0;fixedAnchor=null;cameraSnap=null;stage='idle';elapsed=0;previewPlaying=false;previewTime=0;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};resetSelection();renderBelt();emit();}});
   syncSelection();renderBelt();setActive(JamPlayground.getSurface()==='recording');
 })();

@@ -38,7 +38,8 @@ def with_player_settings(group, value, fallback=None):
                  "placeholderPinContrast": True, "placeholderColor": "#ffffff", "placeholderStroke": 1, "placeholderActiveStroke": 1, "placeholderDash": 4, "placeholderGap": 8,
                  "placeholderOpacity": 50, "placeholderActiveOpacity": 100,
                  "placeholderOverlayColor": "#000000", "placeholderOverlayOpacity": 32,
-                 "cameraZoom": 1, "cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4}
+                 "cameraZoom": 1, "cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4,
+                 "oneClick": True, "pickerStart": "window", "countdown": 0, "browserLogs": "connected"}
         return {**{key: fallback.get(key, default) for key, default in added.items()}, **value}
     if group in ("handoff", "permissions") and isinstance(value, dict):
         fallback = fallback or {}
@@ -144,10 +145,12 @@ def validate_default_values(group, value):
                   "stiffness": (80, 500), "damping": (10, 50), "anticipation": (0, 100),
                   "beltSpring": (80, 500), "beltDamping": (10, 50),
                   "warningSeconds": (5, 30), "pulseStart": (600, 1600), "pulseEnd": (350, 600), "pulseStrength": (0, 8)}
-        flags = ("placeholderPinContrast", "camera", "microphone", "followCursor", "mirror", "showBounds", "loop")
+        flags = ("placeholderPinContrast", "camera", "microphone", "followCursor", "mirror", "showBounds", "loop", "oneClick")
         return (value["cameraMinSize"] <= value["cameraSize"] <= value["cameraMaxSize"] and
                 all(valid_color(value[key]) for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastHoverColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor")) and
                 value["mode"] in ("screen", "window", "area") and
+                value["pickerStart"] in ("window", "button") and value["browserLogs"] in ("connected", "unavailable") and
+                type(value["countdown"]) is int and value["countdown"] in (0, 3, 5) and
                 isinstance(value["cameraDevice"], str) and 0 < len(value["cameraDevice"]) <= 64 and
                 value["microphoneDevice"] in ("MacBook", "AirPods Pro 3", "ZoomAudioDevice", "BoseQC Ultra Headphones", "Mac Studio Display Microphone") and
                 all(type(value[key]) is bool for key in flags) and

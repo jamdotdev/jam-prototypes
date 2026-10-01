@@ -28,7 +28,7 @@ Continue in browser animates the cursor handoff, then opens `auth.html`, a simul
 
 The capture UI over a sample desktop with a Finder window and a browser window:
 
-- **Selection.** Screen, Window, or Area. Window mode selects either sample window. Area mode can draw, drag, and resize a region, with sizing notches, aspect presets, and optional rulers. Switching from a selected window to Area starts from that window's bounds.
+- **Selection.** Screen, Window, or Area. In Window mode, hovering a window shows a card with its app, size, logs status, and **Start recording**, so one click starts recording that window. The sidebar's Window picker section switches back to select-then-record, limits the start to the button, adds a 3 or 5 second countdown (Escape cancels it), and toggles whether Chrome's Jam extension is connected. Area mode can draw, drag, and resize a region, with sizing notches, aspect presets, and optional rulers. Switching from a selected window to Area starts from that window's bounds.
 - **Belt.** Pause, restart, and stop, a timer, and the Idle, Recording, Paused, and Time limit states. Change the state from the sidebar to preview each one.
 - **Camera bubble.** Use Mac camera requests the real camera, which needs a secure context such as `127.0.0.1`. Drag the bubble to snap it to a corner or edge, where it's remembered per selection. It resizes, zooms, mirrors, and can follow the cursor. Dashed placeholders show where it will land.
 

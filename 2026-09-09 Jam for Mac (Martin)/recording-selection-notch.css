@@ -36,3 +36,4 @@
 .rb-selection-notch .rb-notch-rulers{padding:0 8px}
 .rb-selection-notch .rb-notch-rulers[aria-pressed="true"]{background:#9ff06538;color:#9ff065}
 @media(hover:hover) and (pointer:fine){.rb-selection-notch .rb-notch-rulers[aria-pressed="true"]:hover{background:#9ff06548}}
+.rb-selection-notch[data-logs="connected"] .rb-notch-logs{color:#8be36b}.rb-selection-notch[data-logs="connected"] .rb-notch-logs .rb-sf{opacity:1}
