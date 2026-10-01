@@ -143,7 +143,6 @@ window.JamDefaultValues = {
       "showBounds": false,
       "oneClick": true,
       "pickerStart": "window",
-      "countdown": 0,
       "browserLogs": "connected",
       "rate": 1,
       "loop": false

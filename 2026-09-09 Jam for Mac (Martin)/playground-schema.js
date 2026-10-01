@@ -37,7 +37,6 @@
       section('window-picker','Window picker',[
         recordingToggle('oneClick','One-click start'),
         select('pickerStart','Start from',()=>R().getSettings().pickerStart,value=>R().updateSettings({pickerStart:value}),[['window','Anywhere on window'],['button','Start button only']]),
-        select('countdown','Countdown',()=>String(R().getSettings().countdown),value=>R().updateSettings({countdown:Number(value)}),[['0','Off'],['3','3 seconds'],['5','5 seconds']]),
         select('browserLogs','Chrome logs',()=>R().getSettings().browserLogs,value=>R().updateSettings({browserLogs:value}),[['connected','Extension connected'],['unavailable','Extension missing']]),
       ]),
       section('camera','Camera',[
