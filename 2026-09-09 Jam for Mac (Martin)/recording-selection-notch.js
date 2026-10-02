@@ -148,7 +148,7 @@
       contextKey=next.key;notch.hidden=!next.enabled;if(!next.enabled)return;
       const windowMode=next.mode==='window',locked=next.sizing.preset!=='custom';
       notch.classList.toggle('is-window',windowMode);notch.classList.toggle('is-ratio-locked',locked);
-      $('.rb-notch-rulers').hidden=windowMode;$('.rb-notch-rulers-separator').hidden=windowMode;
+      $('.rb-notch-rulers').hidden=windowMode||!next.rulers;$('.rb-notch-rulers-separator').hidden=windowMode||!next.rulers;
       $('.rb-notch-rulers').setAttribute('aria-pressed',String(!!next.sizing.rulers));
       notch.setAttribute('aria-label',`${windowMode?'Window':'Area'} sizing`);$('.rb-notch-window-controls').hidden=!windowMode||next.card&&!next.logs;
       ratioButton.querySelector('span:last-child').textContent=locked?JamSelectionGeometry.label(next.sizing):'';
@@ -160,7 +160,7 @@
       $('.rb-notch-change').hidden=!changeWindow;$('.rb-notch-change-separator').hidden=!changeWindow;
       notch.dataset.logs=logs.state;$('.rb-notch-logs-label').textContent=logs.label;$('.rb-notch-logs').title=logs.label;
       notch.classList.toggle('is-card',!!next.card);
-      const natural=measureWidth(`${windowMode}:${changeWindow}:${!!next.card}:${!!next.logs}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}`);
+      const natural=measureWidth(`${windowMode}:${changeWindow}:${!!next.rulers}:${!!next.card}:${!!next.logs}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}`);
       if(next.card){
         // On the record card the logs status sits above the sizing controls, and the caller places the panel.
         const compact=windowMode&&!!next.logs;

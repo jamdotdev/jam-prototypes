@@ -142,6 +142,7 @@ window.JamDefaultValues = {
       "beltDamping": 28,
       "showBounds": false,
       "oneClick": true,
+      "rulersButton": false,
       "pickerStart": "window",
       "browserLogs": "connected",
       "rate": 1,

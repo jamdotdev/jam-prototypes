@@ -40,6 +40,7 @@ await p.mouse.click(200,700);await p.waitForTimeout(100);assert.equal((await sta
 await p.evaluate(()=>{JamRecording.setStage('idle');JamRecording.setMode('area');});await p.waitForTimeout(100);
 // area: the card is always on the drawn area, with sizing in its notch
 assert.equal((await state()).target,'area');assert.ok(await notch.locator('.rb-notch-width').isVisible());assert.ok(await card.locator('.rb-picker-app').isHidden());
+assert.ok(await notch.locator('.rb-notch-rulers').isHidden(),'rulers button is off by default');
 await start.click();await p.waitForTimeout(100);assert.equal((await state()).stage,'recording');
 await p.evaluate(()=>{JamRecording.setStage('idle');JamRecording.setMode('window');});
 // classic

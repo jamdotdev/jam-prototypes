@@ -40,7 +40,7 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
     await page.mouse.up();await color('.rb-camera-pin circle','stroke',colors.default);
     assert.equal(await page.evaluate(()=>JamRecording.getSettings().followCursor),true);
 
-    await page.evaluate(()=>{JamRecording.updateSettings({camera:false,followCursor:false});JamRecording.setMode('area');});
+    await page.evaluate(()=>{JamRecording.updateSettings({camera:false,followCursor:false,rulersButton:true});JamRecording.setMode('area');});
     await page.getByRole('button',{name:'Display rulers',exact:true}).click();
     const region=await page.locator('.rb-capture-region').boundingBox();
     const line='.rb-ruler-line.is-left',grip='[data-ruler="left"] span';

@@ -233,7 +233,7 @@
     root.dataset.screenHover=String(target==='screen');
     if(!target){
       card.hidden=true;
-      selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
+      selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rulers:settings.rulersButton,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
       return;
     }
     const rect=target==='area'?{...area}:target==='screen'?{x:0,y:0,width:W,height:H}:{...windows[target]},sizing=target!=='screen';
@@ -243,7 +243,7 @@
     $('.rb-record-card .rb-picker-start').setAttribute('aria-label',target==='area'||target==='screen'?`Record ${target}`:`Record ${targetNames[target]} window`);
     $('.rb-record-card .rb-picker-notch').hidden=sizing;
     if(!sizing)$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
-    const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
+    const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rulers:settings.rulersButton,rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
     const controls=$('.rb-record-card .rb-picker-controls');controls.style.width=`${Math.max(164,notch?.width||0)}px`;
     const cardWidth=card.offsetWidth,cardHeight=card.offsetHeight,total=cardHeight+(notch?notch.height-20:0);
     let x=rect.x+rect.width/2,y=rect.y+rect.height/2-total/2;
