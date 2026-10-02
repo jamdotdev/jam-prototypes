@@ -6,7 +6,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
   page.on('pageerror',error=>errors.push(String(error)));
   try{
     await page.goto(process.env.RECORDING_TEST_URL||'http://127.0.0.1:8765/?surface=recording');await page.waitForFunction(()=>window.JamRecording);
-    await page.evaluate(()=>{JamRecording.updateSettings({camera:false,rulersButton:true});JamRecording.setStage('idle');JamRecording.setMode('area');});
+    await page.evaluate(()=>{JamRecording.updateSettings({camera:false});JamRecording.setStage('idle');JamRecording.setMode('area');});
     const state=()=>page.evaluate(()=>JamRecording.getState()),toggle=page.getByRole('button',{name:'Display rulers',exact:true}),cross=page.locator('.rb-area-center'),badge=page.locator('.rb-ruler-distance');
     assert.equal(await toggle.getAttribute('title'),'Display rulers');assert.equal(await toggle.getAttribute('aria-pressed'),'false');assert.ok(!await cross.isVisible());
     assert.equal(await toggle.locator('.rb-sf').getAttribute('data-symbol'),'lines.measurement.horizontal.aligned.bottom');

@@ -32,13 +32,7 @@
         select('mode','Selection',()=>R().getSettings().mode,value=>R().setMode(value),[['screen','Screen'],['window','Window'],['area','Area']]),
         select('stage','State',()=>R().getState().stage,value=>R().setStage(value),[['idle','Idle'],['recording','Recording'],['paused','Paused'],['limit','Time limit']]),
         recordingToggle('microphone','Microphone'),
-        recordingToggle('rulersButton','Rulers button'),
         action('reset-selection','Reset selection',()=>R().resetSelection()),
-      ]),
-      section('window-picker','Window picker',[
-        recordingToggle('oneClick','One-click start'),
-        select('pickerStart','Start from',()=>R().getSettings().pickerStart,value=>R().updateSettings({pickerStart:value}),[['window','Anywhere on window'],['button','Start button only']]),
-        select('browserLogs','Chrome logs',()=>R().getSettings().browserLogs,value=>R().updateSettings({browserLogs:value}),[['connected','Extension connected'],['unavailable','Extension missing']]),
       ]),
       section('camera','Camera',[
         action('use-camera','Use Mac camera',()=>R().requestCamera()),

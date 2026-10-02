@@ -36,19 +36,3 @@
 .rb-selection-notch .rb-notch-rulers{padding:0 8px}
 .rb-selection-notch .rb-notch-rulers[aria-pressed="true"]{background:#9ff06538;color:#9ff065}
 @media(hover:hover) and (pointer:fine){.rb-selection-notch .rb-notch-rulers[aria-pressed="true"]:hover{background:#9ff06548}}
-.rb-selection-notch[data-logs="connected"] .rb-notch-logs{color:#8be36b}.rb-selection-notch[data-logs="connected"] .rb-notch-logs .rb-sf{opacity:1}
-
-/* On the record card the notch is the panel behind the record pill: sizing under the pill, then the logs status under a divider. */
-.rb-selection-notch.is-card{flex-direction:column;gap:0;padding:52px 8px 8px;border-radius:24px}
-.rb-selection-notch.is-card .rb-notch-backplate{pointer-events:auto}
-.rb-selection-notch.is-card .rb-notch-sizing{order:1}
-.rb-selection-notch.is-card .rb-notch-window-controls{order:2;justify-content:center;width:100%;margin-top:12px}
-.rb-selection-notch.is-card .rb-notch-window-controls::before{content:'';position:absolute;left:-8px;right:-8px;top:-5px;height:1px;background:#ffffff1a;pointer-events:none}
-.rb-selection-notch.is-card .rb-notch-window-controls .rb-notch-separator{display:none}
-.rb-selection-notch.is-card button,.rb-selection-notch.is-card .rb-notch-field input{font-size:13px;font-weight:510}
-.rb-selection-notch.is-card .rb-notch-ratio{min-width:32px;padding:0 8px}
-.rb-selection-notch.is-card .rb-notch-field input{width:calc(var(--digits,3) * 1ch + 18px);min-width:0;padding:0 8px}
-.rb-selection-notch.is-card .rb-notch-logs{padding:0 16px;font-size:13px;font-weight:510}
-.rb-selection-notch.is-card .rb-notch-logs .rb-sf{width:6px;height:6px;margin:2px}
-.rb-selection-notch.is-card[data-logs="connected"] .rb-notch-logs{color:#89ff9fcc}
-.rb-selection-notch.is-card[data-logs="connected"] .rb-notch-logs .rb-sf{color:#53b365}

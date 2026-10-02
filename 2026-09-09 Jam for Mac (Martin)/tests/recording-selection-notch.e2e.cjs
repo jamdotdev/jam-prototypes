@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
-const url=process.env.RECORDING_TEST_URL||'http://127.0.0.1:8765/?surface=recording';
+const url=process.env.RECORDING_TEST_URL||'http://127.0.0.1:8766/?surface=recording';
 const output=process.env.RECORDING_TEST_OUTPUT||'/tmp/jam-notch-e2e';fs.mkdirSync(output,{recursive:true});
 const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${message}: ${actual} != ${expected}`);
 (async()=>{
@@ -9,8 +9,7 @@ const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${
   page.on('pageerror',error=>errors.push(String(error)));
   page.on('response',response=>{if(response.status()>=400&&/recording-selection|assets\/recording\/sf/.test(response.url()))errors.push(`${response.status()} ${response.url()}`);});
   const state=()=>page.evaluate(()=>JamRecording.getState()),rect=async()=> (await state()).bounds;
-  // Edge placement belongs to the select-then-record flow; one-click start puts the notch on the record card.
-  const mode=async value=>{await page.evaluate(value=>{JamRecording.updateSettings({oneClick:false});JamRecording.setStage('idle');JamRecording.setMode(value);},value);};
+  const mode=async value=>{await page.evaluate(value=>{JamRecording.setStage('idle');JamRecording.setMode(value);},value);};
   const notch=page.locator('.rb-selection-notch'),ratioButton=page.locator('.rb-notch-ratio'),resizeButton=page.locator('.rb-notch-resize');
   async function ratio(preset){await ratioButton.click();await page.locator(`#rb-ratio-menu [data-ratio="${preset}"]`).click();}
   async function orientation(value){await ratioButton.click();await page.getByRole('button',{name:value==='vertical'?'Vertical':'Horizontal',exact:true}).click();await page.keyboard.press('Escape');}

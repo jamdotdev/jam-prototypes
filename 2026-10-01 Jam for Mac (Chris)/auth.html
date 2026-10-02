@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Launching Jam · Prototype</title>
+  <link rel="icon" href="assets/favicon-light.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="auth.css">
+  <script src="auth.js" defer></script>
+</head>
+<body>
+  <main class="launch-page">
+    <img class="jam-logo" src="assets/auth-logo.svg" width="74" height="32" alt="Jam">
+    <h1 id="launch-title">Launching Jam</h1>
+    <p id="launch-copy">Open Jam to start recording in the mac app.<br>Or <button id="launch-manually" class="text-button">launch the app manually.</button></p>
+    <p class="launch-status" id="launch-status" role="status" aria-live="polite"></p>
+  </main>
+  <div class="prototype-note">Onboarding prototype · No account or app installation needed</div>
+  <dialog class="launch-dialog" id="launch-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-copy dialog-prototype-note">
+    <h2 id="dialog-title">Open Jam.app?</h2>
+    <p id="dialog-copy"><span id="page-origin"></span> wants to open this application.</p>
+    <label class="remember-choice"><input type="checkbox" id="remember-choice"><span>Always allow <span id="allow-origin"></span> to open links of this type in the associated app</span></label>
+    <div class="dialog-footer">
+      <span id="dialog-prototype-note" class="dialog-prototype-note">Prototype dialog</span>
+      <button type="button" class="dialog-button" id="cancel-launch">Cancel</button>
+      <button type="button" class="dialog-button primary" id="confirm-launch" autofocus>Open Jam.app</button>
+    </div>
+  </dialog>
+</body>
+</html>

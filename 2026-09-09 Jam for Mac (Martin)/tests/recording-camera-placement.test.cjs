@@ -16,13 +16,12 @@ function environment(saved='{}'){
  const windows={finder:{x:80,y:40,width:420,height:360},browser:{x:300,y:100,width:600,height:450}};
  const settings={mode:'screen',camera:true,followCursor:false,cameraSize:120,cameraMinSize:12,cameraMaxSize:240,followSize:60};
  let fixedCamera={x:84,y:616},cameraPlaced=false,fixedAnchor=null,cameraSnap=null;
- const selectionSizing={area:{}};
  const reduced={matches:true},bubble={dataset:{},style:{}},pointer={x:400,y:300};
  const follower={steps:0,value:{x:84,y:616,size:120},snap(value){this.value={...value};},getState(){return this.value;},step(){this.steps++;return this.value;}};
  const camera=JamRecordingCamera.create({pause(){},play(){return Promise.resolve();}});
  const JamDefaults={changed(){}},performance={now:()=>1000};
  const emit=()=>{},wake=()=>{},renderBelt=()=>{},syncCursor=()=>{},renderCameraResizer=()=>{},scheduleClock=()=>{},advanceClock=()=>{},closeMenu=()=>{},cancelAnimationFrame=()=>{},layout=()=>{};
- ${['requestCamera','captureBounds','isIdle','loadCameraPositions','cameraPositionKey','rememberCameraPosition','placeCamera','inheritWindowArea','setMode','selectWindow','updateSettings','cameraSlots','renderCamera','setActive'].map(extract).join('\n')}
+ ${['requestCamera','captureBounds','isIdle','loadCameraPositions','cameraPositionKey','rememberCameraPosition','placeCamera','setMode','selectWindow','updateSettings','cameraSlots','renderCamera','setActive'].map(extract).join('\n')}
  const cameraPositions=loadCameraPositions();
  function syncSelection(){if(!cameraPlaced)placeCamera();renderCamera(0);}
  function setStage(next){stage=next;}
@@ -47,7 +46,7 @@ const turn=()=>new Promise(resolve=>setImmediate(resolve));
  e.engine.setMode('window');e.engine.selectWindow('finder');e.context.place(200,200,'n');const finder={...e.context.position()};
  e.engine.selectWindow('browser');e.context.place(700,350,null);const browser={...e.context.position()};
  e.engine.selectWindow('finder');assert.deepEqual({...e.context.position()},finder,'Each selected window restores its own dock');
- e.engine.setMode('area');assert.deepEqual({...e.context.position()},{...area,x:416,y:220},'Area restores its last dock on the bounds inherited from the selected window');
+ e.engine.setMode('area');assert.deepEqual({...e.context.position()},area,'Area restores its last dock');
  e.engine.setMode('screen');assert.deepEqual({...e.context.position()},screen,'Screen restores its last dock');
  assert.equal(e.calls.length,1,'Changing capture modes keeps the existing stream');
  e.engine.updateSettings({followCursor:true});assert.equal(e.context.followSteps(),0,'Follow waits at the saved dock before the first real pointer event');assert.deepEqual({...e.context.position()},screen);e.context.observePointer();e.engine.updateSettings({followCursor:true});assert.equal(e.context.followSteps(),1,'A real pointer position enables following');e.context.followerMove(350,280);e.engine.updateSettings({followCursor:false});assert.deepEqual({...e.context.position()},screen,'Leaving Follow cursor restores the stationary placement');

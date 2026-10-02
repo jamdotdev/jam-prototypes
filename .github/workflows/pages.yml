@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '2026-09-09 Jam for Mac (Martin)/**'
+      - '2026-10-01 Jam for Mac (Chris)/**'
       - '.github/pages/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
@@ -32,12 +33,14 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Prepare the static site
-        env:
-          PROTOTYPE_DIR: '2026-09-09 Jam for Mac (Martin)'
         run: |
-          mkdir -p _site/mac
-          cp "$PROTOTYPE_DIR"/*.html "$PROTOTYPE_DIR"/*.css "$PROTOTYPE_DIR"/*.js _site/mac/
-          cp -R "$PROTOTYPE_DIR/assets" _site/mac/assets
+          publish() {
+            mkdir -p "_site/$2"
+            cp "$1"/*.html "$1"/*.css "$1"/*.js "_site/$2/"
+            cp -R "$1/assets" "_site/$2/assets"
+          }
+          publish '2026-09-09 Jam for Mac (Martin)' mac
+          publish '2026-10-01 Jam for Mac (Chris)' mac-chris
           cp .github/pages/index.html _site/index.html
           touch _site/.nojekyll
       - name: Upload the site

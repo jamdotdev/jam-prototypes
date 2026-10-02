@@ -125,7 +125,7 @@ window.JamDefaultValues = {
       "pulseStart": 1000,
       "pulseEnd": 350,
       "pulseStrength": 4,
-      "mode": "window",
+      "mode": "screen",
       "camera": true,
       "microphone": true,
       "cameraDevice": "Martin\u2019s iPhone Camera",
@@ -141,10 +141,6 @@ window.JamDefaultValues = {
       "beltSpring": 280,
       "beltDamping": 28,
       "showBounds": false,
-      "oneClick": true,
-      "rulersButton": false,
-      "pickerStart": "window",
-      "browserLogs": "connected",
       "rate": 1,
       "loop": false
     }
