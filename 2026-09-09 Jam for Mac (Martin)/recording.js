@@ -3,7 +3,7 @@
   const root=document.getElementById('recording-window');
   if(!root)return;
   const desktop=document.getElementById('desktop');
-  const ACTIVE_WIDTH=185,LIMIT=1800;
+  const ACTIVE_WIDTH=185,LIMIT=1800,CARD_WIDTH=230;
   let IDLE_WIDTH=435;
   let W=desktop.clientWidth,H=desktop.clientHeight;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -36,7 +36,7 @@
     <button class="rb-area-draw" aria-label="Draw a new recording area" hidden></button>
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
-    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start">${icon('record')}<span>Click to record</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
+    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
     <div class="rb-belt" role="toolbar" aria-label="Recording controls">
@@ -240,12 +240,15 @@
     card.hidden=false;card.dataset.target=target;
     $('.rb-record-card .rb-picker-app').hidden=target==='area';
     if(target!=='area'&&card.dataset.art!==target){card.dataset.art=target;$('.rb-card-art').innerHTML=targetArt[target];$('.rb-record-card .rb-picker-name').textContent=targetNames[target];}
-    $('.rb-record-card .rb-picker-start').setAttribute('aria-label',target==='area'||target==='screen'?`Record ${target}`:`Record ${targetNames[target]} window`);
+    const start=$('.rb-record-card .rb-picker-start'),label=`Record ${target==='area'||target==='screen'?target:'window'}`;
+    $('.rb-record-card .rb-picker-start-label').textContent=label;
+    if(target==='area'||target==='screen')start.removeAttribute('aria-label');else start.setAttribute('aria-label',`${label}, ${targetNames[target]}`);
     $('.rb-record-card .rb-picker-notch').hidden=sizing;
     if(!sizing)$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
     const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rulers:settings.rulersButton,rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
-    const controls=$('.rb-record-card .rb-picker-controls');controls.style.width=`${Math.max(164,notch?.width||0)}px`;
-    const cardWidth=card.offsetWidth,cardHeight=card.offsetHeight,total=cardHeight+(notch?notch.height-20:0);
+    const controls=$('.rb-record-card .rb-picker-controls');controls.style.width=`${Math.max(CARD_WIDTH,notch?.width||0)}px`;
+    // The notch is the panel behind the record pill, so it starts where the controls do.
+    const cardWidth=card.offsetWidth,panelTop=controls.offsetTop,total=notch?panelTop+notch.height:card.offsetHeight;
     let x=rect.x+rect.width/2,y=rect.y+rect.height/2-total/2;
     // An area too small to hold the card gets it alongside, below if it clears the belt.
     if(target==='area'&&(rect.width<cardWidth+32||rect.height<total+32)){
@@ -254,7 +257,7 @@
     }
     x=clamp(x,cardWidth/2+8,W-cardWidth/2-8);y=clamp(y,8,H-total-8);
     card.style.left=`${x-cardWidth/2}px`;card.style.top=`${y}px`;
-    if(notch)selectionNotch.place({x,y:y+cardHeight-20});
+    if(notch)selectionNotch.place({x,y:y+panelTop});
   }
   function setHover(next){
     if(next===hoverTarget)return;
@@ -583,7 +586,7 @@
     el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();startWindowRecording(el.dataset.picker);}});
   });
   $('.rb-screen-picker').addEventListener('click',()=>{if(settings.pickerStart==='window')startTarget('screen');});
-  $('.rb-record-card').addEventListener('click',e=>{if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window')startTarget(cardTarget());});
+  $('.rb-record-card').addEventListener('click',e=>{if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
   root.addEventListener('pointermove',trackHover);
   root.addEventListener('pointerleave',()=>{if(!openMenu&&!hoverHold)setHover(null);});
   function startDrag(event,kind,extra={}){if(event.button!==0||drag||selectionRulers?.isDragging())return;cornerPin?.clear();if(document.activeElement?.closest('.rb-selection-notch input'))document.activeElement.blur();event.preventDefault();const p=local(event);drag={kind,start:p,pointerId:event.pointerId,target:event.currentTarget,shiftKey:event.shiftKey,altKey:event.altKey,...extra};event.currentTarget.setPointerCapture(event.pointerId);closeMenu(false);syncCursor();syncCameraSizing();}

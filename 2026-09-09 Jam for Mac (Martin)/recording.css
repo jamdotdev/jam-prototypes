@@ -148,16 +148,16 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-mock-window.is-hovered .rb-window-picker,.rb-screen-picker{background:#ff3b3066;box-shadow:inset 0 0 0 3px #ff3b30}
 .rb-screen-picker{display:none;position:absolute;inset:0;z-index:11;cursor:pointer}
 .recording-scene[data-screen-hover="true"] .rb-screen-picker{display:block}
-.rb-record-card{position:absolute;z-index:39;display:flex;flex-direction:column;align-items:center;gap:16px;cursor:pointer}.rb-record-card[hidden]{display:none}
+.rb-record-card{position:absolute;z-index:39;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer}.rb-record-card[hidden]{display:none}
 .rb-picker-app{display:flex;flex-direction:column;align-items:center;gap:4px}.rb-picker-app[hidden]{display:none}
 .rb-dock-icon{display:block;width:70px;height:70px;margin:-2px -7px -12px}
 .rb-dock-icon.is-finder,.rb-dock-icon.is-display{width:56px;height:56px;margin:0;display:grid;place-items:center;border-radius:12.5px;color:#fff;box-shadow:0 2px 4px #00000017,0 4px 6px #00000017,0 0 1px #00000044}.rb-dock-icon .rb-sf{width:32px;height:32px}
 .rb-dock-icon.is-finder{background:linear-gradient(#6fd2ff,#1d8bf1)}.rb-dock-icon.is-display{background:linear-gradient(#48484a,#1c1c1e)}
-.rb-picker-name{padding:4px 9px;color:#fff;font-size:22px;line-height:26px;font-weight:700;white-space:nowrap;text-shadow:0 2px 4px #00000017,0 4px 6px #00000017,0 0 1px #00000044}
-.rb-picker-controls{display:flex;flex-direction:column;width:164px}
-.rb-picker-start{position:relative;z-index:2;height:36px;display:flex;align-items:center;justify-content:center;gap:4px;border-radius:18px;background:#ff3b30;color:#fff;font-size:13px;line-height:16px;font-weight:510;cursor:pointer}
-.rb-picker-start .rb-sf{width:16px;height:16px}
-.rb-picker-notch{position:relative;z-index:1;display:flex;justify-content:center;margin-top:-20px;padding:24px 4px 4px 8px;border-radius:0 0 18px 18px;background:#1e1e1e;box-shadow:inset 0 .5px 0 #ffffff14,inset 0 0 .5px #ffffff59,0 0 .5px #00000087,0 10px 7.5px #0000002e,0 4px 3px #0000001f}
+.rb-picker-name{padding:4px 9px;color:#fff;font-size:17px;line-height:22px;font-weight:700;white-space:nowrap;text-shadow:0 2px 4px #00000017,0 4px 6px #00000017,0 0 1px #00000044}
+.rb-picker-controls{display:flex;flex-direction:column;gap:8px;width:230px;padding:8px 8px 0;border-radius:24px;cursor:default}
+.rb-record-card[data-target="screen"] .rb-picker-controls{padding-bottom:8px;background:#1e1e1e;box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59}
+.rb-picker-start{position:relative;z-index:2;height:36px;display:flex;align-items:center;justify-content:center;padding:0 16px;border-radius:18px;background:linear-gradient(#f83b3e,#ff4d50);color:#fff;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:pointer}
+.rb-picker-notch{display:flex;justify-content:center}
 .rb-picker-notch[hidden]{display:none}
-.rb-picker-logs{display:flex;align-items:center;gap:4px;height:28px;padding:0 16px;color:#ffffff8c;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rb-picker-logs{display:flex;align-items:center;gap:4px;height:24px;padding:0 16px;color:#ffffffd9;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;font-variant-numeric:tabular-nums}
 @media(hover:hover) and (pointer:fine){.rb-picker-start:hover{filter:brightness(1.08)}}

@@ -14,7 +14,7 @@
     let context=null,currentMenu=null,trigger=null,contextKey=null,typeBuffer='',typeTimer=0;
     const naturalWidths=new Map(),moving=[...notch.children],animations=new Map();
     const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-    const GAP=8,FIT_BUFFER=12;
+    const GAP=8,FIT_BUFFER=12,CARD_WIDTH=230;
     let layout=null,pointerInput=true;
     root.addEventListener('pointerdown',()=>pointerInput=true,true);
     root.addEventListener('keydown',()=>{pointerInput=false;notch.classList.add('is-instant');stopMotion();},true);
@@ -153,20 +153,20 @@
       notch.setAttribute('aria-label',`${windowMode?'Window':'Area'} sizing`);$('.rb-notch-window-controls').hidden=!windowMode||next.card&&!next.logs;
       ratioButton.querySelector('span:last-child').textContent=locked?JamSelectionGeometry.label(next.sizing):'';
       ratioButton.setAttribute('aria-label',`Aspect ratio: ${JamSelectionGeometry.label(next.sizing)}`);
-      for(const axis of ['width','height']){const input=$(`.rb-notch-${axis}`);if(document.activeElement!==input)input.value=String(Math.round(next.rect[axis]));input.setAttribute('aria-description',locked?'Aspect ratio locked. Changing this value updates the other dimension.':'Size in pixels');}
+      for(const axis of ['width','height']){const input=$(`.rb-notch-${axis}`);if(document.activeElement!==input)input.value=String(Math.round(next.rect[axis]));input.style.setProperty('--digits',String(Math.max(3,input.value.length)));input.setAttribute('aria-description',locked?'Aspect ratio locked. Changing this value updates the other dimension.':'Size in pixels');}
       const width=root.clientWidth,height=root.clientHeight;
       const available=Math.max(0,width-16),fitWidth=Math.min(available,next.rect.width);
       const logs=next.logs||{state:'none',label:'No logs'},changeWindow=next.changeWindow!==false;
       $('.rb-notch-change').hidden=!changeWindow;$('.rb-notch-change-separator').hidden=!changeWindow;
       notch.dataset.logs=logs.state;$('.rb-notch-logs-label').textContent=logs.label;$('.rb-notch-logs').title=logs.label;
       notch.classList.toggle('is-card',!!next.card);
-      const natural=measureWidth(`${windowMode}:${changeWindow}:${!!next.rulers}:${!!next.card}:${!!next.logs}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}`);
+      const digits=next.card?`:${$('.rb-notch-width').value.length}:${$('.rb-notch-height').value.length}`:'';
+      const natural=measureWidth(`${windowMode}:${changeWindow}:${!!next.rulers}:${!!next.card}:${!!next.logs}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}${digits}`);
       if(next.card){
-        // On the record card the logs status sits above the sizing controls, and the caller places the panel.
-        const compact=windowMode&&!!next.logs;
-        notch.classList.toggle('is-compact',compact);notch.classList.remove('is-floating','is-inset','is-above');
-        notch.style.width=`${Math.max(164,compact?natural.stacked:natural.wide)}px`;notch.style.maxWidth='';
-        stopMotion();layout={compact,floating:false,above:false,inside:false};
+        // On the record card the notch is the panel behind the record pill, and the caller places it.
+        notch.classList.remove('is-compact','is-floating','is-inset','is-above');
+        notch.style.width=`${Math.max(CARD_WIDTH,natural.wide)}px`;notch.style.maxWidth='';
+        stopMotion();layout={compact:false,floating:false,above:false,inside:false};
         if(currentMenu===ratioMenu)syncRatioMenu();
         return {width:notch.offsetWidth,height:notch.offsetHeight};
       }
