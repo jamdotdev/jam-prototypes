@@ -1,0 +1,32 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync(require('node:path').join(__dirname,'../recording-camera.js'),'utf8');
+const turn=()=>new Promise(resolve=>setImmediate(resolve));
+const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
+function camera(id){
+  const track=new EventTarget();Object.assign(track,{kind:'video',readyState:'live',label:`Camera ${id}`,stops:0,stop(){this.stops++;this.readyState='ended';},getSettings(){return {deviceId:id};}});
+  return {track,getTracks:()=>[track],getVideoTracks:()=>[track]};
+}
+function env(extra={}){
+  const media=new EventTarget(),events=new EventTarget(),calls=[],changes=[],queue=[];
+  let devices=[{kind:'videoinput',deviceId:'a',label:'Camera a'},{kind:'audioinput',deviceId:'mic',label:'Mic'}];
+  media.getUserMedia=constraints=>{calls.push(constraints);const d=deferred();queue.push(d);return d.promise;};
+  media.enumerateDevices=async()=>devices;
+  const video={srcObject:null,pause(){},play(){return Promise.resolve();}};
+  const ctx={navigator:{mediaDevices:media,...extra.navigator},console,EventTarget,Event,isSecureContext:extra.isSecureContext??true,addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events)};
+  vm.createContext(ctx);vm.runInContext(source,ctx);
+  const controller=ctx.JamRecordingCamera.create(video,{onChange:state=>changes.push(state)});
+  return {controller,media,events,video,calls,queue,changes,devices:next=>devices=next};
+}
+(async()=>{
+  {const e=env();assert.equal(e.calls.length,0);const p=e.controller.request();assert.equal(e.controller.request(),p);await turn();assert.equal(e.calls.length,1);assert.equal(e.calls[0].audio,false);const a=camera('a');e.queue[0].resolve(a);assert.equal((await p).status,'live');assert.equal(e.video.srcObject,a);assert.equal(e.controller.getState().devices.length,1);const state=e.controller.getState();state.devices[0].label='changed';assert.equal(e.controller.getState().devices[0].label,'Camera a');const q=e.controller.request('b');await turn();assert.equal(a.track.stops,0);assert.equal(e.video.srcObject,a);assert.equal(e.calls[1].video.deviceId.exact,'b');const b=camera('b');e.queue[1].resolve(b);await q;assert.equal(a.track.stops,1);assert.equal(e.video.srcObject,b);e.controller.stop();assert.equal(b.track.readyState,'ended');assert.equal(e.video.srcObject,null);assert.equal(e.controller.getState().status,'idle');}
+  {const e=env();const p=e.controller.request();await turn();e.controller.stop();const a=camera('late');e.queue[0].resolve(a);await p;assert.equal(a.track.readyState,'ended');assert.equal(e.controller.getState().status,'idle');assert.equal(e.video.srcObject,null);}
+  {const e=env();const p=e.controller.request();await turn();e.controller.stop();e.queue[0].reject({name:'NotAllowedError'});await p;assert.equal(e.controller.getState().status,'idle');const q=e.controller.request();await turn();assert.equal(e.calls.length,2);e.queue[1].resolve(camera('a'));await q;e.controller.stop();}
+  {const e=env();const p=e.controller.request('a');await turn();const q=e.controller.request('b');const r=e.controller.request('c');assert.equal(e.calls.length,1);const a=camera('a');e.queue[0].resolve(a);await p;await turn();assert.equal(a.track.readyState,'ended');assert.equal(e.calls.length,2);assert.equal(e.calls[1].video.deviceId.exact,'c');e.queue[1].resolve(camera('c'));await Promise.all([q,r]);assert.equal(e.controller.getState().deviceId,'c');e.controller.stop();}
+  {const permission=new EventTarget();permission.state='denied';const e=env({navigator:{permissions:{query:async()=>permission}}});const p=e.controller.request();await turn();e.queue[0].reject({name:'NotAllowedError'});assert.equal((await p).status,'denied');await e.controller.request();assert.equal(e.calls.length,1);permission.state='granted';permission.dispatchEvent(new Event('change'));const q=e.controller.request();await turn();assert.equal(e.calls.length,2);e.queue[1].resolve(camera('a'));assert.equal((await q).status,'live');e.controller.stop();}
+  {const e=env();const p=e.controller.request();await turn();const a=camera('a');e.queue[0].resolve(a);await p;a.track.readyState='ended';a.track.dispatchEvent(new Event('ended'));assert.equal(e.controller.getState().status,'unavailable');assert.equal(e.video.srcObject,null);e.devices([{kind:'videoinput',deviceId:'new',label:'New camera'}]);e.media.dispatchEvent(new Event('devicechange'));await turn();assert.equal(e.controller.getState().devices[0].deviceId,'new');assert.equal(e.calls.length,1);}
+  {const e=env();const p=e.controller.request();await turn();const a=camera('a');e.queue[0].resolve(a);await p;e.events.dispatchEvent(new Event('pagehide'));assert.equal(a.track.readyState,'ended');assert.equal(e.controller.getState().status,'idle');}
+  {const e=env();const p=e.controller.request();await turn();const a=camera('a');e.queue[0].resolve(a);await p;const play=deferred();e.video.play=()=>play.promise;const q=e.controller.request('b');await turn();const b=camera('b');e.queue[1].resolve(b);await turn();const r=e.controller.request('c');play.resolve();await q;await turn();assert.equal(b.track.readyState,'ended');assert.equal(a.track.readyState,'live');assert.equal(e.calls.length,3);const c=camera('c');e.queue[2].resolve(c);await r;assert.equal(a.track.readyState,'ended');assert.equal(c.track.readyState,'live');e.controller.stop();}
+  {const e=env({isSecureContext:false});assert.equal((await e.controller.request()).status,'unavailable');assert.equal(e.calls.length,0);}
+  {const query=deferred();let subscriptions=0;const permission={state:'granted',addEventListener(){subscriptions++;},removeEventListener(){}};const e=env({navigator:{permissions:{query:()=>query.promise}}});const p=e.controller.request();await turn();e.queue[0].reject({name:'NotAllowedError'});await p;const retry=e.controller.request();await turn();e.controller.destroy();query.resolve(permission);await retry;assert.equal(subscriptions,0);assert.equal(e.calls.length,1);assert.equal(e.controller.getState().status,'idle');}
+  console.log('PASS: explicit-only access, no audio, dedupe, switching, late grants, stale errors, supersession, denial latch/retry, track ending, device discovery, pagehide, playback races, insecure context, destruction during permission query.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

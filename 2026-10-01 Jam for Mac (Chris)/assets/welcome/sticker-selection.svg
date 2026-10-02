@@ -1,0 +1,45 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="57.596" height="58.4882" viewBox="0 0 57.596 58.4882" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Stickers" filter="url(#filter0)">
+<g id="Group 10123238">
+<path id="Union" d="M12.864 1.36093C15.8229 1.36093 18.3513 0.65248 19.3753 3.2474H38.1884C39.2125 0.65248 41.7409 1.36093 44.6997 1.36093H49.8651C53.7306 1.36093 56.2279 3.85824 56.2279 7.72372V12.8891C56.2279 15.8311 56.9571 18.3472 54.3856 19.3824V37.919C56.9572 38.9542 56.2279 41.4708 56.2279 44.4129V49.5783C56.2279 53.4438 53.7306 55.9411 49.8651 55.9411H44.6997C41.81 55.9411 39.33 56.0983 38.2617 53.5992H19.302C18.2338 56.0983 15.7538 55.9411 12.864 55.9411H7.69861C3.83313 55.9411 1.33582 53.4438 1.33582 49.5783V44.4129C1.33582 41.3878 0.70973 38.8108 3.39689 37.8333V19.4682C0.709834 18.4906 1.33582 15.9141 1.33582 12.8891V7.72372C1.33582 3.85824 3.83313 1.36093 7.69861 1.36093H12.864Z" fill="white"/>
+<g id="Group 10123126">
+<rect id="Rectangle 13125" x="10.1805" y="10.1804" width="36.9902" height="36.9902" stroke="#DDDCD5" stroke-width="4.45395" stroke-dasharray="8.27 5.73"/>
+<rect id="Rectangle 13126" x="3.81768" y="3.81765" width="12.801" height="12.801" rx="3.81767" fill="#7AA4FF" stroke="white" stroke-width="3.81767"/>
+<rect id="Rectangle 13130" x="40.7219" y="3.81765" width="12.801" height="12.801" rx="3.81767" fill="#7AA4FF" stroke="white" stroke-width="3.81767"/>
+<rect id="Rectangle 13128" x="3.81768" y="41.0018" width="12.801" height="12.801" rx="3.81767" fill="#7AA4FF" stroke="white" stroke-width="3.81767"/>
+<rect id="Rectangle 13131" x="40.7219" y="41.0018" width="12.801" height="12.801" rx="3.81767" fill="#7AA4FF" stroke="white" stroke-width="3.81767"/>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0" x="-0.636281" y="-0.636269"  width="57.9014" height="58.5377" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="1.27256"/>
+<feGaussianBlur stdDeviation="0.636279"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_41"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset/>
+<feGaussianBlur stdDeviation="0.636279"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0"/>
+<feBlend mode="normal" in2="effect1_dropShadow_0_41" result="effect2_dropShadow_0_41"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feTurbulence type="fractalNoise" baseFrequency="3.1432750225067139 3.1432750225067139" stitchTiles="stitch" numOctaves="3" result="noise" seed="8032" />
+<feColorMatrix in="noise" type="luminanceToAlpha" result="alphaNoise" />
+<feComponentTransfer in="alphaNoise" result="coloredNoise1">
+<feFuncA type="discrete" tableValues="0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "/>
+</feComponentTransfer>
+<feComposite operator="in" in2="shape" in="coloredNoise1" result="noise1Clipped" />
+<feFlood flood-color="rgba(0, 0, 0, 0.1)" result="color1Flood" />
+<feComposite operator="in" in2="noise1Clipped" in="color1Flood" result="color1" />
+<feMerge result="effect3_noise_0_41">
+<feMergeNode in="shape" />
+<feMergeNode in="color1" />
+</feMerge>
+<feBlend mode="normal" in="effect3_noise_0_41" in2="effect2_dropShadow_0_41" result="effect3_noise_0_41"/>
+</filter>
+</defs>
+</svg>
