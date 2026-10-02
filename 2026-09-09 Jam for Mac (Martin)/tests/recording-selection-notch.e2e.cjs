@@ -9,7 +9,8 @@ const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${
   page.on('pageerror',error=>errors.push(String(error)));
   page.on('response',response=>{if(response.status()>=400&&/recording-selection|assets\/recording\/sf/.test(response.url()))errors.push(`${response.status()} ${response.url()}`);});
   const state=()=>page.evaluate(()=>JamRecording.getState()),rect=async()=> (await state()).bounds;
-  const mode=async value=>{await page.evaluate(value=>{JamRecording.setStage('idle');JamRecording.setMode(value);},value);};
+  // Edge placement belongs to the select-then-record flow; one-click start puts the notch on the record card.
+  const mode=async value=>{await page.evaluate(value=>{JamRecording.updateSettings({oneClick:false});JamRecording.setStage('idle');JamRecording.setMode(value);},value);};
   const notch=page.locator('.rb-selection-notch'),ratioButton=page.locator('.rb-notch-ratio'),resizeButton=page.locator('.rb-notch-resize');
   async function ratio(preset){await ratioButton.click();await page.locator(`#rb-ratio-menu [data-ratio="${preset}"]`).click();}
   async function orientation(value){await ratioButton.click();await page.getByRole('button',{name:value==='vertical'?'Vertical':'Horizontal',exact:true}).click();await page.keyboard.press('Escape');}
@@ -67,8 +68,6 @@ const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${
     await page.mouse.move(r.x+25,r.y+25);await page.mouse.down();await page.mouse.move(60,999,{steps:8});await page.mouse.up();
     assert.ok(await notch.evaluate(el=>el.classList.contains('is-above')),'Small area at bottom floats above selection');
     const bottomNotch=await notch.boundingBox();assert.ok(bottomNotch.y+bottomNotch.height<=1000,'Bottom notch remains visible');await checkFields();await ratioButton.click();assert.ok(await page.locator('#rb-ratio-menu').isVisible(),'Inset notch stays interactive');await page.keyboard.press('Escape');
-    // Change window belongs to the select-then-record flow; one-click start has no selected idle window.
-    await page.evaluate(()=>JamRecording.updateSettings({oneClick:false}));
     await mode('window');assert.ok(!await notch.isVisible());await page.evaluate(()=>JamRecording.selectWindow('browser'));assert.ok(await notch.isVisible());assert.ok(await page.locator('.rb-notch-window-controls').isVisible());
     assert.equal(await page.locator('.rb-notch-change').getAttribute('title'),'Change window');
     assert.equal(await ratioButton.getAttribute('title'),'Change ratio');

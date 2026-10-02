@@ -150,7 +150,7 @@
       notch.classList.toggle('is-window',windowMode);notch.classList.toggle('is-ratio-locked',locked);
       $('.rb-notch-rulers').hidden=windowMode;$('.rb-notch-rulers-separator').hidden=windowMode;
       $('.rb-notch-rulers').setAttribute('aria-pressed',String(!!next.sizing.rulers));
-      notch.setAttribute('aria-label',`${windowMode?'Window':'Area'} sizing`);$('.rb-notch-window-controls').hidden=!windowMode;
+      notch.setAttribute('aria-label',`${windowMode?'Window':'Area'} sizing`);$('.rb-notch-window-controls').hidden=!windowMode||next.card&&!next.logs;
       ratioButton.querySelector('span:last-child').textContent=locked?JamSelectionGeometry.label(next.sizing):'';
       ratioButton.setAttribute('aria-label',`Aspect ratio: ${JamSelectionGeometry.label(next.sizing)}`);
       for(const axis of ['width','height']){const input=$(`.rb-notch-${axis}`);if(document.activeElement!==input)input.value=String(Math.round(next.rect[axis]));input.setAttribute('aria-description',locked?'Aspect ratio locked. Changing this value updates the other dimension.':'Size in pixels');}
@@ -159,7 +159,17 @@
       const logs=next.logs||{state:'none',label:'No logs'},changeWindow=next.changeWindow!==false;
       $('.rb-notch-change').hidden=!changeWindow;$('.rb-notch-change-separator').hidden=!changeWindow;
       notch.dataset.logs=logs.state;$('.rb-notch-logs-label').textContent=logs.label;$('.rb-notch-logs').title=logs.label;
-      const natural=measureWidth(`${windowMode}:${changeWindow}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}`);
+      notch.classList.toggle('is-card',!!next.card);
+      const natural=measureWidth(`${windowMode}:${changeWindow}:${!!next.card}:${!!next.logs}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}`);
+      if(next.card){
+        // On the record card the logs status sits above the sizing controls, and the caller places the panel.
+        const compact=windowMode&&!!next.logs;
+        notch.classList.toggle('is-compact',compact);notch.classList.remove('is-floating','is-inset','is-above');
+        notch.style.width=`${Math.max(164,compact?natural.stacked:natural.wide)}px`;notch.style.maxWidth='';
+        stopMotion();layout={compact,floating:false,above:false,inside:false};
+        if(currentMenu===ratioMenu)syncRatioMenu();
+        return {width:notch.offsetWidth,height:notch.offsetHeight};
+      }
       const compact=windowMode&&(layout?.compact?natural.wide+FIT_BUFFER>fitWidth:natural.wide>fitWidth);
       notch.classList.toggle('is-compact',compact);
       notch.style.width=`${compact?natural.stacked:natural.wide}px`;
@@ -182,7 +192,11 @@
       if(currentMenu===ratioMenu)syncRatioMenu();
       if(currentMenu)position(currentMenu,trigger);
     }
-    return {render,close,owns:menu=>menu===ratioMenu||menu===resizeMenu};
+    function place({x,y}){
+      notch.style.left=`${x-notch.offsetWidth/2}px`;notch.style.top=`${y}px`;
+      if(currentMenu)position(currentMenu,trigger);
+    }
+    return {render,place,close,owns:menu=>menu===ratioMenu||menu===resizeMenu};
   }
   globalThis.JamSelectionNotch={create};
 })();

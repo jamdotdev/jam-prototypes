@@ -3,28 +3,31 @@
   const root=document.getElementById('recording-window');
   if(!root)return;
   const desktop=document.getElementById('desktop');
-  const IDLE_WIDTH=607,ACTIVE_WIDTH=185,LIMIT=1800;
+  const ACTIVE_WIDTH=185,LIMIT=1800;
+  let IDLE_WIDTH=435;
   let W=desktop.clientWidth,H=desktop.clientHeight;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   const symbols={close:'xmark',restart:'arrow.counterclockwise',pause:'pause.fill',play:'play.fill',stop:'stop.fill',record:'record.circle',window:'macwindow',area:'rectangle.dashed',display:'display',camera:'video.fill',cameraOff:'video.slash.fill',microphone:'mic.fill',microphoneOff:'mic.slash.fill',resize:'arrow.up.left.and.arrow.down.right',change:'arrow.2.squarepath',logs:'terminal',folder:'folder.fill',clock:'clock',document:'doc',download:'arrow.down.circle',cloud:'icloud',sidebar:'sidebar.left',minus:'minus',zoom:'arrow.up.backward.and.arrow.down.forward',follow:'cursorarrow.motionlines',mirror:'arrow.left.arrow.right',rulers:'lines.measurement.horizontal.aligned.bottom',aspect:'aspectratio',horizontal:'rectangle',vertical:'rectangle.portrait',status:'circle.fill'};
   const icon=name=>`<span class="rb-sf" data-symbol="${symbols[name]}" style="--sf-image:url('assets/recording/sf/${symbols[name]}.png')" aria-hidden="true"></span>`;
   const lights='<div class="traffic-lights" aria-hidden="true"><span class="traffic close">'+icon('close')+'</span><span class="traffic minimize">'+icon('minus')+'</span><span class="traffic zoom">'+icon('zoom')+'</span></div>';
-  const picker=(name,app,art)=>`<div class="rb-window-picker" data-picker="${name}"><div class="rb-picker-app">${art}<strong class="rb-picker-name">${app}</strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start" aria-label="Record ${app} window">${icon('record')}<span>Click to record</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><i class="rb-status-dot" aria-hidden="true"></i><span class="rb-picker-logs-label"></span></span></div></div></div>`;
+  const picker=(name,app)=>`<div class="rb-window-picker" data-picker="${name}" role="button" tabindex="0" aria-label="Record ${app} window"></div>`;
+  const targetNames={finder:'Finder',browser:'Chrome',screen:'Built-in Display'};
+  const targetArt={finder:`<span class="rb-dock-icon is-finder">${icon('folder')}</span>`,browser:'<img class="rb-dock-icon" src="assets/recording/chrome-dock-icon.png" width="70" height="70" alt="">',screen:`<span class="rb-dock-icon is-display">${icon('display')}</span>`};
   root.innerHTML=`
     <div class="rb-desktop-windows">
       <article class="rb-mock-window rb-finder" data-window="finder" aria-label="Finder window">
         <header class="rb-window-titlebar" tabindex="0" aria-label="Move Finder window">${lights}<strong>Design files</strong><span class="rb-window-drag-icon">${icon("sidebar")}</span></header>
         <div class="rb-finder-body"><aside><span>Favorites</span><b>${icon("clock")}Recents</b><b class="selected">${icon("document")}Documents</b><b>${icon("download")}Downloads</b><span>iCloud</span><b>${icon("cloud")}iCloud Drive</b></aside><div class="rb-files">${['Brand assets','Design system','Recordings','Feedback'].map((name,i)=>`<div><span class="rb-file-folder">${icon("folder")}</span><span>${name}</span><small>${[12,8,4,6][i]} items</small></div>`).join('')}</div></div>
         <button class="rb-window-selector" aria-label="Select Finder window"><span class="rb-selection-callout">Click to select this window</span></button>
-        ${picker('finder','Finder',`<span class="rb-dock-icon is-finder">${icon('folder')}</span>`)}
+        ${picker('finder','Finder')}
         <button class="rb-window-resizer" aria-label="Resize Finder window">${icon("resize")}</button>
       </article>
       <article class="rb-mock-window rb-browser" data-window="browser" aria-label="Browser window">
         <header class="rb-window-titlebar" tabindex="0" aria-label="Move browser window">${lights}<div class="rb-browser-address">jam.dev / design-system</div><span class="rb-window-drag-icon">${icon("sidebar")}</span></header>
         <div class="rb-browser-content"><div class="rb-browser-nav"><img src="assets/strawberry.svg" alt="Jam"><strong>Design system</strong><span>Foundations</span><span>Components</span></div><div class="rb-design-document"><span class="rb-eyebrow">MADE FOR YOUR TEAM</span><h2>A little more<br>room for ideas.</h2><p>A shared place for everything we’re building.</p><div class="rb-design-cards"><div><img src="assets/welcome/sticker-squiggle.svg" alt=""><span>Make it playful.</span></div><div><img src="assets/welcome/sticker-cursor.svg" alt=""><span>Keep it simple.</span></div><div><img src="assets/welcome/sticker-star.svg" alt=""><span>Make it yours.</span></div></div></div></div>
         <button class="rb-window-selector" aria-label="Select browser window"><span class="rb-selection-app"><img src="assets/recording/chrome.png" alt=""><span class="rb-selection-callout">Click to select this window</span></span></button>
-        ${picker('browser','Chrome','<img class="rb-dock-icon" src="assets/recording/chrome-dock-icon.png" width="70" height="70" alt="">')}
+        ${picker('browser','Chrome')}
         <button class="rb-window-resizer" aria-label="Resize browser window">${icon("resize")}</button>
       </article>
     </div>
@@ -32,15 +35,17 @@
     <div class="rb-capture-region" tabindex="0" role="group" aria-label="Recording area. Drag to move, arrow keys to nudge, Shift for ten pixels.">${['nw','n','ne','e','se','s','sw','w'].map(handle=>`<button class="rb-area-handle rb-handle-${handle}" data-handle="${handle}" aria-label="Resize recording area ${handle}"></button>`).join('')}</div>
     <button class="rb-area-draw" aria-label="Draw a new recording area" hidden></button>
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
+    <div class="rb-screen-picker" aria-hidden="true"></div>
+    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start">${icon('record')}<span>Click to record</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
     <div class="rb-belt" role="toolbar" aria-label="Recording controls">
       <div class="rb-belt-idle">
-        <button class="rb-icon-button rb-close" title="Close recording belt" aria-label="Close recording belt">${icon('close')}</button>
         <div class="rb-inputs"><div class="rb-modes" role="group" aria-label="Recording source">${[['screen','display'],['window','window'],['area','area']].map(([name,glyph])=>`<button type="button" class="rb-mode" data-mode="${name}" aria-label="Record ${name}" aria-pressed="false" title="${name[0].toUpperCase()+name.slice(1)}">${icon(glyph)}</button>`).join('')}</div>
         <button class="rb-device" id="rb-camera-button" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-camera-menu">${icon('camera')}<span class="rb-camera-label"></span></button>
         <button class="rb-device rb-microphone" id="rb-microphone-button" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-microphone-menu">${icon('microphone')}<span class="rb-microphone-label"></span></button></div>
         <button class="rb-record">${icon('record')}<span class="rb-record-label">Record screen</span></button>
+        <button class="rb-icon-button rb-close" title="Close recording belt" aria-label="Close recording belt">${icon('close')}</button>
       </div>
       <div class="rb-belt-active" hidden><button class="rb-icon-button rb-restart" title="Restart recording" aria-label="Restart recording">${icon('restart')}</button><div class="rb-active-controls"><button class="rb-icon-button rb-pause" title="Pause recording" aria-label="Pause recording"><span class="rb-pause-icon">${icon('pause')}</span><span class="rb-resume-icon">${icon('play')}</span></button><button class="rb-stop" title="Stop recording" aria-label="Stop recording">${icon('stop')}<span class="rb-stop-time">0:00</span><i class="rb-urgency-ring" aria-hidden="true"></i></button></div></div>
     </div>
@@ -52,6 +57,7 @@
   const belt=$('.rb-belt'),bubble=$('.rb-camera'),region=$('.rb-capture-region');
   const cameraDragOverlay=JamCameraPlaceholders.createOverlay(root);
   const settings={cameraZoom:1,...JamDefaults.get('recording')};
+  IDLE_WIDTH=idleBeltWidth();
   function beltHome(width=IDLE_WIDTH){
     return {x:W/2,y:Math.max(60,H-44),width};
   }
@@ -68,6 +74,7 @@
   let area=defaultArea();
   const selectionSizing={area:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},finder:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},browser:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}};
   let selectionNotch=null,selectionRulers=null;
+  let hoverTarget=null,hoverHold=false;
   let selectedWindow=null,stage='idle',elapsed=0,active=false,raf=0,lastFrame=0,drag=null;
   let openMenu=null,menuTrigger=null;
   let pointer={x:W/2,y:H/2,vx:0,vy:0,ax:0,ay:0},pointerTime=0,pointerClient=null;
@@ -125,26 +132,34 @@
   }
   function captureBounds(){return settings.mode==='area'?{...area}:settings.mode==='window'&&selectedWindow?{...windows[selectedWindow]}:{x:0,y:0,width:W,height:H};}
   function isIdle(){return stage==='idle';}
-  function selectionState(name=settings.mode==='area'?'area':selectedWindow){return selectionSizing[name]||{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48};}
+  function selectionState(name=settings.mode==='area'?'area':sizingWindow()){return selectionSizing[name]||{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48};}
   function selectionBounds(windowMode=settings.mode==='window'){return {x:0,y:windowMode?28:0,width:W,height:Math.max(1,H-(windowMode?28:0))};}
   function selectionMinimum(windowMode=settings.mode==='window'){return windowMode?{width:320,height:220}:{width:50,height:50};}
+  function sizingWindow(){return selectedWindow||(settings.mode==='window'?cardTarget():null);}
+  function sizingBounds(){const name=sizingWindow();return settings.mode==='area'?{...area}:name?{...windows[name]}:captureBounds();}
   function applySelectionRect(rect){
-    if(!active||!isIdle()||settings.mode==='screen'||settings.mode==='window'&&!selectedWindow)return;
-    if(settings.mode==='area')area=rect;else Object.assign(windows[selectedWindow],rect);
+    const name=sizingWindow();
+    if(!active||!isIdle()||settings.mode==='screen'||settings.mode==='window'&&!name)return;
+    if(settings.mode==='area')area=rect;
+    else{
+      Object.assign(windows[name],rect);
+      // A resize can leave the pointer outside the window; keep its card until another window is hovered.
+      if(!selectedWindow)hoverHold=true;
+    }
     syncWindows();syncSelection();emit();wake();
   }
   function sizeSelection(axis,value){
-    const rect=captureBounds();
+    const rect=sizingBounds();
     applySelectionRect(JamSelectionGeometry.size(rect,{...rect,[axis]:value},selectionBounds(),selectionMinimum(),JamSelectionGeometry.ratio(selectionState()),axis));
   }
   function setSelectionRatio(preset){
     if(!['custom','1:1','4:3','16:9','16:10'].includes(preset))return;
     selectionState().preset=preset;
-    sizeSelection('width',captureBounds().width);
+    sizeSelection('width',sizingBounds().width);
   }
   function setSelectionOrientation(orientation){
     if(!['horizontal','vertical'].includes(orientation)||selectionState().orientation===orientation)return;
-    const rect=captureBounds();selectionState().orientation=orientation;
+    const rect=sizingBounds();selectionState().orientation=orientation;
     applySelectionRect(JamSelectionGeometry.size(rect,{width:rect.height,height:rect.width},selectionBounds(),selectionMinimum(),JamSelectionGeometry.ratio(selectionState())));
   }
   function syncWindows(){for(const [name,value]of Object.entries(windows))rectStyle($(`[data-window="${name}"]`),value);}
@@ -189,7 +204,7 @@
     region.classList.toggle('is-selected-window',settings.mode==='window'&&!!selectedWindow);
     region.tabIndex=settings.mode==='area'&&idle?0:-1;
     selectionRulers?.render({enabled:active&&idle&&settings.mode==='area',key:settings.mode==='area'?'area':selectedWindow,state:selectionState(),rect:bounds});
-    selectionNotch?.render({enabled:active&&idle&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),changeWindow:!settings.oneClick,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
+    syncRecordCard(bounds);
     $$('.rb-area-handle').forEach(el=>{el.hidden=settings.mode!=='area'||!idle;});
     $('.rb-area-draw').hidden=settings.mode!=='area'||!idle;
     const mask=$('.rb-selection-mask');mask.hidden=settings.mode!=='area';
@@ -200,27 +215,74 @@
     bubble.hidden=!settings.camera||(settings.mode==='window'&&!selectedWindow); bubble.classList.toggle('is-following',settings.followCursor);bubble.tabIndex=settings.followCursor?-1:0;
     syncCameraZoom();syncCameraSizing();
     if(!cameraPlaced)placeCamera();
-    syncPickers();
     renderCamera(0);renderSlots();syncControls();syncCursor();cornerPin?.refresh();
   }
   function windowLogs(name){
     if(name!=='browser')return null;
     return settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Logs unavailable'};
   }
-  function syncPickers(){
-    $$('.rb-window-picker').forEach(el=>{
-      const logs=windowLogs(el.dataset.picker),notch=el.querySelector('.rb-picker-notch');
-      notch.hidden=!logs;if(!logs)return;
-      notch.dataset.state=logs.state;el.querySelector('.rb-picker-logs-label').textContent=logs.label;
-    });
+  function cardTarget(){
+    if(!active||!isIdle()||!settings.oneClick)return null;
+    if(settings.mode==='area')return 'area';
+    if(settings.mode==='window')return !selectedWindow&&windows[hoverTarget]?hoverTarget:null;
+    return hoverTarget==='screen'?'screen':null;
   }
+  function syncRecordCard(bounds){
+    const target=cardTarget(),card=$('.rb-record-card');
+    $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-hovered',el.dataset.window===target));
+    root.dataset.screenHover=String(target==='screen');
+    if(!target){
+      card.hidden=true;
+      selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
+      return;
+    }
+    const rect=target==='area'?{...area}:target==='screen'?{x:0,y:0,width:W,height:H}:{...windows[target]},sizing=target!=='screen';
+    card.hidden=false;card.dataset.target=target;
+    $('.rb-record-card .rb-picker-app').hidden=target==='area';
+    if(target!=='area'&&card.dataset.art!==target){card.dataset.art=target;$('.rb-card-art').innerHTML=targetArt[target];$('.rb-record-card .rb-picker-name').textContent=targetNames[target];}
+    $('.rb-record-card .rb-picker-start').setAttribute('aria-label',target==='area'||target==='screen'?`Record ${target}`:`Record ${targetNames[target]} window`);
+    $('.rb-record-card .rb-picker-notch').hidden=sizing;
+    if(!sizing)$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
+    const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
+    const controls=$('.rb-record-card .rb-picker-controls');controls.style.width=`${Math.max(164,notch?.width||0)}px`;
+    const cardWidth=card.offsetWidth,cardHeight=card.offsetHeight,total=cardHeight+(notch?notch.height-20:0);
+    let x=rect.x+rect.width/2,y=rect.y+rect.height/2-total/2;
+    // An area too small to hold the card gets it alongside, below if it clears the belt.
+    if(target==='area'&&(rect.width<cardWidth+32||rect.height<total+32)){
+      const below=rect.y+rect.height+12,above=rect.y-total-12;
+      y=below+total<=beltHome().y-38?below:above>=8?above:y;
+    }
+    x=clamp(x,cardWidth/2+8,W-cardWidth/2-8);y=clamp(y,8,H-total-8);
+    card.style.left=`${x-cardWidth/2}px`;card.style.top=`${y}px`;
+    if(notch)selectionNotch.place({x,y:y+cardHeight-20});
+  }
+  function setHover(next){
+    if(next===hoverTarget)return;
+    hoverTarget=next;hoverHold=false;syncSelection();
+  }
+  function trackHover(event){
+    if(!active||!isIdle()||!settings.oneClick||settings.mode==='area'||drag)return;
+    const el=event.target instanceof Element?event.target:null;
+    // The card, its notch, its menus and a size being typed belong to the hovered target, so they keep it.
+    if(openMenu||el?.closest('.rb-record-card,.rb-selection-notch,.rb-sizing-menu')||document.activeElement?.matches?.('.rb-selection-notch input'))return;
+    if(settings.mode==='screen'){setHover(el?.closest('.rb-belt,.native-menu')?null:'screen');return;}
+    const name=el?.closest('.rb-window-picker')?.dataset.picker;
+    if(name)setHover(name);else if(!hoverHold)setHover(null);
+  }
+  function startTarget(target){
+    if(!target||!isIdle())return;
+    if(target==='area'||target==='screen'){closeMenu(false);hoverTarget=null;setStage('recording');}
+    else startWindowRecording(target);
+  }
+  function idleBeltWidth(){return settings.oneClick?435:587;}
   function startWindowRecording(name){
     if(!windows[name]||!isIdle())return;
-    closeMenu(false);selectWindow(name);setStage('recording');
+    closeMenu(false);hoverTarget=null;selectWindow(name);setStage('recording');
   }
   function syncControls(){
     $$('.rb-mode').forEach(el=>{el.setAttribute('aria-pressed',String(el.dataset.mode===settings.mode));el.disabled=!isIdle();});
-    $('.rb-record-label').textContent=settings.oneClick&&settings.mode==='window'&&!selectedWindow?'Choose a window':`Record ${settings.mode}`;
+    $('.rb-record-label').textContent=`Record ${settings.mode}`;
+    if(idleBeltWidth()!==IDLE_WIDTH){IDLE_WIDTH=idleBeltWidth();if(isIdle())animateBelt(beltHome(IDLE_WIDTH));}
     $('.rb-record').disabled=settings.mode==='window'&&!selectedWindow;
     $('.rb-camera-label').textContent=settings.camera?(camera.getState().label||'Use camera'):'No Camera';
     $('.rb-microphone-label').textContent=settings.microphone?settings.microphoneDevice:'No Microphone';
@@ -515,7 +577,15 @@
   $('.rb-stop').addEventListener('click',finishRecording);$('.rb-restart').addEventListener('click',restart);
   $('.rb-close').addEventListener('click',()=>JamPlayground.setSurface('onboarding'));
   $$('.rb-window-selector').forEach(b=>b.addEventListener('click',()=>selectWindow(b.closest('[data-window]').dataset.window)));
-  $$('.rb-window-picker').forEach(el=>el.addEventListener('click',e=>{if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window')startWindowRecording(el.dataset.picker);}));
+  $$('.rb-window-picker').forEach(el=>{
+    el.addEventListener('click',()=>{if(settings.pickerStart==='window')startWindowRecording(el.dataset.picker);});
+    el.addEventListener('focus',()=>setHover(el.dataset.picker));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();startWindowRecording(el.dataset.picker);}});
+  });
+  $('.rb-screen-picker').addEventListener('click',()=>{if(settings.pickerStart==='window')startTarget('screen');});
+  $('.rb-record-card').addEventListener('click',e=>{if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window')startTarget(cardTarget());});
+  root.addEventListener('pointermove',trackHover);
+  root.addEventListener('pointerleave',()=>{if(!openMenu&&!hoverHold)setHover(null);});
   function startDrag(event,kind,extra={}){if(event.button!==0||drag||selectionRulers?.isDragging())return;cornerPin?.clear();if(document.activeElement?.closest('.rb-selection-notch input'))document.activeElement.blur();event.preventDefault();const p=local(event);drag={kind,start:p,pointerId:event.pointerId,target:event.currentTarget,shiftKey:event.shiftKey,altKey:event.altKey,...extra};event.currentTarget.setPointerCapture(event.pointerId);closeMenu(false);syncCursor();syncCameraSizing();}
   $$('.rb-window-titlebar').forEach(el=>{
     el.addEventListener('pointerdown',e=>{if(root.dataset.picking==='true')return;const name=el.closest('[data-window]').dataset.window;startDrag(e,'window',{name,initial:{...windows[name]}});el.closest('[data-window]').style.zIndex=String(++windowLayer);});
@@ -603,7 +673,7 @@
   // The sidebar sits outside the desktop; recording geometry follows the desktop bounds.
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
-    getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
+    getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
     updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
@@ -615,7 +685,7 @@
     onPreset:preset=>{
       const bounds=selectionBounds(),minimum=selectionMinimum();
       if(preset.width>bounds.width||preset.height>bounds.height||preset.width<minimum.width||preset.height<minimum.height)return;
-      applySelectionRect(JamSelectionGeometry.size(captureBounds(),preset,bounds,minimum,JamSelectionGeometry.ratio(selectionState())));
+      applySelectionRect(JamSelectionGeometry.size(sizingBounds(),preset,bounds,minimum,JamSelectionGeometry.ratio(selectionState())));
     },
     onToggleRulers:()=>{if(settings.mode!=='area')return;const state=selectionState();state.rulers=!state.rulers;syncSelection();},
     onChangeWindow:()=>{closeMenu(false);rememberCameraPosition();selectedWindow=null;syncSelection();emit();},
