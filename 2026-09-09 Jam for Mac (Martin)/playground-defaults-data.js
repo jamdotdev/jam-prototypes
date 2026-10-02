@@ -125,7 +125,7 @@ window.JamDefaultValues = {
       "pulseStart": 1000,
       "pulseEnd": 350,
       "pulseStrength": 4,
-      "mode": "screen",
+      "mode": "window",
       "camera": true,
       "microphone": true,
       "cameraDevice": "Martin\u2019s iPhone Camera",
