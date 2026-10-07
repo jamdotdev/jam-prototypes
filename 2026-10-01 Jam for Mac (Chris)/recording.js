@@ -250,8 +250,8 @@
     // The notch is the panel behind the record pill, so it starts where the controls do.
     const cardWidth=card.offsetWidth,panelTop=controls.offsetTop,total=notch?panelTop+notch.height:card.offsetHeight;
     let x=rect.x+rect.width/2,y=rect.y+rect.height/2-total/2;
-    // An area too small to hold the card gets it alongside, below if it clears the belt.
-    if(target==='area'&&(rect.width<cardWidth+32||rect.height<total+32)){
+    // The area keeps its card outside the selection: below it when that clears the belt, otherwise above.
+    if(target==='area'){
       const below=rect.y+rect.height+12,above=rect.y-total-12;
       y=below+total<=beltHome().y-38?below:above>=8?above:y;
     }
