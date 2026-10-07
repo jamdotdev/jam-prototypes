@@ -12,8 +12,8 @@
   const icon=name=>`<span class="rb-sf" data-symbol="${symbols[name]}" style="--sf-image:url('assets/recording/sf/${symbols[name]}.png')" aria-hidden="true"></span>`;
   const lights='<div class="traffic-lights" aria-hidden="true"><span class="traffic close">'+icon('close')+'</span><span class="traffic minimize">'+icon('minus')+'</span><span class="traffic zoom">'+icon('zoom')+'</span></div>';
   const picker=(name,app)=>`<div class="rb-window-picker" data-picker="${name}" role="button" tabindex="0" aria-label="Record ${app} window"></div>`;
-  const targetNames={finder:'Finder',browser:'Chrome',screen:'Built-in Display'};
-  const targetArt={finder:`<span class="rb-dock-icon is-finder">${icon('folder')}</span>`,browser:'<img class="rb-dock-icon" src="assets/recording/chrome-dock-icon.png" width="70" height="70" alt="">',screen:`<span class="rb-dock-icon is-display">${icon('display')}</span>`};
+  const targetNames={finder:'Finder',browser:'Chrome',notion:'Notion',screen:'Built-in Display'};
+  const targetArt={finder:`<span class="rb-dock-icon is-finder">${icon('folder')}</span>`,browser:'<img class="rb-dock-icon" src="assets/recording/chrome-dock-icon.png" width="70" height="70" alt="">',notion:'<span class="rb-dock-icon is-notion">N</span>',screen:`<span class="rb-dock-icon is-display">${icon('display')}</span>`};
   root.innerHTML=`
     <div class="rb-desktop-windows">
       <article class="rb-mock-window rb-finder" data-window="finder" aria-label="Finder window">
@@ -22,6 +22,13 @@
         <button class="rb-window-selector" aria-label="Select Finder window"><span class="rb-selection-callout">Click to select this window</span></button>
         ${picker('finder','Finder')}
         <button class="rb-window-resizer" aria-label="Resize Finder window">${icon("resize")}</button>
+      </article>
+      <article class="rb-mock-window rb-notion" data-window="notion" aria-label="Notion window">
+        <header class="rb-window-titlebar" tabindex="0" aria-label="Move Notion window">${lights}<div class="rb-notion-crumbs" aria-hidden="true"><i></i><i></i></div><span class="rb-window-drag-icon">${icon("sidebar")}</span></header>
+        <div class="rb-notion-body"><aside class="rb-notion-sidebar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></aside><div class="rb-notion-page" aria-hidden="true"><i class="rb-notion-emoji"></i><i class="rb-notion-title"></i><i></i><i></i><i></i><i class="rb-notion-callout"></i><i></i><i></i></div></div>
+        <button class="rb-window-selector" aria-label="Select Notion window"><span class="rb-selection-callout">Click to select this window</span></button>
+        ${picker('notion','Notion')}
+        <button class="rb-window-resizer" aria-label="Resize Notion window">${icon("resize")}</button>
       </article>
       <article class="rb-mock-window rb-browser" data-window="browser" aria-label="Browser window">
         <header class="rb-window-titlebar" tabindex="0" aria-label="Move browser window">${lights}<div class="rb-browser-address">jam.dev / design-system</div><span class="rb-window-drag-icon">${icon("sidebar")}</span></header>
@@ -37,6 +44,7 @@
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
     <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
+    <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
     <div class="rb-belt" role="toolbar" aria-label="Recording controls">
@@ -67,12 +75,15 @@
   }
   function defaultWindows(){
     const left=Math.max(0,(W-1100)/2),top=Math.max(52,(beltHome().y-578)/2);
-    return {finder:fitRect({x:left+58,y:top,width:Math.min(470,W-32),height:376},28),browser:fitRect({x:left+355,y:top+80,width:Math.min(686,W-48),height:414},28)};
+    return {finder:fitRect({x:left+58,y:top,width:Math.min(470,W-32),height:376},28),notion:fitRect({x:left+730,y:Math.max(52,top-70),width:Math.min(500,W-48),height:330},28),browser:fitRect({x:left+355,y:top+80,width:Math.min(686,W-48),height:414},28)};
   }
   const defaultArea=()=>({x:W/4,y:H/4,width:W/2,height:H/2});
   const windows=defaultWindows();
   let area=defaultArea();
-  const selectionSizing={area:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},finder:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},browser:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}};
+  const selectionSizing={area:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},finder:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},browser:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},notion:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}};
+  // Electron apps record console logs only in debug mode, which takes a restart the first time.
+  const electronApps={notion:{debug:'off',declined:false,timer:0}};
+  let alertTarget=null,alertReturn=null;
   let selectionNotch=null,selectionRulers=null;
   let hoverTarget=null,hoverHold=false;
   let selectedWindow=null,stage='idle',elapsed=0,active=false,raf=0,lastFrame=0,drag=null;
@@ -166,7 +177,7 @@
   function loadCameraPositions(){
     try{
       const saved=JSON.parse(sessionStorage.getItem('jam-recording-camera-positions-v1')||'{}'),valid={};
-      for(const key of ['screen','area','window:finder','window:browser']){
+      for(const key of ['screen','area','window:finder','window:browser','window:notion']){
         const p=saved?.[key];
         if(p&&Number.isFinite(p.u)&&Number.isFinite(p.v))valid[key]={u:clamp(p.u,0,1),v:clamp(p.v,0,1),anchor:['nw','n','ne','w','e','sw','s','se'].includes(p.anchor)?p.anchor:null};
       }
@@ -218,6 +229,8 @@
     renderCamera(0);renderSlots();syncControls();syncCursor();cornerPin?.refresh();
   }
   function windowLogs(name){
+    const app=electronApps[name];
+    if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`}:{state:'restart',label:'Restart to capture logs'};
     if(name!=='browser')return null;
     return settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Logs unavailable'};
   }
@@ -228,6 +241,8 @@
     return hoverTarget==='screen'?'screen':null;
   }
   function syncRecordCard(bounds){
+    if(alertTarget&&(settings.mode!=='window'||!isIdle()))closeRestartAlert();
+    root.dataset.alert=String(!!alertTarget);
     const target=cardTarget(),card=$('.rb-record-card');
     $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-hovered',el.dataset.window===target));
     root.dataset.screenHover=String(target==='screen');
@@ -243,6 +258,7 @@
     const start=$('.rb-record-card .rb-picker-start'),label=`Record ${target==='area'||target==='screen'?target:'window'}`;
     $('.rb-record-card .rb-picker-start-label').textContent=label;
     if(target==='area'||target==='screen')start.removeAttribute('aria-label');else start.setAttribute('aria-label',`${label}, ${targetNames[target]}`);
+    start.setAttribute('aria-disabled',String(electronApps[target]?.debug==='restarting'));
     $('.rb-record-card .rb-picker-notch').hidden=sizing;
     if(!sizing)$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
     const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rulers:settings.rulersButton,rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
@@ -268,6 +284,8 @@
     const el=event.target instanceof Element?event.target:null;
     // The card, its notch, its menus and a size being typed belong to the hovered target, so they keep it.
     if(openMenu||el?.closest('.rb-record-card,.rb-selection-notch,.rb-sizing-menu')||document.activeElement?.matches?.('.rb-selection-notch input'))return;
+    // The alert and a restart in progress both belong to the app being started, so they keep its card.
+    if(alertTarget||electronApps[hoverTarget]?.debug==='restarting')return;
     if(settings.mode==='screen'){setHover(el?.closest('.rb-belt,.native-menu')?null:'screen');return;}
     const name=el?.closest('.rb-window-picker')?.dataset.picker;
     if(name)setHover(name);else if(!hoverHold)setHover(null);
@@ -280,7 +298,56 @@
   function idleBeltWidth(){return settings.oneClick?435:587;}
   function startWindowRecording(name){
     if(!windows[name]||!isIdle())return;
+    const app=electronApps[name];
+    if(app?.debug==='restarting')return;
+    if(app?.debug==='off'&&!app.declined){showRestartAlert(name);return;}
     closeMenu(false);hoverTarget=null;selectWindow(name);setStage('recording');
+  }
+  function showRestartAlert(name){
+    if(!electronApps[name]||electronApps[name].debug!=='off'||!isIdle())return;
+    closeMenu(false);selectionNotch?.close(false);alertTarget=name;alertReturn=document.activeElement;hoverHold=true;
+    const app=targetNames[name],layer=$('.rb-alert-layer'),alert=$('.rb-alert'),rect=windows[name];
+    $('.rb-alert-title').textContent=`Restart ${app} to capture console logs?`;
+    $('.rb-alert-message').textContent=`Jam needs ${app} running in debug mode to record its console logs. ${app} will close and reopen.`;
+    layer.hidden=false;syncSelection();
+    alert.style.left=`${clamp(rect.x+rect.width/2-alert.offsetWidth/2,8,W-alert.offsetWidth-8)}px`;
+    alert.style.top=`${clamp(rect.y+rect.height/2-alert.offsetHeight/2,36,H-alert.offsetHeight-8)}px`;
+    $('.rb-alert-button.is-default').focus({preventScroll:true});emit();
+  }
+  function closeRestartAlert(){
+    const name=alertTarget;if(!name)return null;
+    alertTarget=null;$('.rb-alert-layer').hidden=true;root.dataset.alert='false';
+    return name;
+  }
+  function answerRestartAlert(choice){
+    const name=closeRestartAlert();if(!name)return;
+    if(choice==='restart')restartElectronApp(name);
+    else if(choice==='skip'){electronApps[name].declined=true;startWindowRecording(name);}
+    else{syncSelection();alertReturn?.isConnected&&alertReturn.focus({preventScroll:true});}
+    emit();
+  }
+  function restartElectronApp(name){
+    const app=electronApps[name],el=$(`[data-window="${name}"]`),quick=reduced.matches;
+    clearTimeout(app.timer);app.debug='restarting';hoverTarget=name;hoverHold=true;
+    // The app quits, disappears for a moment, then relaunches and loads before logs connect.
+    el.classList.add('is-quitting');syncSelection();$('.rb-record-card .rb-picker-start').focus({preventScroll:true});
+    $('.rb-capture-status').textContent=`Restarting ${targetNames[name]}`;
+    app.timer=setTimeout(()=>{
+      el.classList.replace('is-quitting','is-launching');
+      app.timer=setTimeout(()=>{
+        el.classList.remove('is-launching');app.debug='on';syncSelection();
+        $('.rb-capture-status').textContent=`${targetNames[name]} restarted. Logs enabled.`;emit();
+      },quick?300:1300);
+    },quick?150:650);
+    emit();
+  }
+  function resetElectronApps(){
+    if(alertTarget)closeRestartAlert();
+    for(const [name,app]of Object.entries(electronApps)){clearTimeout(app.timer);Object.assign(app,{debug:'off',declined:false,timer:0});$(`[data-window="${name}"]`).classList.remove('is-quitting','is-launching');}
+    syncSelection();emit();
+  }
+  function recordFromBelt(){
+    if(settings.mode==='window'&&electronApps[selectedWindow])startWindowRecording(selectedWindow);else setStage('recording');
   }
   function syncControls(){
     $$('.rb-mode').forEach(el=>{el.setAttribute('aria-pressed',String(el.dataset.mode===settings.mode));el.disabled=!isIdle();});
@@ -575,7 +642,7 @@
   $('.rb-camera-connect').addEventListener('click',e=>{if(e.detail===0)requestCamera();});
   $('#rb-camera-button').addEventListener('click',()=>showMenu('camera'));$('#rb-microphone-button').addEventListener('click',()=>showMenu('microphone'));
   $$('.rb-mode').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
-  $('.rb-record').addEventListener('click',()=>setStage('recording'));
+  $('.rb-record').addEventListener('click',recordFromBelt);
   $('.rb-pause').addEventListener('click',()=>setStage(stage==='paused'?'recording':'paused'));
   $('.rb-stop').addEventListener('click',finishRecording);$('.rb-restart').addEventListener('click',restart);
   $('.rb-close').addEventListener('click',()=>JamPlayground.setSurface('onboarding'));
@@ -587,6 +654,13 @@
   });
   $('.rb-screen-picker').addEventListener('click',()=>{if(settings.pickerStart==='window')startTarget('screen');});
   $('.rb-record-card').addEventListener('click',e=>{if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
+  $$('.rb-alert-button').forEach(button=>button.addEventListener('click',()=>answerRestartAlert(button.dataset.choice)));
+  $('.rb-alert-layer').addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Escape'){e.preventDefault();answerRestartAlert('cancel');}
+    else if(e.key==='Enter'&&!e.target.matches('.rb-alert-button:not(.is-default)')){e.preventDefault();answerRestartAlert('restart');}
+    else if(e.key==='Tab'){e.preventDefault();const buttons=$$('.rb-alert-button'),index=buttons.indexOf(document.activeElement);buttons[(index+(e.shiftKey?-1:1)+buttons.length)%buttons.length].focus();}
+  });
   root.addEventListener('pointermove',trackHover);
   root.addEventListener('pointerleave',()=>{if(!openMenu&&!hoverHold)setHover(null);});
   function startDrag(event,kind,extra={}){if(event.button!==0||drag||selectionRulers?.isDragging())return;cornerPin?.clear();if(document.activeElement?.closest('.rb-selection-notch input'))document.activeElement.blur();event.preventDefault();const p=local(event);drag={kind,start:p,pointerId:event.pointerId,target:event.currentTarget,shiftKey:event.shiftKey,altKey:event.altKey,...extra};event.currentTarget.setPointerCapture(event.pointerId);closeMenu(false);syncCursor();syncCameraSizing();}
@@ -676,8 +750,8 @@
   // The sidebar sits outside the desktop; recording geometry follows the desktop bounds.
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
-    getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
-    updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
+    getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),alert:alertTarget,apps:Object.fromEntries(Object.entries(electronApps).map(([name,app])=>[name,{debug:app.debug,declined:app.declined}])),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
+    updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
@@ -692,6 +766,7 @@
     },
     onToggleRulers:()=>{if(settings.mode!=='area')return;const state=selectionState();state.rulers=!state.rulers;syncSelection();},
     onChangeWindow:()=>{closeMenu(false);rememberCameraPosition();selectedWindow=null;syncSelection();emit();},
+    onRestartLogs:()=>showRestartAlert(selectedWindow||cardTarget()),
     onOpen:(menu,trigger)=>{closeMenu(false);openMenu=menu;menuTrigger=trigger;cornerPin?.clear();},
     onClose:menu=>{if(openMenu===menu){openMenu=null;menuTrigger=null;}},
   });

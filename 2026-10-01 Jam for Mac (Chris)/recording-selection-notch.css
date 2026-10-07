@@ -52,3 +52,15 @@
 .rb-selection-notch.is-card .rb-notch-logs .rb-sf{width:6px;height:6px;margin:2px}
 .rb-selection-notch.is-card[data-logs="connected"] .rb-notch-logs{color:#89ff9fcc}
 .rb-selection-notch.is-card[data-logs="connected"] .rb-notch-logs .rb-sf{color:#53b365}
+
+/* A row that asks for a restart before logs can be captured, with a sweep that reads as waiting on the user. */
+.rb-selection-notch .rb-notch-logs-restart{gap:5px;color:#ffffff8c}
+.rb-selection-notch .rb-notch-logs-restart .rb-sf{width:13px;height:13px}
+.rb-notch-logs-restart-label{background:linear-gradient(100deg,#ffffff8c 35%,#fffffff2 50%,#ffffff8c 65%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:rb-logs-sweep 2.4s ease-in-out infinite}
+.rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart-label{animation-duration:1.2s}
+.rb-selection-notch .rb-notch-logs-restart[aria-disabled="true"]{cursor:default;background:transparent}
+.rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart .rb-sf{animation:rb-logs-spin 1s linear infinite}
+.rb-selection-notch.is-card .rb-notch-logs-restart{padding:0 16px;font-size:13px;font-weight:510}
+@keyframes rb-logs-sweep{from{background-position:100% 0}to{background-position:0 0}}
+@keyframes rb-logs-spin{to{rotate:-360deg}}
+@media(prefers-reduced-motion:reduce){.rb-notch-logs-restart-label,.rb-selection-notch .rb-notch-logs-restart .rb-sf{animation:none}}

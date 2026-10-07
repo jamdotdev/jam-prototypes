@@ -39,6 +39,7 @@
         recordingToggle('oneClick','One-click start'),
         select('pickerStart','Start from',()=>R().getSettings().pickerStart,value=>R().updateSettings({pickerStart:value}),[['window','Anywhere on window'],['button','Start button only']]),
         select('browserLogs','Chrome logs',()=>R().getSettings().browserLogs,value=>R().updateSettings({browserLogs:value}),[['connected','Extension connected'],['unavailable','Extension missing']]),
+        action('reset-notion','Reset Notion logs',()=>R().resetElectronApps()),
       ]),
       section('camera','Camera',[
         action('use-camera','Use Mac camera',()=>R().requestCamera()),
