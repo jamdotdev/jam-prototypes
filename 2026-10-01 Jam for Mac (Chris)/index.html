@@ -182,6 +182,14 @@
             <input id="draft-title" aria-label="Jam title" placeholder="Title" autocomplete="off" maxlength="200">
             <textarea id="draft-description" aria-label="Jam description" placeholder="Add a description..."></textarea>
           </div>
+          <div class="draft-logs-notice" id="draft-logs-notice" role="status" hidden>
+            <span class="draft-logs-icon" aria-hidden="true"></span>
+            <div class="draft-logs-text">
+              <strong id="draft-logs-title"></strong>
+              <span id="draft-logs-body"></span>
+              <button type="button" class="draft-logs-button" id="draft-logs-button">Turn on console logs</button>
+            </div>
+          </div>
         </aside>
         <div class="native-menu draft-folder-picker" id="draft-folder-picker" role="dialog" aria-label="Choose a draft folder" hidden>
           <label class="folder-search-field"><input type="search" id="draft-folder-search" role="combobox" aria-label="Search folders" aria-autocomplete="list" aria-expanded="false" aria-controls="draft-folder-options" autocomplete="off" placeholder="Search folders"></label>

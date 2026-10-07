@@ -61,6 +61,17 @@
 .rb-selection-notch .rb-notch-logs-restart[aria-disabled="true"]{cursor:default;background:transparent}
 .rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart .rb-sf{animation:rb-logs-spin 1s linear infinite}
 .rb-selection-notch.is-card .rb-notch-logs-restart{padding:0 16px;font-size:13px;font-weight:510}
+.rb-notch-logs-restart-text{display:flex;flex-direction:column;align-items:flex-start}
+.rb-notch-logs-restart-detail{font-size:11px;line-height:13px;font-weight:400;color:#ffffff73}
+.rb-notch-logs-restart-detail:empty,.rb-selection-notch:not(.is-card) .rb-notch-logs-restart-detail,.rb-selection-notch .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:none}
+/* Turning logs on is optional, so the opt-in is a calm button with its cost underneath rather than a sweep. */
+.rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart{color:#ffffffd9}
+.rb-selection-notch.is-card .rb-notch-logs-restart.has-detail{height:auto;padding:5px 14px 5px 10px;gap:8px}
+.rb-selection-notch.is-card[data-logs="optin"] .rb-notch-logs-restart{background:#ffffff12}
+.rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart .rb-sf[data-symbol="arrow.counterclockwise"]{display:none}
+.rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:block;width:16px;height:16px;opacity:.75}
+.rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart-label{background:none;-webkit-text-fill-color:currentColor;animation:none}
+@media(hover:hover) and (pointer:fine){.rb-selection-notch.is-card[data-logs="optin"] .rb-notch-logs-restart:hover{background:#ffffff1f}}
 @keyframes rb-logs-sweep{from{background-position:100% 0}to{background-position:0 0}}
 @keyframes rb-logs-spin{to{rotate:-360deg}}
 @media(prefers-reduced-motion:reduce){.rb-notch-logs-restart-label,.rb-selection-notch .rb-notch-logs-restart .rb-sf{animation:none}}

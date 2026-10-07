@@ -183,6 +183,16 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-picker-start[aria-disabled="true"]{background:#3a3a3c;color:#ffffff73;cursor:default;filter:none}
 
 /* Jam's restart alert, a standard macOS alert over the app it restarts */
+/* A macOS notification from Jam, under the menu bar at the top right */
+.rb-banner{position:absolute;right:12px;top:36px;z-index:61;display:flex;align-items:flex-start;gap:10px;width:344px;padding:12px 14px;border-radius:18px;background:#f5f5f7d9;-webkit-backdrop-filter:blur(30px) saturate(1.6);backdrop-filter:blur(30px) saturate(1.6);box-shadow:0 0 0 .5px #0000002e,0 12px 32px #00000038;color:#000000e0;cursor:default;animation:rb-banner-in 320ms cubic-bezier(.2,0,0,1)}
+.rb-banner[hidden]{display:none}
+.rb-banner.is-leaving{opacity:0;translate:0 -6px;transition:opacity 200ms ease,translate 200ms ease}
+.rb-banner-icon{flex:none;width:36px;height:36px}
+.rb-banner-text{display:flex;flex:1;flex-direction:column;gap:1px;min-width:0}
+.rb-banner-title{font-size:13px;line-height:16px;font-weight:600}
+.rb-banner-body{font-size:12.5px;line-height:16px;color:#000000b3;text-wrap:pretty}
+.rb-banner-time{font-size:11px;line-height:16px;color:#00000059}
+@keyframes rb-banner-in{from{opacity:0;translate:24px 0}}
 .rb-alert-layer{position:absolute;inset:0;z-index:60}
 .rb-alert{position:absolute;width:260px;padding:20px 16px 16px;border-radius:26px;display:flex;flex-direction:column;align-items:center;text-align:center;background:#f2f2f4eb;backdrop-filter:blur(40px) saturate(1.6);-webkit-backdrop-filter:blur(40px) saturate(1.6);box-shadow:0 0 0 .5px #00000040,inset 0 0 0 .5px #ffffffb3,0 22px 50px #00000047,0 8px 16px #0000001f;color:#1d1d1f;animation:rb-alert-in 160ms cubic-bezier(.2,0,0,1)}
 .rb-alert-icon{width:64px;height:64px;margin-bottom:12px}
@@ -195,4 +205,4 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 @keyframes rb-alert-in{from{opacity:0;scale:.94}}
 .recording-scene[data-alert="true"] .rb-record-card,.recording-scene[data-alert="true"] .rb-selection-notch{visibility:hidden}
 .recording-scene[data-alert="true"] .rb-mock-window.is-hovered .rb-window-picker{background:none;box-shadow:none}
-@media(prefers-reduced-motion:reduce){.rb-alert,.rb-mock-window.is-launching,.rb-mock-window.is-launching :is(.rb-notion-crumbs,.rb-notion-body) i{animation:none}.rb-mock-window.is-quitting{transition:none}}
+@media(prefers-reduced-motion:reduce){.rb-banner,.rb-alert,.rb-mock-window.is-launching,.rb-mock-window.is-launching :is(.rb-notion-crumbs,.rb-notion-body) i{animation:none}.rb-mock-window.is-quitting{transition:none}}

@@ -44,6 +44,7 @@
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
     <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
+    <div class="rb-banner" role="status" hidden><img class="rb-banner-icon" src="assets/welcome/app-icon.png" width="36" height="36" alt=""><div class="rb-banner-text"><strong class="rb-banner-title"></strong><span class="rb-banner-body"></span></div><span class="rb-banner-time">now</span></div>
     <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
@@ -81,9 +82,9 @@
   const windows=defaultWindows();
   let area=defaultArea();
   const selectionSizing={area:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},finder:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},browser:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},notion:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}};
-  // Electron apps record console logs only in debug mode, which takes a restart the first time.
-  const electronApps={notion:{debug:'off',declined:false,timer:0}};
-  let alertTarget=null,alertReturn=null;
+  // Electron apps record console logs only in debug mode, which they get at launch. `enabled` remembers the user turned logs on.
+  const electronApps={notion:{debug:'off',declined:false,enabled:false,timer:0}};
+  let alertTarget=null,alertReturn=null,bannerTimer=0;
   let selectionNotch=null,selectionRulers=null;
   let hoverTarget=null,hoverHold=false;
   let selectedWindow=null,stage='idle',elapsed=0,active=false,raf=0,lastFrame=0,drag=null;
@@ -230,7 +231,7 @@
   }
   function windowLogs(name){
     const app=electronApps[name];
-    if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`}:{state:'restart',label:'Restart to capture logs'};
+    if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`,detail:settings.electronLogs==='ask'?'':'Logs turn on as it reopens'}:settings.electronLogs==='ask'?{state:'restart',label:'Restart to capture logs'}:{state:'optin',label:'Turn on console logs',detail:`Restarts ${targetNames[name]}`};
     if(name!=='browser')return null;
     return settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Logs unavailable'};
   }
@@ -300,7 +301,7 @@
     if(!windows[name]||!isIdle())return;
     const app=electronApps[name];
     if(app?.debug==='restarting')return;
-    if(app?.debug==='off'&&!app.declined){showRestartAlert(name);return;}
+    if(app?.debug==='off'&&!app.declined&&settings.electronLogs==='ask'){showRestartAlert(name);return;}
     closeMenu(false);hoverTarget=null;selectWindow(name);setStage('recording');
   }
   function showRestartAlert(name){
@@ -326,24 +327,66 @@
     else{syncSelection();alertReturn?.isConnected&&alertReturn.focus({preventScroll:true});}
     emit();
   }
-  function restartElectronApp(name){
+  function requestElectronLogs(name){
+    if(electronApps[name]?.debug!=='off'||!isIdle())return;
+    if(settings.electronLogs==='ask')showRestartAlert(name);else restartElectronApp(name);
+  }
+  function relaunchWindow(name,quitDelay,loadDelay,done){
     const app=electronApps[name],el=$(`[data-window="${name}"]`),quick=reduced.matches;
-    clearTimeout(app.timer);app.debug='restarting';hoverTarget=name;hoverHold=true;
-    // The app quits, disappears for a moment, then relaunches and loads before logs connect.
-    el.classList.add('is-quitting');syncSelection();$('.rb-record-card .rb-picker-start').focus({preventScroll:true});
-    $('.rb-capture-status').textContent=`Restarting ${targetNames[name]}`;
+    clearTimeout(app.timer);el.classList.remove('is-launching');el.classList.add('is-quitting');
     app.timer=setTimeout(()=>{
       el.classList.replace('is-quitting','is-launching');
-      app.timer=setTimeout(()=>{
-        el.classList.remove('is-launching');app.debug='on';syncSelection();
-        $('.rb-capture-status').textContent=`${targetNames[name]} restarted. Logs enabled.`;emit();
-      },quick?300:1300);
-    },quick?150:650);
+      app.timer=setTimeout(()=>{el.classList.remove('is-launching');done();},quick?Math.min(loadDelay,300):loadDelay);
+    },quick?Math.min(quitDelay,150):quitDelay);
+  }
+  function restartElectronApp(name,{background=false,onDone}={}){
+    const app=electronApps[name];
+    app.debug='restarting';
+    if(!background){hoverTarget=name;hoverHold=true;}
+    // The app quits, disappears for a moment, then relaunches and loads before logs connect.
+    relaunchWindow(name,650,1300,()=>{
+      app.debug='on';app.enabled=true;syncSelection();
+      $('.rb-capture-status').textContent=`${targetNames[name]} restarted. Logs enabled.`;onDone?.();emit();
+    });
+    syncSelection();if(!background)$('.rb-record-card .rb-picker-start').focus({preventScroll:true});
+    $('.rb-capture-status').textContent=`Restarting ${targetNames[name]}`;
     emit();
+  }
+  function reopenElectronApp(name){
+    const app=electronApps[name];
+    if(!app||!isIdle()||app.debug==='restarting')return;
+    if(alertTarget)closeRestartAlert();
+    hideBanner();
+    const remembered=settings.electronLogs==='once'&&app.enabled;
+    // Opening the app again later, from the Dock or after a reboot, starts it without debug mode.
+    app.debug=remembered?'restarting':'off';
+    relaunchWindow(name,400,remembered?700:1300,()=>{
+      if(!remembered){syncSelection();emit();return;}
+      // Jam spots the launch and relaunches it in debug mode while it is still loading, before there's anything to lose.
+      relaunchWindow(name,150,1100,()=>{
+        app.debug='on';syncSelection();
+        showBanner(`Console logs on for ${targetNames[name]}`,`Jam reopened ${targetNames[name]} as it started, so its console logs can be captured.`);emit();
+      });
+    });
+    syncSelection();emit();
+  }
+  function showBanner(title,body){
+    const banner=$('.rb-banner');clearTimeout(bannerTimer);
+    $('.rb-banner-title').textContent=title;$('.rb-banner-body').textContent=body;
+    banner.classList.remove('is-leaving');banner.hidden=false;
+    bannerTimer=setTimeout(hideBanner,6000);
+  }
+  function hideBanner(){
+    const banner=$('.rb-banner');clearTimeout(bannerTimer);
+    if(banner.hidden)return;
+    if(reduced.matches){banner.hidden=true;return;}
+    banner.classList.add('is-leaving');
+    bannerTimer=setTimeout(()=>{banner.hidden=true;banner.classList.remove('is-leaving');},200);
   }
   function resetElectronApps(){
     if(alertTarget)closeRestartAlert();
-    for(const [name,app]of Object.entries(electronApps)){clearTimeout(app.timer);Object.assign(app,{debug:'off',declined:false,timer:0});$(`[data-window="${name}"]`).classList.remove('is-quitting','is-launching');}
+    hideBanner();
+    for(const [name,app]of Object.entries(electronApps)){clearTimeout(app.timer);Object.assign(app,{debug:'off',declined:false,enabled:false,timer:0});$(`[data-window="${name}"]`).classList.remove('is-quitting','is-launching');}
     syncSelection();emit();
   }
   function recordFromBelt(){
@@ -460,6 +503,7 @@
       else if(key==='mode'&&['screen','window','area'].includes(patch.mode))settings.mode=patch.mode;
       else if(key==='pickerStart'&&['window','button'].includes(patch[key]))settings[key]=patch[key];
       else if(key==='browserLogs'&&['connected','unavailable'].includes(patch[key]))settings[key]=patch[key];
+      else if(key==='electronLogs'&&['once','ask'].includes(patch[key]))settings[key]=patch[key];
       else if(key==='cameraDevice'&&typeof patch[key]==='string'&&patch[key].length<=64)settings[key]=patch[key];
       else if(['placeholderColor','placeholderContrastColor','placeholderContrastHoverColor','placeholderContrastActiveColor','placeholderContrastEdgeColor','placeholderOverlayColor'].includes(key)&&typeof patch[key]==='string'&&patch[key].length<=64&&CSS.supports('color',patch[key])&&!/var\(|currentcolor|inherit|initial|unset/i.test(patch[key]))settings[key]=patch[key];
       else if(key==='microphoneDevice'&&['MacBook','AirPods Pro 3','ZoomAudioDevice','BoseQC Ultra Headphones','Mac Studio Display Microphone'].includes(patch[key]))settings[key]=patch[key];
@@ -599,7 +643,12 @@
     if(settings.mode==='window'&&!selectedWindow)selectWindow('browser');
     stage='recording';elapsed=0;clockStamp=performance.now();scheduleClock();velocity={x:0,y:0,width:0};animateBelt(beltHome(ACTIVE_WIDTH),beltHome(IDLE_WIDTH));syncSelection();emit();
   }
-  function finishRecording(){clearTimeout(clockTimer);clockStamp=0;stage='idle';if(settings.oneClick&&settings.mode==='window')selectedWindow=null;elapsed=0;previewPlaying=false;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};syncSelection();renderBelt();JamPlayground.setSurface('draft');JamPlayground.notify('Recording preview complete');}
+  function finishRecording(){
+    const withoutLogs=settings.electronLogs==='once'&&settings.mode==='window'&&electronApps[selectedWindow]?.debug==='off'?selectedWindow:null;
+    clearTimeout(clockTimer);clockStamp=0;stage='idle';if(settings.oneClick&&settings.mode==='window')selectedWindow=null;elapsed=0;previewPlaying=false;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};syncSelection();renderBelt();JamPlayground.setSurface('draft');
+    JamDraft.setLogsNotice(withoutLogs&&{app:targetNames[withoutLogs],onEnable:()=>new Promise(resolve=>restartElectronApp(withoutLogs,{background:true,onDone:resolve}))});
+    JamPlayground.notify('Recording preview complete');
+  }
   function menuItem(label,checked,run,role='menuitemradio'){
     const b=document.createElement('button');b.className='native-menu-item';b.type='button';b.role=role;b.tabIndex=-1;b.textContent=label;b.setAttribute('aria-checked',String(checked));b.addEventListener('click',()=>{run();closeMenu();});b.addEventListener('pointermove',()=>b.focus({preventScroll:true}));return b;
   }
@@ -654,6 +703,7 @@
   });
   $('.rb-screen-picker').addEventListener('click',()=>{if(settings.pickerStart==='window')startTarget('screen');});
   $('.rb-record-card').addEventListener('click',e=>{if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
+  $('.rb-banner').addEventListener('click',hideBanner);
   $$('.rb-alert-button').forEach(button=>button.addEventListener('click',()=>answerRestartAlert(button.dataset.choice)));
   $('.rb-alert-layer').addEventListener('keydown',e=>{
     e.stopPropagation();
@@ -750,8 +800,8 @@
   // The sidebar sits outside the desktop; recording geometry follows the desktop bounds.
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
-    getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),alert:alertTarget,apps:Object.fromEntries(Object.entries(electronApps).map(([name,app])=>[name,{debug:app.debug,declined:app.declined}])),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
-    updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
+    getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),alert:alertTarget,apps:Object.fromEntries(Object.entries(electronApps).map(([name,app])=>[name,{debug:app.debug,declined:app.declined,enabled:app.enabled}])),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
+    updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
@@ -766,7 +816,7 @@
     },
     onToggleRulers:()=>{if(settings.mode!=='area')return;const state=selectionState();state.rulers=!state.rulers;syncSelection();},
     onChangeWindow:()=>{closeMenu(false);rememberCameraPosition();selectedWindow=null;syncSelection();emit();},
-    onRestartLogs:()=>showRestartAlert(selectedWindow||cardTarget()),
+    onRestartLogs:()=>requestElectronLogs(selectedWindow||cardTarget()),
     onOpen:(menu,trigger)=>{closeMenu(false);openMenu=menu;menuTrigger=trigger;cornerPin?.clear();},
     onClose:menu=>{if(openMenu===menu){openMenu=null;menuTrigger=null;}},
   });

@@ -34,6 +34,17 @@
 .draft-editor textarea{flex:1;font-size:13px;line-height:16px;font-weight:400;text-wrap:pretty}
 .draft-editor textarea::placeholder{color:rgba(0,0,0,.61);opacity:1}
 .draft-editor input:focus-visible,.draft-editor textarea:focus-visible{outline:none}
+.draft-logs-notice{display:flex;gap:10px;margin:0 12px 12px;padding:12px;border-radius:12px;background:#0000000a;box-shadow:inset 0 0 0 .5px #00000014}
+.draft-logs-notice[hidden]{display:none}
+.draft-logs-icon{flex:none;width:28px;height:28px;border-radius:8px;background:#fff;box-shadow:0 0 0 .5px #0000001f,0 1px 2px #0000000f;position:relative}
+.draft-logs-icon::after{content:"";position:absolute;inset:7px;background:rgba(0,0,0,.55);mask:url("assets/recording/sf/terminal.png") center/contain no-repeat;-webkit-mask:url("assets/recording/sf/terminal.png") center/contain no-repeat}
+.draft-logs-notice[data-state="on"] .draft-logs-icon::after{background:#34a853}
+.draft-logs-text{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+.draft-logs-text strong{font-size:13px;line-height:16px;font-weight:590}
+.draft-logs-text span{font-size:12px;line-height:16px;color:rgba(0,0,0,.61);text-wrap:pretty}
+.draft-logs-button{margin-top:8px;height:28px;padding:0 12px;border-radius:14px;background:#fff;box-shadow:0 0 0 .5px #00000029,0 1px 2px #00000014;color:rgba(0,0,0,.85);font-size:12px;line-height:16px;font-weight:510;white-space:nowrap}
+.draft-logs-button:hover{background:#f4f4f4}
+.draft-logs-button[hidden]{display:none}
 .draft-offline-popover{position:absolute;left:672px;top:56px;width:200px;height:128px;z-index:20;opacity:0;transform:translateY(-4px);transition:opacity 160ms var(--ease),transform 160ms var(--ease)}
 .draft-offline-popover.is-open{opacity:1;transform:translateY(0)}
 .draft-popover-surface{position:absolute;left:-48px;top:-50.5px;width:296px;height:234.5px;pointer-events:none}
