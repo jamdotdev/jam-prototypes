@@ -1,6 +1,6 @@
 window.JamDefaultValues = {
   "version": 1,
-  "revision": 36,
+  "revision": 39,
   "groups": {
     "welcome": {
       "settings": {
@@ -152,7 +152,7 @@ window.JamDefaultValues = {
     "sounds": {
       "enabled": true,
       "volume": 70,
-      "start": "PositiveStart",
+      "start": "HeroSimpleCelebration02",
       "pause": "ReverseBlip",
       "resume": "QuickBlip",
       "restart": "CountDownShutter",
