@@ -5,7 +5,7 @@ Each bank renders the same eight gestures with a different instrument:
   harp   a soft harp-mallet with gentle attacks, an octave lower (Harp*)
 
 Renders WAVs into the current folder. Convert for the prototype with:
-  python3 tools/sound-bank.py glass harp && for f in Glass*.wav Harp*.wav; do afconvert -f m4af -d aac -b 192000 "$f" "assets/sounds/${f%.wav}.m4a"; done
+  python3 tools/sound-bank.py glass harp && for f in Glass*.wav Harp*.wav; do afconvert -f m4af -d aac -b 256000 "$f" "assets/sounds/${f%.wav}.m4a"; done
 Pass `bank:Gesture` to render one sound, e.g. `python3 tools/sound-bank.py harp:Start`.
 The earlier, higher Jam* bank and a plucked-string bank are in this file's git history.
 """
@@ -48,18 +48,18 @@ def glass(f, level, decay):
 
 
 def harp(f, level, decay):
-    """Soft harp-mallet: rounded attack with no click, harmonics that fade faster than the fundamental,
-    a lightly chorused pair of strings, and a low body an octave down that blooms a little later."""
-    out = []; attack = 0.012
-    partials = [(n, 1 / n ** 1.7) for n in range(1, 8)]
+    """Soft harp-mallet: rounded attack with no click, a bright open spread of harmonics that fade a little
+    faster than the fundamental, a lightly chorused pair of strings, and a light body an octave down."""
+    out = []; attack = 0.01
+    partials = [(n, 1 / n ** 1.25) for n in range(1, 11) if f * n < 16000]
     for i in range(int(min(decay * 6, 3.5) * SR)):
         t = i / SR
         a = math.sin(min(1, t / attack) * math.pi / 2) ** 2
         v = 0.0
         for n, amp in partials:
-            e = math.exp(-t / (decay / n ** 0.75))
+            e = math.exp(-t / (decay / n ** 0.5))
             v += amp * e * (math.sin(2 * math.pi * f * n * t) + math.sin(2 * math.pi * f * n * 1.0017 * t + n)) * 0.5
-        body = 0.35 * math.sin(2 * math.pi * f / 2 * t) * math.exp(-t / (decay * 1.4)) * math.sin(min(1, t / 0.04) * math.pi / 2) ** 2
+        body = 0.18 * math.sin(2 * math.pi * f / 2 * t) * math.exp(-t / (decay * 1.4)) * math.sin(min(1, t / 0.04) * math.pi / 2) ** 2
         out.append((v + body) * a * level)
     return out
 
@@ -80,7 +80,7 @@ def pad(buf, notes, dur, attack, level, curve=1.8):
         add(buf, 0, out, pan)
 
 
-def room(buf, mix=0.16):
+def room(buf, mix=0.16, damp=0.4):
     """The shared room: every sound sits in the same small, soft space."""
     out = []
     for ch, delays in zip(buf, ([1117, 1188, 1277, 1356], [1139, 1211, 1300, 1379])):
@@ -88,7 +88,7 @@ def room(buf, mix=0.16):
         for dl in delays:
             line = [0.0] * dl; j = 0; lp = 0.0
             for i, x in enumerate(ch):
-                y = line[j]; lp = lp * 0.4 + y * 0.6; line[j] = x + lp * 0.7; j = (j + 1) % dl; wet[i] += y / len(delays)
+                y = line[j]; lp = lp * damp + y * (1 - damp); line[j] = x + lp * 0.7; j = (j + 1) % dl; wet[i] += y / len(delays)
         out.append([a * (1 - mix) + b * mix for a, b in zip(ch, wet)])
     return out
 
@@ -97,8 +97,12 @@ def room(buf, mix=0.16):
 TIERS = {'touch': 0.22, 'state': 0.5, 'moment': 0.55}
 
 
-def write(name, buf, tier):
-    buf = room(buf)
+def write(name, buf, tier, bank):
+    buf = room(buf, damp=bank['damp'])
+    if bank['air']:  # a gentle high shelf: adds back the top end for a clearer, higher-fidelity sound
+        for ch in buf:
+            prev = 0.0
+            for i, x in enumerate(ch): ch[i], prev = x + bank['air'] * (x - prev), x
     n = len(buf[0]); fade = int(0.05 * SR)
     for i in range(n - fade, n):
         g = (n - i) / fade; buf[0][i] *= g; buf[1][i] *= g
@@ -115,14 +119,17 @@ def write(name, buf, tier):
 
 # D major 9 (D F# A C# E) for joy, voiced low for weight. The harp bank sits an octave below the glass.
 BANKS = {
-    'glass': {'voice': glass, 'octave': 0, 'ring': 1.0, 'length': 1.0},
-    'harp': {'voice': harp, 'octave': -1, 'ring': 2.2, 'length': 1.8},  # softer notes ring longer
+    'glass': {'voice': glass, 'octave': 0, 'ring': 1.0, 'length': 1.0, 'damp': 0.4, 'air': 0, 'lifts': {}},
+    # Softer notes ring longer. Lifts move whole gestures by octaves for contrast: starting and resuming
+    # sit an octave above pausing and stopping, so energy rising and settling is heard as register.
+    'harp': {'voice': harp, 'octave': -1, 'ring': 2.2, 'length': 1.8, 'damp': 0.15, 'air': 0.6,
+             'lifts': {'Start': 1, 'Resume': 1, 'Restart': 1, 'Switch': 1, 'Limit': 1}},
 }
 
 
-def gestures(bank):
+def gestures(bank, lift=0):
     voice, ring = bank['voice'], bank['ring']
-    o = lambda n: n[:-1] + str(int(n[-1]) + bank['octave'])
+    o = lambda n: n[:-1] + str(int(n[-1]) + bank['octave'] + lift)
 
     def note(b, at, n, level, decay, pan=0.0): add(b, at, voice(hz(o(n)), level, decay * ring), pan)
     return {
@@ -150,8 +157,9 @@ def gestures(bank):
 
 if __name__ == '__main__':
     for arg in sys.argv[1:] or BANKS:
-        name, _, only = arg.partition(':')
-        for gesture, (tier, dur, build) in gestures(BANKS[name]).items():
+        name, _, only = arg.partition(':'); bank = BANKS[name]
+        for gesture in gestures(bank):
             if only and gesture != only: continue
-            if gesture != 'Greeting': dur *= BANKS[name]['length']
-            b = blank(dur); build(b); write(name.capitalize() + gesture, b, tier); print(name.capitalize() + gesture)
+            tier, dur, build = gestures(bank, bank['lifts'].get(gesture, 0))[gesture]
+            if gesture != 'Greeting': dur *= bank['length']
+            b = blank(dur); build(b); write(name.capitalize() + gesture, b, tier, bank); print(name.capitalize() + gesture)
