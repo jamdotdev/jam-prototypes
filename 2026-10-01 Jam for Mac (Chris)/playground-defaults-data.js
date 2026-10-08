@@ -148,6 +148,16 @@ window.JamDefaultValues = {
       "electronLogs": "once",
       "rate": 1,
       "loop": false
+    },
+    "sounds": {
+      "enabled": true,
+      "volume": 70,
+      "start": "PositiveStart",
+      "pause": "ReverseBlip",
+      "resume": "QuickBlip",
+      "restart": "CountDownShutter",
+      "limit": "TickTock",
+      "stop": "SuccessChime"
     }
   }
 };

@@ -157,6 +157,11 @@ def validate_default_values(group, value):
                 all(type(value[key]) in (int, float) and math.isfinite(value[key]) and
                     between(value[key], *limits) for key, limits in bounds.items()) and
                 valid_rate(value["rate"]))
+    if group == "sounds":
+        sounds = ("none", "ChimeA", "ChimeB", "CountDownShutter", "ErrorBloop", "HeroSimpleCelebration02", "PositiveStart",
+                  "QuickBlip", "ReverseBlip", "SimpleCelebration", "StartUp", "SuccessChime", "TickTock")
+        return (type(value["enabled"]) is bool and between(value["volume"], 0, 100) and
+                all(value[key] in sounds for key in ("start", "pause", "resume", "restart", "limit", "stop")))
     if group == "draft":
         return (value["connection"] in ("connected", "offline") and value["preview"] in ("video", "figma") and
                 between(value["handleResponse"], 80, 500) and between(value["springiness"], 0, 100) and

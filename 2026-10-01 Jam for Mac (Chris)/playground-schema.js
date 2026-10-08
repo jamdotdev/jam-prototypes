@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   // This describes controls only. Engines own live values; JamDefaults owns baselines.
-  const W=()=>window.JamWelcome, F=()=>window.JamWelcomeFlow, G=()=>window.JamPlayground, D=()=>window.JamDraft, R=()=>window.JamRecording;
+  const W=()=>window.JamWelcome, F=()=>window.JamWelcomeFlow, G=()=>window.JamPlayground, D=()=>window.JamDraft, R=()=>window.JamRecording, S=()=>window.JamSounds;
   const option=(value,label)=>({value:String(value),label});
   const options=values=>values.map(value=>typeof value==='string'?option(value,value[0].toUpperCase()+value.slice(1)):option(...value));
   const field=(type,id,label,get,set,extra={})=>({type,id,label,get,set,...extra});
@@ -70,6 +70,11 @@
         recordingSetting('placeholderGap','Gap length',1,24,1,'px'),
         recordingColor('placeholderOverlayColor','Overlay color'),
         recordingSetting('placeholderOverlayOpacity','Overlay opacity',0,80,1,'%'),
+      ]),
+      section('sounds','Sounds',[
+        toggle('sounds-enabled','Sounds',()=>S().getSettings().enabled,value=>S().updateSettings({enabled:value})),
+        slider('sounds-volume','Volume',()=>S().getSettings().volume,value=>S().updateSettings({volume:value}),0,100,1,'%'),
+        ...S().moments.map(moment=>select(`sound-${moment.id}`,moment.label,()=>S().getSettings()[moment.id],value=>S().choose(moment.id,value),[['none','None'],...S().files.map(name=>[name,name])])),
       ]),
       section('belt','Belt spring',[
         recordingSetting('beltSpring','Stiffness',80,500,10,''),
