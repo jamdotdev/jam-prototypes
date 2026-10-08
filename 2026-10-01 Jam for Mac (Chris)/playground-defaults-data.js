@@ -1,6 +1,6 @@
 window.JamDefaultValues = {
   "version": 1,
-  "revision": 39,
+  "revision": 40,
   "groups": {
     "welcome": {
       "settings": {
@@ -151,20 +151,20 @@ window.JamDefaultValues = {
     },
     "sounds": {
       "enabled": true,
-      "volume": 70,
-      "start": "JamStart",
-      "pause": "JamPause",
-      "resume": "JamResume",
-      "restart": "JamRestart",
-      "limit": "JamLimit",
-      "stop": "JamStop"
+      "volume": 60,
+      "start": "GlassStart",
+      "pause": "GlassPause",
+      "resume": "GlassResume",
+      "restart": "GlassRestart",
+      "limit": "GlassLimit",
+      "stop": "GlassStop"
     },
     "greeting": {
-      "sound": "JamGreeting",
+      "sound": "GlassGreeting",
       "volume": 70
     },
     "permissionSound": {
-      "sound": "JamSwitch",
+      "sound": "GlassSwitch",
       "volume": 70
     }
   }

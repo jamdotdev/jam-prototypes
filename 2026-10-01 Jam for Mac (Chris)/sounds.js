@@ -2,8 +2,11 @@
   'use strict';
   // UI sounds for recording moments. Watches JamRecording's state rather than being called from it,
   // so the belt code stays unaware of audio.
-  // The Jam bank (Jam*) is one system: see tools/sound-bank.py. The rest are earlier picks kept for auditioning.
-  const FILES = ['JamGreeting', 'JamLimit', 'JamPause', 'JamRestart', 'JamResume', 'JamStart', 'JamStop', 'JamSwitch',
+  // Each bank (Glass*, Pluck*, and the earlier Jam*) is one system from tools/sound-bank.py.
+  // The rest are earlier picks kept for auditioning.
+  const BANKS = [['Glass', 'Glass mallet'], ['Pluck', 'String pluck'], ['Jam', 'Jam (first pass)']];
+  const FILES = ['GlassGreeting', 'GlassLimit', 'GlassPause', 'GlassRestart', 'GlassResume', 'GlassStart', 'GlassStop', 'GlassSwitch', 'PluckGreeting', 'PluckLimit', 'PluckPause', 'PluckRestart', 'PluckResume', 'PluckStart', 'PluckStop', 'PluckSwitch',
+    'JamGreeting', 'JamLimit', 'JamPause', 'JamRestart', 'JamResume', 'JamStart', 'JamStop', 'JamSwitch',
     'ChimeA', 'ChimeB', 'ConfirmUp', 'CoolClick', 'CountDownShutter', 'ErrorBloop', 'ForwardMinimal',
     'GreetingAir', 'GreetingBloom', 'GreetingPad', 'HeroSimpleCelebration02', 'HoverTap', 'PositiveStart', 'QuickBlip',
     'ReverseBlip', 'SimpleCelebration', 'SoftTap', 'StartUp', 'SuccessChime', 'TickTock', 'Unlock'];
@@ -15,13 +18,13 @@
     { id: 'limit', label: 'Final seconds' },
     { id: 'stop', label: 'Recording ends' },
   ];
-  const fallback = { enabled: true, volume: 70, start: 'JamStart', pause: 'JamPause', resume: 'JamResume',
-    restart: 'JamRestart', limit: 'JamLimit', stop: 'JamStop' };
+  const fallback = { enabled: true, volume: 70, start: 'GlassStart', pause: 'GlassPause', resume: 'GlassResume',
+    restart: 'GlassRestart', limit: 'GlassLimit', stop: 'GlassStop' };
   const valid = (name) => name === 'none' || FILES.includes(name);
-  const greetingFallback = { sound: 'JamGreeting', volume: 70 };
+  const greetingFallback = { sound: 'GlassGreeting', volume: 70 };
   let settings = { ...fallback };
   let greeting = { ...greetingFallback };
-  const toggleFallback = { sound: 'JamSwitch', volume: 70 };
+  const toggleFallback = { sound: 'GlassSwitch', volume: 70 };
   let toggle = { ...toggleFallback };
   const buffers = new Map();
 
@@ -110,6 +113,20 @@
     if (Object.keys(next).some((id) => next[id] && !previous[id])) playToggle();
   }
 
+  // A bank sets every sound at once: the belt moments, the greeting, and the permission switch.
+  function picks() { return [...MOMENTS.map((moment) => settings[moment.id]), greeting.sound, toggle.sound]; }
+  function getBank() {
+    const bank = BANKS.find(([prefix]) => picks().every((name) => name.startsWith(prefix)));
+    return bank ? bank[0] : 'custom';
+  }
+  function setBank(prefix) {
+    if (!BANKS.some(([id]) => id === prefix)) return;
+    updateSettings(Object.fromEntries(MOMENTS.map((moment) => [moment.id, prefix + moment.id[0].toUpperCase() + moment.id.slice(1)])));
+    updateGreeting({ sound: `${prefix}Greeting` });
+    updateToggle({ sound: `${prefix}Switch` });
+    play(`${prefix}Start`, { force: true });
+  }
+
   let last = null;
   function observe() {
     const state = window.JamRecording.getState();
@@ -129,6 +146,9 @@
   window.JamSounds = {
     files: FILES,
     moments: MOMENTS,
+    banks: BANKS,
+    getBank,
+    setBank,
     getSettings: () => ({ ...settings }),
     updateSettings,
     choose,

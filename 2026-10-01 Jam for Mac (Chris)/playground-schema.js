@@ -72,6 +72,7 @@
         recordingSetting('placeholderOverlayOpacity','Overlay opacity',0,80,1,'%'),
       ]),
       section('sounds','Sounds',[
+        select('sounds-bank','Bank',()=>S().getBank(),value=>S().setBank(value),[['custom','Custom'],...S().banks]),
         toggle('sounds-enabled','Sounds',()=>S().getSettings().enabled,value=>S().updateSettings({enabled:value})),
         slider('sounds-volume','Volume',()=>S().getSettings().volume,value=>S().updateSettings({volume:value}),0,100,1,'%'),
         ...S().moments.map(moment=>select(`sound-${moment.id}`,moment.label,()=>S().getSettings()[moment.id],value=>S().choose(moment.id,value),[['none','None'],...S().files.map(name=>[name,name])])),
@@ -100,6 +101,7 @@
     ];
     if(screen==='welcome')return [
       section('greeting','Greeting sound',[
+        select('greeting-bank','Bank',()=>S().getBank(),value=>S().setBank(value),[['custom','Custom'],...S().banks]),
         select('greeting-sound','Sound',()=>S().getGreeting().sound,value=>S().chooseGreeting(value),[['none','None'],...S().files.map(name=>[name,name])]),
         slider('greeting-volume','Volume',()=>S().getGreeting().volume,value=>S().updateGreeting({volume:value}),0,100,1,'%'),
         action('play-greeting','Play greeting',()=>S().playGreeting()),
@@ -137,6 +139,7 @@
       ]),
     ];
     if(screen==='permissions')return [grid(),section('switch-sound','Switch sound',[
+      select('permission-bank','Bank',()=>S().getBank(),value=>S().setBank(value),[['custom','Custom'],...S().banks]),
       select('permission-sound','Turning on',()=>S().getToggle().sound,value=>S().chooseToggle(value),[['none','None'],...S().files.map(name=>[name,name])]),
       slider('permission-volume','Volume',()=>S().getToggle().volume,value=>S().updateToggle({volume:value}),0,100,1,'%'),
       action('play-permission-sound','Play sound',()=>S().playToggle()),
