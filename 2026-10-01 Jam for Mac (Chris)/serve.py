@@ -82,9 +82,9 @@ def validate_default_shape(value, template):
     return False
 
 
-SOUNDS = ("none", "ChimeA", "ChimeB", "CountDownShutter", "ErrorBloop", "GreetingAir", "GreetingBloom", "GreetingPad",
-          "HeroSimpleCelebration02", "PositiveStart", "QuickBlip", "ReverseBlip", "SimpleCelebration", "StartUp",
-          "SuccessChime", "TickTock")
+SOUNDS = ("none", "ChimeA", "ChimeB", "ConfirmUp", "CoolClick", "CountDownShutter", "ErrorBloop", "ForwardMinimal",
+          "GreetingAir", "GreetingBloom", "GreetingPad", "HeroSimpleCelebration02", "HoverTap", "PositiveStart", "QuickBlip",
+          "ReverseBlip", "SimpleCelebration", "SoftTap", "StartUp", "SuccessChime", "TickTock", "Unlock")
 
 
 def validate_default_values(group, value):
@@ -165,7 +165,7 @@ def validate_default_values(group, value):
     if group == "sounds":
         return (type(value["enabled"]) is bool and between(value["volume"], 0, 100) and
                 all(value[key] in SOUNDS for key in ("start", "pause", "resume", "restart", "limit", "stop")))
-    if group == "greeting":
+    if group in ("greeting", "permissionSound"):
         return value["sound"] in SOUNDS and between(value["volume"], 0, 100)
     if group == "draft":
         return (value["connection"] in ("connected", "offline") and value["preview"] in ("video", "figma") and

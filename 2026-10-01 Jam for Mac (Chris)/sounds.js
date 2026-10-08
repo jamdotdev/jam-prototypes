@@ -2,9 +2,9 @@
   'use strict';
   // UI sounds for recording moments. Watches JamRecording's state rather than being called from it,
   // so the belt code stays unaware of audio.
-  const FILES = ['ChimeA', 'ChimeB', 'CountDownShutter', 'ErrorBloop', 'GreetingAir', 'GreetingBloom', 'GreetingPad',
-    'HeroSimpleCelebration02', 'PositiveStart', 'QuickBlip', 'ReverseBlip', 'SimpleCelebration', 'StartUp',
-    'SuccessChime', 'TickTock'];
+  const FILES = ['ChimeA', 'ChimeB', 'ConfirmUp', 'CoolClick', 'CountDownShutter', 'ErrorBloop', 'ForwardMinimal',
+    'GreetingAir', 'GreetingBloom', 'GreetingPad', 'HeroSimpleCelebration02', 'HoverTap', 'PositiveStart', 'QuickBlip',
+    'ReverseBlip', 'SimpleCelebration', 'SoftTap', 'StartUp', 'SuccessChime', 'TickTock', 'Unlock'];
   const MOMENTS = [
     { id: 'start', label: 'Recording starts' },
     { id: 'pause', label: 'Paused' },
@@ -19,6 +19,8 @@
   const greetingFallback = { sound: 'GreetingBloom', volume: 60 };
   let settings = { ...fallback };
   let greeting = { ...greetingFallback };
+  const toggleFallback = { sound: 'CoolClick', volume: 50 };
+  let toggle = { ...toggleFallback };
   const buffers = new Map();
 
   function source(name) {
@@ -91,6 +93,21 @@
     if (state.elapsed < 50 && (!previous || !previous.active || previous.elapsed >= 50)) playGreeting();
   }
 
+  // Permission switches click only when turned on.
+  function updateToggle(patch = {}) {
+    if (valid(patch.sound)) toggle.sound = patch.sound;
+    if (patch.volume !== undefined) toggle.volume = Math.max(0, Math.min(100, Number(patch.volume) || 0));
+    window.JamDefaults?.changed('permissions');
+  }
+  function playToggle() { play(toggle.sound, { force: true, volume: toggle.volume }); }
+  let permissionsLast = null;
+  function observePermissions(event) {
+    const next = event.detail?.permissions || {};
+    const previous = permissionsLast || {};
+    permissionsLast = { ...next };
+    if (Object.keys(next).some((id) => next[id] && !previous[id])) playToggle();
+  }
+
   let last = null;
   function observe() {
     const state = window.JamRecording.getState();
@@ -117,6 +134,10 @@
     updateGreeting,
     chooseGreeting(name) { updateGreeting({ sound: name }); playGreeting(); },
     playGreeting,
+    getToggle: () => ({ ...toggle }),
+    updateToggle,
+    chooseToggle(name) { updateToggle({ sound: name }); playToggle(); },
+    playToggle,
     play,
     playMoment,
   };
@@ -131,6 +152,12 @@
     read: () => ({ greeting: { ...greeting } }),
     apply: (values) => { greeting = { ...greetingFallback }; updateGreeting(values.greeting); },
   });
+  window.JamDefaults.register('permissions', {
+    groups: ['permissionSound'],
+    read: () => ({ permissionSound: { ...toggle } }),
+    apply: (values) => { toggle = { ...toggleFallback }; updateToggle(values.permissionSound); },
+  });
+  document.addEventListener('permissionchange', observePermissions);
   window.JamWelcome.subscribe(observeWelcome);
   window.JamRecording.subscribe(observe);
   // Finishing a recording switches to the draft without notifying subscribers.

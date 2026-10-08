@@ -136,7 +136,11 @@
         action('simulate-return','Simulate return',()=>F().simulateReturn()),
       ]),
     ];
-    if(screen==='permissions')return [grid()];
+    if(screen==='permissions')return [grid(),section('switch-sound','Switch sound',[
+      select('permission-sound','Turning on',()=>S().getToggle().sound,value=>S().chooseToggle(value),[['none','None'],...S().files.map(name=>[name,name])]),
+      slider('permission-volume','Volume',()=>S().getToggle().volume,value=>S().updateToggle({volume:value}),0,100,1,'%'),
+      action('play-permission-sound','Play sound',()=>S().playToggle()),
+    ])];
     if(screen==='onboarding')return [grid(),section('lens','Magnifying lens',[
       toggle('lens-enabled','Show lens',()=>G().getLensSettings().lensEnabled,value=>G().updateLensSettings({lensEnabled:value})),
       select('lens-zoom','Magnification',()=>String(G().getLensSettings().lensZoom),value=>G().updateLensSettings({lensZoom:Number(value)}),[[1.5,'1.5×'],[2,'2×'],[3,'3×'],[4,'4×']]),

@@ -162,6 +162,10 @@ window.JamDefaultValues = {
     "greeting": {
       "sound": "GreetingBloom",
       "volume": 60
+    },
+    "permissionSound": {
+      "sound": "CoolClick",
+      "volume": 50
     }
   }
 };
