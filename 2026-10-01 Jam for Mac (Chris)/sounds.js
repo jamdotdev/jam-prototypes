@@ -2,20 +2,20 @@
   'use strict';
   // UI sounds for recording moments. Watches JamRecording's state rather than being called from it,
   // so the belt code stays unaware of audio.
-  // Each bank sets every sound at once. Glass*, Pluck* and the earlier Jam* are generated systems from
+  // Each bank sets every sound at once. Glass*, Harp* and the earlier Jam* are generated systems from
   // tools/sound-bank.py; Tuned* are the supplied picks fitted to D major and matched in loudness by
   // tools/tune-sounds.py. The untouched originals are kept for auditioning.
   const GESTURES = { start: 'Start', pause: 'Pause', resume: 'Resume', restart: 'Restart', limit: 'Limit', stop: 'Stop', greeting: 'Greeting', toggle: 'Switch' };
   const generated = (prefix) => Object.fromEntries(Object.entries(GESTURES).map(([key, gesture]) => [key, prefix + gesture]));
   const BANKS = [
     { id: 'Glass', label: 'Glass mallet', sounds: generated('Glass') },
-    { id: 'Pluck', label: 'String pluck', sounds: generated('Pluck') },
+    { id: 'Harp', label: 'Soft harp', sounds: generated('Harp') },
     { id: 'Tuned', label: 'Your picks, tuned', sounds: { start: 'TunedHeroSimpleCelebration02', pause: 'TunedReverseBlip',
       resume: 'TunedQuickBlip', restart: 'TunedCountDownShutter', limit: 'TunedTickTock', stop: 'TunedSuccessChime',
       greeting: 'TunedGreetingBloom', toggle: 'TunedCoolClick' } },
     { id: 'Jam', label: 'Jam (first pass)', sounds: generated('Jam') },
   ];
-  const FILES = ['GlassGreeting', 'GlassLimit', 'GlassPause', 'GlassRestart', 'GlassResume', 'GlassStart', 'GlassStop', 'GlassSwitch', 'PluckGreeting', 'PluckLimit', 'PluckPause', 'PluckRestart', 'PluckResume', 'PluckStart', 'PluckStop', 'PluckSwitch',
+  const FILES = ['GlassGreeting', 'GlassLimit', 'GlassPause', 'GlassRestart', 'GlassResume', 'GlassStart', 'GlassStop', 'GlassSwitch', 'HarpGreeting', 'HarpLimit', 'HarpPause', 'HarpRestart', 'HarpResume', 'HarpStart', 'HarpStop', 'HarpSwitch',
     'TunedChimeA', 'TunedChimeB', 'TunedConfirmUp', 'TunedCoolClick', 'TunedCountDownShutter', 'TunedErrorBloop', 'TunedForwardMinimal',
     'TunedGreetingAir', 'TunedGreetingBloom', 'TunedGreetingPad', 'TunedHeroSimpleCelebration02', 'TunedHoverTap', 'TunedPositiveStart', 'TunedQuickBlip',
     'TunedReverseBlip', 'TunedSimpleCelebration', 'TunedSoftTap', 'TunedStartUp', 'TunedSuccessChime', 'TunedTickTock', 'TunedUnlock',

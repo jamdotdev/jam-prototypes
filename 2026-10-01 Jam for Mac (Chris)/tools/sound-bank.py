@@ -2,12 +2,12 @@
 
 Each bank renders the same eight gestures with a different instrument:
   glass  a deep glass mallet (Glass*)
-  pluck  a plucked string with a wooden body (Pluck*)
+  harp   a soft harp-mallet with gentle attacks, an octave lower (Harp*)
 
 Renders WAVs into the current folder. Convert for the prototype with:
-  python3 tools/sound-bank.py glass pluck && for f in Glass*.wav Pluck*.wav; do afconvert -f m4af -d aac -b 192000 "$f" "assets/sounds/${f%.wav}.m4a"; done
-Pass `bank:Gesture` to render one sound, e.g. `python3 tools/sound-bank.py pluck:Start`.
-The earlier, higher Jam* bank is in this file's git history.
+  python3 tools/sound-bank.py glass harp && for f in Glass*.wav Harp*.wav; do afconvert -f m4af -d aac -b 192000 "$f" "assets/sounds/${f%.wav}.m4a"; done
+Pass `bank:Gesture` to render one sound, e.g. `python3 tools/sound-bank.py harp:Start`.
+The earlier, higher Jam* bank and a plucked-string bank are in this file's git history.
 """
 import math, random, struct, wave, sys
 
@@ -47,21 +47,20 @@ def glass(f, level, decay):
     return out
 
 
-def pluck(f, level, decay):
-    """Plucked string (Karplus-Strong) through a small wooden body resonance."""
-    rnd = random.Random(int(f * 3)); period = SR / f; size = int(period); frac = period - size
-    line = [rnd.random() * 2 - 1 for _ in range(size + 2)]
-    # Pluck nearer the bridge's middle for a round tone: smooth the initial noise.
-    for _ in range(3): line = [(line[i - 1] + line[i] + line[(i + 1) % len(line)]) / 3 for i in range(len(line))]
-    # Loss per period chosen so the string fades by ~60dB over `decay * 4` seconds.
-    loss = 10 ** (-3 / (decay * 4 * f)); out = []; j = 0; prev = 0.0
-    y1 = y2 = 0.0; w = 2 * math.pi * 190 / SR; r = 0.97  # body resonance near 190Hz
-    for i in range(int(min(decay * 5, 3) * SR)):
-        a = line[j]; b = line[(j + 1) % len(line)]
-        v = (a * (1 - frac) + b * frac)
-        new = loss * 0.5 * (v + prev); prev = v; line[j] = new; j = (j + 1) % len(line)
-        body = new + 2 * r * math.cos(w) * y1 - r * r * y2; y2, y1 = y1, body
-        out.append((v + body * 0.04) * level)
+def harp(f, level, decay):
+    """Soft harp-mallet: rounded attack with no click, harmonics that fade faster than the fundamental,
+    a lightly chorused pair of strings, and a low body an octave down that blooms a little later."""
+    out = []; attack = 0.012
+    partials = [(n, 1 / n ** 1.7) for n in range(1, 8)]
+    for i in range(int(min(decay * 6, 3.5) * SR)):
+        t = i / SR
+        a = math.sin(min(1, t / attack) * math.pi / 2) ** 2
+        v = 0.0
+        for n, amp in partials:
+            e = math.exp(-t / (decay / n ** 0.75))
+            v += amp * e * (math.sin(2 * math.pi * f * n * t) + math.sin(2 * math.pi * f * n * 1.0017 * t + n)) * 0.5
+        body = 0.35 * math.sin(2 * math.pi * f / 2 * t) * math.exp(-t / (decay * 1.4)) * math.sin(min(1, t / 0.04) * math.pi / 2) ** 2
+        out.append((v + body) * a * level)
     return out
 
 
@@ -114,10 +113,10 @@ def write(name, buf, tier):
         w.writeframes(b''.join(struct.pack('<hh', int(max(-1, min(1, a * g)) * 32767), int(max(-1, min(1, b * g)) * 32767)) for a, b in zip(*buf)))
 
 
-# D major 9 (D F# A C# E) for joy, voiced low for weight. The pluck bank sits an octave below the glass.
+# D major 9 (D F# A C# E) for joy, voiced low for weight. The harp bank sits an octave below the glass.
 BANKS = {
-    'glass': {'voice': glass, 'octave': 0, 'ring': 1.0},
-    'pluck': {'voice': pluck, 'octave': -1, 'ring': 1.4},
+    'glass': {'voice': glass, 'octave': 0, 'ring': 1.0, 'length': 1.0},
+    'harp': {'voice': harp, 'octave': -1, 'ring': 2.2, 'length': 1.8},  # softer notes ring longer
 }
 
 
@@ -154,4 +153,5 @@ if __name__ == '__main__':
         name, _, only = arg.partition(':')
         for gesture, (tier, dur, build) in gestures(BANKS[name]).items():
             if only and gesture != only: continue
+            if gesture != 'Greeting': dur *= BANKS[name]['length']
             b = blank(dur); build(b); write(name.capitalize() + gesture, b, tier); print(name.capitalize() + gesture)
