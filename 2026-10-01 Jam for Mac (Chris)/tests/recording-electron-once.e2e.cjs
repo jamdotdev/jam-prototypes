@@ -11,6 +11,9 @@ await hoverNotion();
 assert.equal((await state()).target,'notion');
 assert.equal(await row.locator('.rb-notch-logs-restart-label').textContent(),'Turn on console logs');
 assert.equal(await row.locator('.rb-notch-logs-restart-detail').textContent(),'Restarts Notion');
+assert.equal(Math.round((await row.boundingBox()).width),Math.round((await start.boundingBox()).width),'the logs button is as wide as the record pill');
+assert.deepEqual(await p.locator('.rb-hover-frame').boundingBox(),nb,'the tint covers the whole hovered window');
+assert.ok(await p.evaluate(()=>{const f=document.querySelector('.rb-hover-frame'),windows=document.querySelector('.rb-desktop-windows');return +getComputedStyle(f).zIndex>+getComputedStyle(windows).zIndex;}),'the tint sits above every window');
 await p.mouse.click(point.x,point.y);await p.waitForTimeout(100);
 let st=await state();assert.equal(st.stage,'recording','a click records straight away');assert.equal(st.alert,null);assert.equal(st.selectedWindow,'notion');
 // Finishing offers the opt-in on the draft, and turning it on there restarts Notion in the background
@@ -28,6 +31,12 @@ st=await state();assert.equal(st.alert,null,'no dialog');assert.equal(st.apps.no
 assert.equal(await row.locator('.rb-notch-logs-restart-detail').textContent(),'Logs turn on as it reopens');
 await debugIs('on');st=await state();assert.equal(st.stage,'idle');assert.equal(st.target,'notion');assert.equal(st.apps.notion.enabled,true);
 assert.equal(await p.locator('.rb-selection-notch .rb-notch-logs-label').textContent(),'Logs enabled');
+// Recording with logs on hangs a Capturing logs notch under the window
+const capture=p.locator('.rb-capture-notch');assert.ok(await capture.isHidden());
+await start.click();await p.waitForTimeout(100);assert.equal((await state()).stage,'recording');
+assert.ok(await capture.isVisible());assert.equal((await capture.textContent()).trim(),'Capturing logs');assert.equal(await capture.locator('.rb-dot-serpent i').count(),9);
+const cb=await capture.boundingBox();assert.equal(Math.round(cb.y),Math.round(nb.y+nb.height),'the notch hangs from the window');
+await p.evaluate(()=>JamRecording.setStage('idle'));await hoverNotion();assert.ok(await capture.isHidden());
 // Opening Notion again later drops debug mode, and Jam relaunches it with logs on and says so
 await p.evaluate(()=>JamRecording.reopenElectronApp('notion'));await p.waitForTimeout(100);
 assert.equal((await state()).apps.notion.debug,'restarting','Jam already knows it will turn logs back on');
@@ -36,6 +45,7 @@ await banner.click();await p.waitForTimeout(300);assert.ok(await banner.isHidden
 // Without the opt-in, reopening leaves logs off
 await p.evaluate(()=>JamRecording.resetElectronApps());await p.evaluate(()=>JamRecording.reopenElectronApp('notion'));await p.waitForTimeout(2000);
 st=await state();assert.equal(st.apps.notion.debug,'off');assert.ok(await banner.isHidden());
+await p.evaluate(()=>{JamRecording.selectWindow('notion');JamRecording.setStage('recording');});await p.waitForTimeout(50);assert.ok(await p.locator('.rb-capture-notch').isHidden(),'no notch without logs');await p.evaluate(()=>JamRecording.setStage('idle'));
 // The ask flow brings the dialog back after a later launch
 await p.evaluate(()=>{JamRecording.updateSettings({electronLogs:'ask'});});await hoverNotion();await start.click();await p.waitForTimeout(100);assert.equal((await state()).alert,'notion');
 await p.keyboard.press('Escape');

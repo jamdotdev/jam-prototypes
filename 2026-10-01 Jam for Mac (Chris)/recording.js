@@ -42,6 +42,8 @@
     <div class="rb-capture-region" tabindex="0" role="group" aria-label="Recording area. Drag to move, arrow keys to nudge, Shift for ten pixels.">${['nw','n','ne','e','se','s','sw','w'].map(handle=>`<button class="rb-area-handle rb-handle-${handle}" data-handle="${handle}" aria-label="Resize recording area ${handle}"></button>`).join('')}</div>
     <button class="rb-area-draw" aria-label="Draw a new recording area" hidden></button>
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
+    <div class="rb-hover-frame" aria-hidden="true" hidden></div>
+    <div class="rb-capture-notch" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span>Capturing logs</span></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
     <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
     <div class="rb-banner" role="status" hidden><img class="rb-banner-icon" src="assets/welcome/app-icon.png" width="36" height="36" alt=""><div class="rb-banner-text"><strong class="rb-banner-title"></strong><span class="rb-banner-body"></span></div><span class="rb-banner-time">now</span></div>
@@ -174,7 +176,19 @@
     const rect=sizingBounds();selectionState().orientation=orientation;
     applySelectionRect(JamSelectionGeometry.size(rect,{width:rect.height,height:rect.width},selectionBounds(),selectionMinimum(),JamSelectionGeometry.ratio(selectionState())));
   }
-  function syncWindows(){for(const [name,value]of Object.entries(windows))rectStyle($(`[data-window="${name}"]`),value);}
+  function syncWindows(){for(const [name,value]of Object.entries(windows))rectStyle($(`[data-window="${name}"]`),value);syncWindowOverlays();}
+  // The hover tint and the capturing-logs notch sit above every window, so they follow the window they belong to.
+  function syncWindowOverlays(){
+    const target=cardTarget(),frame=$('.rb-hover-frame'),el=windows[target]&&$(`[data-window="${target}"]`);
+    frame.hidden=!el;
+    if(el){rectStyle(frame,windows[target]);frame.classList.toggle('is-quitting',el.classList.contains('is-quitting'));frame.classList.toggle('is-launching',el.classList.contains('is-launching'));}
+    const notch=$('.rb-capture-notch'),rect=settings.mode==='window'&&!isIdle()&&windows[selectedWindow];
+    notch.hidden=!rect||windowLogs(selectedWindow)?.state!=='connected';
+    if(notch.hidden)return;
+    const width=notch.offsetWidth,height=notch.offsetHeight,inset=rect.y+rect.height+height>H-8;
+    notch.classList.toggle('is-inset',inset);
+    notch.style.left=`${clamp(rect.x+rect.width/2-width/2,8,W-width-8)}px`;notch.style.top=`${inset?rect.y+rect.height-height:rect.y+rect.height}px`;
+  }
   function loadCameraPositions(){
     try{
       const saved=JSON.parse(sessionStorage.getItem('jam-recording-camera-positions-v1')||'{}'),valid={};
@@ -246,6 +260,7 @@
     root.dataset.alert=String(!!alertTarget);
     const target=cardTarget(),card=$('.rb-record-card');
     $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-hovered',el.dataset.window===target));
+    syncWindowOverlays();
     root.dataset.screenHover=String(target==='screen');
     if(!target){
       card.hidden=true;
@@ -333,10 +348,10 @@
   }
   function relaunchWindow(name,quitDelay,loadDelay,done){
     const app=electronApps[name],el=$(`[data-window="${name}"]`),quick=reduced.matches;
-    clearTimeout(app.timer);el.classList.remove('is-launching');el.classList.add('is-quitting');
+    clearTimeout(app.timer);el.classList.remove('is-launching');el.classList.add('is-quitting');syncWindowOverlays();
     app.timer=setTimeout(()=>{
-      el.classList.replace('is-quitting','is-launching');
-      app.timer=setTimeout(()=>{el.classList.remove('is-launching');done();},quick?Math.min(loadDelay,300):loadDelay);
+      el.classList.replace('is-quitting','is-launching');syncWindowOverlays();
+      app.timer=setTimeout(()=>{el.classList.remove('is-launching');syncWindowOverlays();done();},quick?Math.min(loadDelay,300):loadDelay);
     },quick?Math.min(quitDelay,150):quitDelay);
   }
   function restartElectronApp(name,{background=false,onDone}={}){

@@ -54,24 +54,24 @@
 .rb-selection-notch.is-card[data-logs="connected"] .rb-notch-logs .rb-sf{color:#53b365}
 
 /* A row that asks for a restart before logs can be captured, with a sweep that reads as waiting on the user. */
-.rb-selection-notch .rb-notch-logs-restart{gap:5px;color:#ffffff8c}
+.rb-selection-notch .rb-notch-logs-restart{gap:1px;color:#ffffff8c}
+.rb-notch-logs-restart-main{display:flex;align-items:center;gap:6px}
 .rb-selection-notch .rb-notch-logs-restart .rb-sf{width:13px;height:13px}
 .rb-notch-logs-restart-label{background:linear-gradient(100deg,#ffffff8c 35%,#fffffff2 50%,#ffffff8c 65%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:rb-logs-sweep 2.4s ease-in-out infinite}
 .rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart-label{animation-duration:1.2s}
 .rb-selection-notch .rb-notch-logs-restart[aria-disabled="true"]{cursor:default;background:transparent}
 .rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart .rb-sf{animation:rb-logs-spin 1s linear infinite}
-.rb-selection-notch.is-card .rb-notch-logs-restart{padding:0 16px;font-size:13px;font-weight:510}
-.rb-notch-logs-restart-text{display:flex;flex-direction:column;align-items:flex-start}
 .rb-notch-logs-restart-detail{font-size:11px;line-height:13px;font-weight:400;color:#ffffff73}
 .rb-notch-logs-restart-detail:empty,.rb-selection-notch:not(.is-card) .rb-notch-logs-restart-detail,.rb-selection-notch .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:none}
-/* Turning logs on is optional, so the opt-in is a calm button with its cost underneath rather than a sweep. */
+/* On the card the row is a button as wide as the record pill, with any detail under its label. */
+.rb-selection-notch.is-card .rb-notch-logs-restart{flex:1 1 auto;flex-direction:column;height:auto;min-height:32px;padding:6px 14px;border-radius:16px;background:#ffffff12;font-size:13px;font-weight:510}
+.rb-selection-notch.is-card[data-logs="restarting"] .rb-notch-logs-restart{background:#ffffff0a}
+@media(hover:hover) and (pointer:fine){.rb-selection-notch.is-card .rb-notch-logs-restart:not([aria-disabled="true"]):hover{background:#ffffff1f}}
+/* Turning logs on is optional, so the opt-in is calm, with its cost underneath rather than a sweep. */
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart{color:#ffffffd9}
-.rb-selection-notch.is-card .rb-notch-logs-restart.has-detail{height:auto;padding:5px 14px 5px 10px;gap:8px}
-.rb-selection-notch.is-card[data-logs="optin"] .rb-notch-logs-restart{background:#ffffff12}
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart .rb-sf[data-symbol="arrow.counterclockwise"]{display:none}
-.rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:block;width:16px;height:16px;opacity:.75}
+.rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:block;width:15px;height:15px;opacity:.75}
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart-label{background:none;-webkit-text-fill-color:currentColor;animation:none}
-@media(hover:hover) and (pointer:fine){.rb-selection-notch.is-card[data-logs="optin"] .rb-notch-logs-restart:hover{background:#ffffff1f}}
 @keyframes rb-logs-sweep{from{background-position:100% 0}to{background-position:0 0}}
 @keyframes rb-logs-spin{to{rotate:-360deg}}
 @media(prefers-reduced-motion:reduce){.rb-notch-logs-restart-label,.rb-selection-notch .rb-notch-logs-restart .rb-sf{animation:none}}
