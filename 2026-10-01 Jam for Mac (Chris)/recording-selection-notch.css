@@ -42,8 +42,10 @@
 .rb-selection-notch.is-card{flex-direction:column;gap:0;padding:52px 8px 8px;border-radius:24px}
 .rb-selection-notch.is-card .rb-notch-backplate{pointer-events:auto}
 .rb-selection-notch.is-card .rb-notch-sizing{order:1}
-.rb-selection-notch.is-card .rb-notch-window-controls{order:2;justify-content:center;width:100%;margin-top:12px}
-.rb-selection-notch.is-card .rb-notch-window-controls::before{content:'';position:absolute;left:-8px;right:-8px;top:-5px;height:1px;background:#ffffff1a;pointer-events:none}
+.rb-selection-notch.is-card .rb-notch-window-controls{order:2;justify-content:center;width:100%;margin-top:17px}
+/* A full-width divider with the same 8px above and below it as around the record pill */
+.rb-selection-notch.is-card .rb-notch-window-controls::before{content:'';position:absolute;left:-8px;right:-8px;top:-9px;height:1px;background:#ffffff1a;pointer-events:none}
+.rb-selection-notch.is-card:has(.rb-notch-sizing[hidden]) .rb-notch-window-controls{margin-top:9px}
 .rb-selection-notch.is-card .rb-notch-window-controls .rb-notch-separator{display:none}
 .rb-selection-notch.is-card button,.rb-selection-notch.is-card .rb-notch-field input{font-size:13px;font-weight:510}
 .rb-selection-notch.is-card .rb-notch-ratio{min-width:32px;padding:0 8px}

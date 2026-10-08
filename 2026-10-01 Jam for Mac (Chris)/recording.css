@@ -223,9 +223,9 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 @media(prefers-reduced-motion:reduce){.rb-dot-serpent i{animation:none;opacity:calc(.12 + var(--order) * .09)}.rb-hover-frame.is-launching{animation:none}.rb-hover-frame.is-quitting{transition:none}.rb-banner,.rb-alert,.rb-mock-window.is-launching,.rb-mock-window.is-launching :is(.rb-notion-crumbs,.rb-notion-body) i{animation:none}.rb-mock-window.is-quitting{transition:none}}
 /* Full screen log sources: a summary row on the screen card, the menu it opens, and a notch joined to the recording bar */
 .rb-record-card[data-target="screen"] .rb-picker-controls{position:relative}
-.rb-picker-sources{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:32px;margin-top:-4px;padding:4px 16px 0;border-radius:0 0 16px 16px;background:transparent;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:pointer}
+.rb-picker-sources{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:33px;padding:9px 16px 0;border-radius:0 0 16px 16px;background:transparent;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:pointer}
 .rb-picker-sources[hidden]{display:none}
-.rb-picker-sources::before{content:'';position:absolute;top:0;left:8px;right:8px;height:1px;background:#ffffff1a}
+.rb-picker-sources::before{content:'';position:absolute;top:0;left:-8px;right:-8px;height:1px;background:#ffffff1a}
 .rb-picker-sources[data-connected="false"]{color:#ffffff8c}
 .rb-source-stack{display:flex;flex:none}.rb-source-stack:empty{display:none}
 .rb-source-stack .rb-app-icon+.rb-app-icon{margin-left:-5px}
