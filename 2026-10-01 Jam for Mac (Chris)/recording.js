@@ -42,7 +42,7 @@
     <div class="rb-capture-region" tabindex="0" role="group" aria-label="Recording area. Drag to move, arrow keys to nudge, Shift for ten pixels.">${['nw','n','ne','e','se','s','sw','w'].map(handle=>`<button class="rb-area-handle rb-handle-${handle}" data-handle="${handle}" aria-label="Resize recording area ${handle}"></button>`).join('')}</div>
     <button class="rb-area-draw" aria-label="Draw a new recording area" hidden></button>
     <div class="rb-bounds-guide" aria-hidden="true" hidden></div>
-    <div class="rb-hover-frame" aria-hidden="true" hidden></div>
+    <div class="rb-hover-frame" aria-hidden="true" hidden><canvas class="rb-hover-waves"></canvas></div>
     <div class="rb-capture-notch" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span>Capturing logs</span></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
     <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
@@ -66,6 +66,7 @@
     <div class="rb-capture-status" role="status" aria-live="polite"></div>
   `;
   const $=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
+  const hoverWaves=JamWaves.create($('.rb-hover-waves'));
   const belt=$('.rb-belt'),bubble=$('.rb-camera'),region=$('.rb-capture-region');
   const cameraDragOverlay=JamCameraPlaceholders.createOverlay(root);
   const settings={cameraZoom:1,...JamDefaults.get('recording')};
@@ -181,8 +182,10 @@
   // The hover tint and the capturing-logs notch sit above every window, so they follow the window they belong to.
   function syncWindowOverlays(){
     const target=cardTarget(),frame=$('.rb-hover-frame'),el=windows[target]&&$(`[data-window="${target}"]`);
-    frame.hidden=!el;
-    if(el){rectStyle(frame,windows[target]);frame.classList.toggle('is-reloading',electronApps[target]?.debug==='restarting'||el.matches('.is-quitting,.is-launching'));}
+    const reloading=!!el&&(electronApps[target]?.debug==='restarting'||el.matches('.is-quitting,.is-launching'));
+    frame.hidden=!el;frame.classList.toggle('is-reloading',reloading);
+    if(el)rectStyle(frame,windows[target]);
+    if(reloading)hoverWaves.start();else hoverWaves.stop();
     const notch=$('.rb-capture-notch'),rect=settings.mode==='window'&&!isIdle()&&windows[selectedWindow];
     notch.hidden=!rect||windowLogs(selectedWindow)?.state!=='connected';
     if(notch.hidden)return;
@@ -347,20 +350,22 @@
     if(electronApps[name]?.debug!=='off'||!isIdle())return;
     if(settings.electronLogs==='ask')showRestartAlert(name);else restartElectronApp(name);
   }
-  function relaunchWindow(name,quitDelay,loadDelay,done){
+  // The window is gone for `closedFor`, then shows its loading skeleton for `loadingFor`, or comes back loaded when that's 0.
+  function relaunchWindow(name,closedFor,loadingFor,done){
     const app=electronApps[name],el=$(`[data-window="${name}"]`);
-    clearTimeout(app.timer);el.classList.remove('is-launching');el.classList.add('is-quitting');syncWindowOverlays();
+    clearTimeout(app.timer);el.classList.remove('is-launching','is-reopened');el.classList.add('is-quitting');syncWindowOverlays();
     app.timer=setTimeout(()=>{
+      if(!loadingFor){el.classList.replace('is-quitting','is-reopened');syncWindowOverlays();done();return;}
       el.classList.replace('is-quitting','is-launching');syncWindowOverlays();
-      app.timer=setTimeout(()=>{el.classList.remove('is-launching');syncWindowOverlays();done();},loadDelay);
-    },quitDelay);
+      app.timer=setTimeout(()=>{el.classList.remove('is-launching');syncWindowOverlays();done();},loadingFor);
+    },closedFor);
   }
   function restartElectronApp(name,{background=false,onDone}={}){
     const app=electronApps[name],appName=targetNames[name];
     app.debug='restarting';
     if(!background){hoverTarget=name;hoverHold=true;showBeltToast(`Restarting ${appName} to enable logs`,'restarting');}
-    // Quitting, relaunching and loading takes an Electron app about 4 seconds, and logs connect once it has loaded.
-    relaunchWindow(name,2000,2000,()=>{
+    // Quitting, relaunching and loading takes an Electron app about 4 seconds. Its window stays away until it has loaded with logs on.
+    relaunchWindow(name,4000,0,()=>{
       app.debug='on';app.enabled=true;syncSelection();
       if(!background)showBeltToast(`Logs enabled for ${appName}`,'done');
       $('.rb-capture-status').textContent=`${appName} restarted. Logs enabled.`;onDone?.();emit();
@@ -423,7 +428,7 @@
   function resetElectronApps(){
     if(alertTarget)closeRestartAlert();
     hideBanner();hideBeltToast();
-    for(const [name,app]of Object.entries(electronApps)){clearTimeout(app.timer);Object.assign(app,{debug:'off',declined:false,enabled:false,timer:0});$(`[data-window="${name}"]`).classList.remove('is-quitting','is-launching');}
+    for(const [name,app]of Object.entries(electronApps)){clearTimeout(app.timer);Object.assign(app,{debug:'off',declined:false,enabled:false,timer:0});$(`[data-window="${name}"]`).classList.remove('is-quitting','is-launching','is-reopened');}
     syncSelection();emit();
   }
   function recordFromBelt(){

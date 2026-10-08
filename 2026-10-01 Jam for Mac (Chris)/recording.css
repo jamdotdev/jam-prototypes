@@ -147,12 +147,11 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .recording-scene[data-picker-start="button"] .rb-window-picker,.recording-scene[data-picker-start="button"] .rb-screen-picker,.recording-scene[data-picker-start="button"] .rb-picker-app{cursor:default}
 .rb-hover-frame,.rb-screen-picker{background:#ff3b3066;box-shadow:inset 0 0 0 3px #ff3b30}
 /* The hovered window's tint is drawn over every window, so its whole frame shows even where others overlap it. */
-.rb-hover-frame{position:absolute;z-index:10;border-radius:11px;pointer-events:none;overflow:hidden;container-type:size}
+.rb-hover-frame{position:absolute;z-index:10;border-radius:11px;pointer-events:none;overflow:hidden}
 .rb-hover-frame[hidden]{display:none}
-/* While its app relaunches, the tint stays where the window was and ripples out from the card until it has loaded. */
-.rb-hover-frame.is-reloading::before,.rb-hover-frame.is-reloading::after{content:'';position:absolute;left:50%;top:50%;width:calc(max(100cqw,100cqh) * 1.25);aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(closest-side,#ff3b3000 64%,#ff3b3099 83%,#ff3b3000 97%);opacity:0;animation:rb-ripple 2.2s cubic-bezier(.25,.6,.4,1) infinite}
-.rb-hover-frame.is-reloading::after{animation-delay:1.1s}
-@keyframes rb-ripple{0%{scale:.12;opacity:0}15%{opacity:1}55%{opacity:.85}100%{scale:1;opacity:0}}
+/* While its app relaunches, the tint stays where the window was and gleaming waves sweep across it until it has loaded. */
+.rb-hover-waves{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:8px}
+.rb-hover-frame:not(.is-reloading) .rb-hover-waves{display:none}
 .rb-screen-picker{display:none;position:absolute;inset:0;z-index:11;cursor:pointer}
 .recording-scene[data-screen-hover="true"] .rb-screen-picker{display:block}
 .rb-record-card{position:absolute;z-index:39;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer}.rb-record-card[hidden]{display:none}
@@ -182,7 +181,7 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-notion-page .rb-notion-callout{height:52px;border-radius:7px;background:#f5f3ef;margin:4px 0}
 /* While relaunching, the page loads as a shimmering skeleton */
 .rb-mock-window.is-launching :is(.rb-notion-crumbs,.rb-notion-body) i{background:linear-gradient(90deg,#e4e2dd 35%,#f9f8f6 50%,#e4e2dd 65%) 0 0/300% 100%;opacity:1;animation:rb-skeleton 1.1s linear infinite}
-.rb-mock-window.is-launching{animation:rb-window-open 220ms cubic-bezier(.2,0,0,1)}
+.rb-mock-window:is(.is-launching,.is-reopened){animation:rb-window-open 220ms cubic-bezier(.2,0,0,1)}
 .rb-mock-window.is-quitting{opacity:0;scale:.97;transition:opacity 180ms ease,scale 180ms ease;pointer-events:none}
 @keyframes rb-window-open{from{opacity:0;scale:.97}}
 @keyframes rb-skeleton{from{background-position:100% 0}to{background-position:0 0}}
@@ -231,4 +230,4 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 @keyframes rb-alert-in{from{opacity:0;scale:.94}}
 .recording-scene[data-alert="true"] .rb-record-card,.recording-scene[data-alert="true"] .rb-selection-notch{visibility:hidden}
 .recording-scene[data-alert="true"] .rb-hover-frame{visibility:hidden}
-@media(prefers-reduced-motion:reduce){.rb-dot-serpent i{animation:none;opacity:calc(.12 + var(--order) * .09)}.rb-hover-frame.is-reloading::before,.rb-hover-frame.is-reloading::after,.rb-belt-toast,.rb-belt-toast .rb-sf{animation:none}.rb-banner,.rb-alert,.rb-mock-window.is-launching,.rb-mock-window.is-launching :is(.rb-notion-crumbs,.rb-notion-body) i{animation:none}.rb-mock-window.is-quitting{transition:none}}
+@media(prefers-reduced-motion:reduce){.rb-dot-serpent i{animation:none;opacity:calc(.12 + var(--order) * .09)}.rb-mock-window.is-reopened,.rb-belt-toast,.rb-belt-toast .rb-sf{animation:none}.rb-banner,.rb-alert,.rb-mock-window.is-launching,.rb-mock-window.is-launching :is(.rb-notion-crumbs,.rb-notion-body) i{animation:none}.rb-mock-window.is-quitting{transition:none}}

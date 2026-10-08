@@ -19,19 +19,20 @@ let st=await state();assert.equal(st.alert,null,'no dialog');assert.equal(st.app
 assert.ok(await toast.isVisible());assert.equal(await toast.locator('.rb-belt-toast-label').textContent(),'Restarting Notion to enable logs');
 const tb=await toast.boundingBox(),bb=await p.locator('.rb-belt').boundingBox();
 assert.ok(tb.y+tb.height<=bb.y,'the toast sits on top of the belt');assert.ok(Math.abs(tb.x+tb.width/2-(bb.x+bb.width/2))<1,'centred on the belt');
-// Notion closes, but its red tint stays where it was and ripples while it waits
-assert.ok(await notionWindow.evaluate(el=>el.classList.contains('is-quitting')));
+// Notion closes, but its red tint stays where it was with gleaming waves running across it
+const waves=frame.locator('.rb-hover-waves'),closed=()=>notionWindow.evaluate(el=>el.classList.contains('is-quitting'));
+assert.ok(await closed());
 assert.ok(await frame.isVisible());assert.deepEqual(await frame.boundingBox(),nb);
 assert.ok(await frame.evaluate(el=>el.classList.contains('is-reloading')));
-assert.equal(await frame.evaluate(el=>getComputedStyle(el,'::before').animationName),'rb-ripple');
+assert.ok(await waves.isVisible());assert.equal(await waves.getAttribute('data-waves'),'running');
 await p.mouse.move(40,500);await p.clock.runFor(100);assert.equal((await state()).target,'notion','the card stays with Notion while it restarts');
-await p.clock.runFor(2000);
-assert.ok(await notionWindow.evaluate(el=>el.classList.contains('is-launching')),'Notion reopens after 2 seconds');assert.ok(await frame.evaluate(el=>el.classList.contains('is-reloading')));
-await p.clock.runFor(1500);assert.equal((await state()).apps.notion.debug,'restarting','still loading at 3.8 seconds');
+await p.clock.runFor(2000);assert.ok(await closed(),'no Notion window while it restarts');
+await p.clock.runFor(1500);assert.equal((await state()).apps.notion.debug,'restarting','still restarting at 3.8 seconds');assert.ok(await closed());
 await p.clock.runFor(400);
 // Four seconds in, logs are on and the toast confirms it before going away
 st=await state();assert.equal(st.apps.notion.debug,'on');assert.equal(st.stage,'idle');assert.equal(st.target,'notion');
-assert.ok(!(await frame.evaluate(el=>el.classList.contains('is-reloading'))));
+assert.ok(!(await closed()),'Notion is back, already loaded');assert.ok(!(await notionWindow.evaluate(el=>el.classList.contains('is-launching'))));
+assert.ok(!(await frame.evaluate(el=>el.classList.contains('is-reloading'))));assert.ok(await waves.isHidden());assert.equal(await waves.getAttribute('data-waves'),null);
 assert.equal(await p.locator('.rb-selection-notch .rb-notch-logs-label').textContent(),'Logs enabled');
 assert.equal(await toast.locator('.rb-belt-toast-label').textContent(),'Logs enabled for Notion');
 await p.clock.runFor(3000);assert.ok(await toast.isHidden());
@@ -40,4 +41,4 @@ await p.evaluate(()=>JamRecording.resetElectronApps());await hoverNotion();
 await p.mouse.click(point.x,point.y);await p.clock.runFor(100);
 st=await state();assert.equal(st.stage,'recording','a click records without asking');assert.equal(st.alert,null);assert.equal(st.selectedWindow,'notion');
 await p.evaluate(()=>JamRecording.setStage('idle'));
-assert.deepEqual(errors,[]);console.log('PASS: the logs button restarts Notion in 4 seconds with no dialog, a toast on the belt and a rippling tint, and Record never asks.');await b.close();})().catch(e=>{console.error(e);process.exit(1);});
+assert.deepEqual(errors,[]);console.log('PASS: the logs button restarts Notion in 4 seconds with no dialog, a toast on the belt and gleaming waves in its tint, and Record never asks.');await b.close();})().catch(e=>{console.error(e);process.exit(1);});
