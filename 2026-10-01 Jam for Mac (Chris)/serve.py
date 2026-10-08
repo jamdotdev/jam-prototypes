@@ -82,7 +82,8 @@ def validate_default_shape(value, template):
     return False
 
 
-SOUNDS = ("none", "ChimeA", "ChimeB", "ConfirmUp", "CoolClick", "CountDownShutter", "ErrorBloop", "ForwardMinimal",
+SOUNDS = ("none", "JamGreeting", "JamLimit", "JamPause", "JamRestart", "JamResume", "JamStart", "JamStop", "JamSwitch",
+          "ChimeA", "ChimeB", "ConfirmUp", "CoolClick", "CountDownShutter", "ErrorBloop", "ForwardMinimal",
           "GreetingAir", "GreetingBloom", "GreetingPad", "HeroSimpleCelebration02", "HoverTap", "PositiveStart", "QuickBlip",
           "ReverseBlip", "SimpleCelebration", "SoftTap", "StartUp", "SuccessChime", "TickTock", "Unlock")
 

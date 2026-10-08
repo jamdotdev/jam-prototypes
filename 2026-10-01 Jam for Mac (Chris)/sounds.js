@@ -2,7 +2,9 @@
   'use strict';
   // UI sounds for recording moments. Watches JamRecording's state rather than being called from it,
   // so the belt code stays unaware of audio.
-  const FILES = ['ChimeA', 'ChimeB', 'ConfirmUp', 'CoolClick', 'CountDownShutter', 'ErrorBloop', 'ForwardMinimal',
+  // The Jam bank (Jam*) is one system: see tools/sound-bank.py. The rest are earlier picks kept for auditioning.
+  const FILES = ['JamGreeting', 'JamLimit', 'JamPause', 'JamRestart', 'JamResume', 'JamStart', 'JamStop', 'JamSwitch',
+    'ChimeA', 'ChimeB', 'ConfirmUp', 'CoolClick', 'CountDownShutter', 'ErrorBloop', 'ForwardMinimal',
     'GreetingAir', 'GreetingBloom', 'GreetingPad', 'HeroSimpleCelebration02', 'HoverTap', 'PositiveStart', 'QuickBlip',
     'ReverseBlip', 'SimpleCelebration', 'SoftTap', 'StartUp', 'SuccessChime', 'TickTock', 'Unlock'];
   const MOMENTS = [
@@ -13,13 +15,13 @@
     { id: 'limit', label: 'Final seconds' },
     { id: 'stop', label: 'Recording ends' },
   ];
-  const fallback = { enabled: true, volume: 70, start: 'PositiveStart', pause: 'ReverseBlip', resume: 'QuickBlip',
-    restart: 'CountDownShutter', limit: 'TickTock', stop: 'SuccessChime' };
+  const fallback = { enabled: true, volume: 70, start: 'JamStart', pause: 'JamPause', resume: 'JamResume',
+    restart: 'JamRestart', limit: 'JamLimit', stop: 'JamStop' };
   const valid = (name) => name === 'none' || FILES.includes(name);
-  const greetingFallback = { sound: 'GreetingBloom', volume: 60 };
+  const greetingFallback = { sound: 'JamGreeting', volume: 70 };
   let settings = { ...fallback };
   let greeting = { ...greetingFallback };
-  const toggleFallback = { sound: 'CoolClick', volume: 50 };
+  const toggleFallback = { sound: 'JamSwitch', volume: 70 };
   let toggle = { ...toggleFallback };
   const buffers = new Map();
 
