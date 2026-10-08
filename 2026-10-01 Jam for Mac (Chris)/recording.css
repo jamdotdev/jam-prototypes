@@ -240,13 +240,22 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-sources-menu.native-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:3;min-width:0;max-width:none;max-height:none;padding:5px;border-radius:12px;cursor:default;animation:rb-sources-in 140ms cubic-bezier(.2,0,0,1)}
 .rb-sources-menu[hidden]{display:none}
 @keyframes rb-sources-in{from{opacity:0;translate:0 -3px}}
-.rb-source.native-menu-item{gap:7px;min-height:26px;padding:3px 9px 3px 24px}
-.rb-source .rb-app-icon{width:16px;height:16px;border-radius:5px;box-shadow:0 0 0 .5px #0000002e}
-.rb-source-name{flex:1}
-.rb-source-state{color:#79777d;font-size:12px}
-.rb-source.native-menu-item:focus .rb-source-state{color:#ffffffd9}
-.rb-source.native-menu-item.is-static:focus{background:transparent;color:inherit}
-.rb-source[data-state="unavailable"] :is(.rb-source-name,.rb-app-icon){opacity:.45}
+.rb-source.native-menu-item{gap:8px;min-height:32px;padding:4px 8px}
+.rb-source.native-menu-item::before{display:none}
+.rb-source.native-menu-item:focus{background:transparent;color:inherit}
+@media(hover:hover) and (pointer:fine){.rb-source.native-menu-item:not([aria-disabled="true"]):hover{background:#0000000d}}
+.rb-source.native-menu-item:focus-visible{outline:2px solid #0068d999;outline-offset:-2px}
+.rb-source .rb-app-icon{width:20px;height:20px;border-radius:6px;box-shadow:0 0 0 .5px #0000002e}
+.rb-source-text{display:flex;flex:1;flex-direction:column;min-width:0;line-height:16px}
+.rb-source-detail{color:#79777d;font-size:11px;line-height:13px}
+.rb-source[aria-disabled="true"] :is(.rb-source-name,.rb-app-icon){opacity:.5}
+/* A small macOS switch, in Jam's green like the permission switches */
+.rb-source-switch{position:relative;flex:none;width:28px;height:16px;border-radius:8px;background:#00000017;box-shadow:inset 0 0 0 .5px #00000017;transition:background-color 160ms ease}
+.rb-source-switch::after{content:'';position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px #00000033,0 0 0 .5px #0000000d;transition:translate 180ms cubic-bezier(.2,0,0,1)}
+.rb-source[aria-checked="true"] .rb-source-switch{background:#9feb6c}
+.rb-source[aria-checked="true"] .rb-source-switch::after{translate:12px 0}
+.rb-source[aria-disabled="true"] .rb-source-switch{opacity:.5}
+@media(prefers-reduced-motion:reduce){.rb-source-switch,.rb-source-switch::after{transition:none}}
 .rb-belt-logs{position:absolute;top:0;left:0;z-index:11;transform-origin:top left;box-sizing:border-box;height:84px;display:flex;align-items:flex-start;justify-content:center;gap:8px;padding:8px 14px 0;border-radius:20px 20px 26px 26px;background:#1c1c1eb8;-webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8);box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 1px 0 #ffffff1f,inset 0 0 0 .5px #ffffff38;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;pointer-events:none;animation:rb-belt-logs-in 220ms cubic-bezier(.2,0,0,1)}
 .rb-belt-logs[hidden]{display:none}
 .rb-belt-logs .rb-dot-serpent{margin-top:3.75px}

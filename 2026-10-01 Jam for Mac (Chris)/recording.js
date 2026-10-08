@@ -252,7 +252,8 @@
   }
   // A full screen can hold several apps sending logs, so the screen card and the recording bar summarise them all.
   const logSources=[['browser','Chrome','chrome-app.png'],['safari','Safari','safari.png'],['notion','Notion','notion.png']];
-  let safariLogs='connected',sourcesOpen=false;
+  // Muted sources stay connected but are left out of the recording.
+  let safariLogs='connected',sourcesOpen=false;const mutedSources=new Set();
   function sourceLogs(key){
     if(key==='safari')return safariLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Extension missing'};
     const logs=windowLogs(key);
@@ -265,16 +266,21 @@
     if(stack.dataset.key!==key){stack.dataset.key=key;stack.innerHTML=list.map(([,name,file])=>appIcon(file,name)).join('');}
   }
   function syncLogSources(target){
-    const connected=logSources.filter(([key])=>sourceLogs(key).state==='connected'),row=$('.rb-picker-sources'),menu=$('.rb-sources-menu'),screen=target==='screen';
+    const connected=logSources.filter(([key])=>sourceLogs(key).state==='connected'&&!mutedSources.has(key)),row=$('.rb-picker-sources'),menu=$('.rb-sources-menu'),screen=target==='screen';
     if(!screen)sourcesOpen=false;
     row.hidden=!screen;menu.hidden=!sourcesOpen;
     if(screen){
       syncSourceStack(row.querySelector('.rb-source-stack'),connected);
       row.dataset.connected=String(connected.length>0);row.setAttribute('aria-expanded',String(sourcesOpen));
       $('.rb-picker-sources-label').textContent=connected.length?`${connected.length} source${connected.length===1?'':'s'} connected`:'No sources connected';
-      // Rebuilt only when a state changes, so a press on Notion isn't lost to a re-render.
+      // Rebuilt only when a state changes, so a press on a switch isn't lost to a re-render.
       const rows=logSources.map(([key,name,file])=>[key,name,file,sourceLogs(key)]),key=rows.map(([,,,logs])=>logs.state).join();
-      if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML='<div class="native-menu-label">Log sources</div>'+rows.map(([key,name,file,logs])=>{const optin=['optin','restart'].includes(logs.state),connected=logs.state==='connected';return `<button type="button" class="native-menu-item rb-source${optin?'':' is-static'}" role="menuitemcheckbox" tabindex="-1" aria-checked="${connected}"${optin?` data-source="${key}" title="Restarts ${name}"`:' aria-disabled="true"'} data-state="${logs.state}">${appIcon(file)}<span class="rb-source-name">${name}</span><span class="rb-source-state">${optin?'Turn On…':logs.label}</span></button>`;}).join('');}
+      if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML='<div class="native-menu-label">Log sources</div>'+rows.map(([key,name,file,logs])=>{
+        const on=logs.state==='restarting'||logs.state==='connected'&&!mutedSources.has(key),disabled=['unavailable','restarting'].includes(logs.state);
+        const detail=logs.state==='unavailable'?'Extension missing':logs.state==='restarting'?'Restarting…':['optin','restart'].includes(logs.state)?`Restarts ${name} to turn on`:'';
+        return `<button type="button" class="native-menu-item rb-source" role="menuitemcheckbox" aria-checked="${on}"${disabled?' aria-disabled="true"':''} data-source="${key}" data-state="${logs.state}">${appIcon(file)}<span class="rb-source-text"><span class="rb-source-name">${name}</span>${detail?`<span class="rb-source-detail">${detail}</span>`:''}</span><span class="rb-source-switch" aria-hidden="true"></span></button>`;}).join('');}
+      // Switches flip in place so they animate.
+      for(const item of menu.querySelectorAll('.rb-source')){const logs=sourceLogs(item.dataset.source);item.setAttribute('aria-checked',String(logs.state==='restarting'||logs.state==='connected'&&!mutedSources.has(item.dataset.source)));}
     }
     const pill=$('.rb-belt-logs'),live=active&&settings.mode==='screen'&&!isIdle()&&connected.length>0;
     pill.hidden=!live;belt.classList.toggle('has-logs',live);if(live){syncSourceStack(pill.querySelector('.rb-source-stack'),connected);renderBelt();}
@@ -755,8 +761,13 @@
   });
   $('.rb-screen-picker').addEventListener('click',()=>{if(sourcesOpen){sourcesOpen=false;syncSelection();}else if(settings.pickerStart==='window')startTarget('screen');});
   $('.rb-picker-sources').addEventListener('click',()=>{sourcesOpen=!sourcesOpen;syncSelection();});
-  $('.rb-sources-menu').addEventListener('pointermove',e=>e.target.closest('.rb-source:not(.is-static)')?.focus({preventScroll:true}));
-  $('.rb-sources-menu').addEventListener('click',e=>{e.stopPropagation();const name=e.target.closest('.rb-source:not(.is-static)')?.dataset.source;if(electronApps[name]?.debug==='off'&&isIdle())restartElectronApp(name,{background:true});});
+  $('.rb-sources-menu').addEventListener('click',e=>{
+    e.stopPropagation();const item=e.target.closest('.rb-source');if(!item||item.getAttribute('aria-disabled')==='true'||!isIdle())return;
+    const name=item.dataset.source,state=sourceLogs(name).state;
+    // Notion has to restart into debug mode before it can send logs; everything else just switches in or out.
+    if(['optin','restart'].includes(state)){mutedSources.delete(name);restartElectronApp(name,{background:true});}
+    else if(state==='connected'){if(mutedSources.has(name))mutedSources.delete(name);else mutedSources.add(name);syncSelection();emit();}
+  });
   $('.rb-record-card').addEventListener('click',e=>{if(sourcesOpen&&!e.target.closest('.rb-picker-controls')){sourcesOpen=false;syncSelection();return;}if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
   $('.rb-banner').addEventListener('click',hideBanner);
   $$('.rb-alert-button').forEach(button=>button.addEventListener('click',()=>answerRestartAlert(button.dataset.choice)));
