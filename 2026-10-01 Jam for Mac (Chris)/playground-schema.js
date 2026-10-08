@@ -33,6 +33,7 @@
         select('stage','State',()=>R().getState().stage,value=>R().setStage(value),[['idle','Idle'],['recording','Recording'],['paused','Paused'],['limit','Time limit']]),
         recordingToggle('microphone','Microphone'),
         recordingToggle('rulersButton','Rulers button'),
+        recordingToggle('dimensions','Dimensions (post-GA)'),
         action('reset-selection','Reset selection',()=>R().resetSelection()),
       ]),
       section('window-picker','Window picker',[

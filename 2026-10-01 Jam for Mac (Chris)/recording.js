@@ -45,7 +45,7 @@
     <div class="rb-hover-frame" aria-hidden="true" hidden></div>
     <div class="rb-capture-notch" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span>Capturing logs</span></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
-    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div><button type="button" class="rb-picker-sources" aria-expanded="false" aria-controls="rb-sources-menu" hidden><span class="rb-source-stack"></span><span class="rb-picker-sources-label"></span><span class="rb-sources-caret" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2.75 4 5 6.25 7.25 4"/></svg></span></button><div class="rb-sources-menu" id="rb-sources-menu" role="group" aria-label="Log sources" hidden></div></div></div>
+    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div><button type="button" class="rb-picker-sources" aria-expanded="false" aria-controls="rb-sources-menu" hidden><span class="rb-source-stack"></span><span class="rb-picker-sources-label"></span><span class="rb-sources-caret" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2.75 4 5 6.25 7.25 4"/></svg></span></button><div class="native-menu rb-sources-menu" id="rb-sources-menu" role="menu" aria-label="Log sources" hidden></div></div></div>
     <div class="rb-banner" role="status" hidden><img class="rb-banner-icon" src="assets/welcome/app-icon.png" width="36" height="36" alt=""><div class="rb-banner-text"><strong class="rb-banner-title"></strong><span class="rb-banner-body"></span></div><span class="rb-banner-time">now</span></div>
     <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
@@ -258,9 +258,11 @@
     const logs=windowLogs(key);
     return logs.state==='unavailable'?{state:'unavailable',label:'Extension missing'}:logs.state==='restarting'?{...logs,label:'Restarting…'}:logs;
   }
+  // App icons are cropped to their tile so their corners can be rounder than the stock artwork.
+  const appIcon=(file,alt='')=>`<span class="rb-app-icon"><img src="assets/recording/${file}" alt="${alt}"></span>`;
   function syncSourceStack(stack,list){
     const key=list.map(([name])=>name).join();
-    if(stack.dataset.key!==key){stack.dataset.key=key;stack.innerHTML=list.map(([,name,file])=>`<img src="assets/recording/${file}" width="18" height="18" alt="${name}">`).join('');}
+    if(stack.dataset.key!==key){stack.dataset.key=key;stack.innerHTML=list.map(([,name,file])=>appIcon(file,name)).join('');}
   }
   function syncLogSources(target){
     const connected=logSources.filter(([key])=>sourceLogs(key).state==='connected'),row=$('.rb-picker-sources'),menu=$('.rb-sources-menu'),screen=target==='screen';
@@ -270,9 +272,9 @@
       syncSourceStack(row.querySelector('.rb-source-stack'),connected);
       row.dataset.connected=String(connected.length>0);row.setAttribute('aria-expanded',String(sourcesOpen));
       $('.rb-picker-sources-label').textContent=connected.length?`${connected.length} source${connected.length===1?'':'s'} connected`:'No sources connected';
-      // Rebuilt only when a state changes, so a press on Turn on isn't lost to a re-render.
-      const rows=logSources.map(([key,name,file])=>{const logs=sourceLogs(key);return [key,name,file,logs,['optin','restart'].includes(logs.state)];}),key=rows.map(([,,,logs])=>logs.state).join();
-      if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML=rows.map(([key,name,file,logs,optin])=>`<div class="rb-source" data-state="${logs.state}"><img src="assets/recording/${file}" width="18" height="18" alt=""><span class="rb-source-name">${name}</span>${optin?`<button type="button" class="rb-source-enable" data-source="${key}" title="Restarts ${name}">Turn on</button>`:`<span class="rb-source-state">${logs.label}</span>`}</div>`).join('');}
+      // Rebuilt only when a state changes, so a press on Notion isn't lost to a re-render.
+      const rows=logSources.map(([key,name,file])=>[key,name,file,sourceLogs(key)]),key=rows.map(([,,,logs])=>logs.state).join();
+      if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML='<div class="native-menu-label">Log sources</div>'+rows.map(([key,name,file,logs])=>{const optin=['optin','restart'].includes(logs.state),connected=logs.state==='connected';return `<button type="button" class="native-menu-item rb-source${optin?'':' is-static'}" role="menuitemcheckbox" tabindex="-1" aria-checked="${connected}"${optin?` data-source="${key}" title="Restarts ${name}"`:' aria-disabled="true"'} data-state="${logs.state}">${appIcon(file)}<span class="rb-source-name">${name}</span><span class="rb-source-state">${optin?'Turn On…':logs.label}</span></button>`;}).join('');}
     }
     const pill=$('.rb-belt-logs'),live=active&&settings.mode==='screen'&&!isIdle()&&connected.length>0;
     pill.hidden=!live;belt.classList.toggle('has-logs',live);if(live){syncSourceStack(pill.querySelector('.rb-source-stack'),connected);renderBelt();}
@@ -294,10 +296,10 @@
     root.dataset.screenHover=String(target==='screen');
     if(!target){
       card.hidden=true;
-      selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rulers:settings.rulersButton,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
+      selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'&&settings.dimensions||settings.mode==='window'&&!!selectedWindow),dimensions:settings.dimensions,key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rulers:settings.rulersButton,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
       return;
     }
-    const rect=target==='area'?{...area}:target==='screen'?{x:0,y:0,width:W,height:H}:{...windows[target]},sizing=target!=='screen';
+    const rect=target==='area'?{...area}:target==='screen'?{x:0,y:0,width:W,height:H}:{...windows[target]},sizing=target!=='screen'&&(settings.dimensions||!!windowLogs(target));
     card.hidden=false;card.dataset.target=target;
     $('.rb-record-card .rb-picker-app').hidden=target==='area';
     if(target!=='area'&&card.dataset.art!==target){card.dataset.art=target;$('.rb-card-art').innerHTML=targetArt[target];$('.rb-record-card .rb-picker-name').textContent=targetNames[target];}
@@ -305,9 +307,9 @@
     $('.rb-record-card .rb-picker-start-label').textContent=label;
     if(target==='area'||target==='screen')start.removeAttribute('aria-label');else start.setAttribute('aria-label',`${label}, ${targetNames[target]}`);
     start.setAttribute('aria-disabled',String(electronApps[target]?.debug==='restarting'));
-    $('.rb-record-card .rb-picker-notch').hidden=sizing;
-    if(!sizing)$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
-    const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rulers:settings.rulersButton,rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
+    $('.rb-record-card .rb-picker-notch').hidden=target!=='screen'||!settings.dimensions;
+    if(target==='screen')$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
+    const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,dimensions:settings.dimensions,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rulers:settings.rulersButton,rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
     const controls=$('.rb-record-card .rb-picker-controls');controls.style.width=`${Math.max(CARD_WIDTH,notch?.width||0)}px`;
     // The notch is the panel behind the record pill, so it starts where the controls do.
     const cardWidth=card.offsetWidth,panelTop=controls.offsetTop,total=notch?panelTop+notch.height:card.offsetHeight;
@@ -753,7 +755,8 @@
   });
   $('.rb-screen-picker').addEventListener('click',()=>{if(sourcesOpen){sourcesOpen=false;syncSelection();}else if(settings.pickerStart==='window')startTarget('screen');});
   $('.rb-picker-sources').addEventListener('click',()=>{sourcesOpen=!sourcesOpen;syncSelection();});
-  $('.rb-sources-menu').addEventListener('click',e=>{e.stopPropagation();const name=e.target.closest('.rb-source-enable')?.dataset.source;if(electronApps[name]?.debug==='off'&&isIdle())restartElectronApp(name,{background:true});});
+  $('.rb-sources-menu').addEventListener('pointermove',e=>e.target.closest('.rb-source:not(.is-static)')?.focus({preventScroll:true}));
+  $('.rb-sources-menu').addEventListener('click',e=>{e.stopPropagation();const name=e.target.closest('.rb-source:not(.is-static)')?.dataset.source;if(electronApps[name]?.debug==='off'&&isIdle())restartElectronApp(name,{background:true});});
   $('.rb-record-card').addEventListener('click',e=>{if(sourcesOpen&&!e.target.closest('.rb-picker-controls')){sourcesOpen=false;syncSelection();return;}if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
   $('.rb-banner').addEventListener('click',hideBanner);
   $$('.rb-alert-button').forEach(button=>button.addEventListener('click',()=>answerRestartAlert(button.dataset.choice)));

@@ -13,7 +13,7 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
   try {
     await page.goto(process.env.RECORDING_TEST_URL || 'http://127.0.0.1:8765/?surface=recording');
     await page.waitForFunction(()=>window.JamRecording);
-    await page.evaluate(async()=>{JamRecording.setStage('idle');JamRecording.setMode('screen');JamRecording.updateSettings({followCursor:false,cameraSize:120});await JamRecording.requestCamera();});
+    await page.evaluate(async()=>{JamRecording.setStage('idle');JamRecording.setMode('screen');JamRecording.updateSettings({dimensions:true,followCursor:false,cameraSize:120});await JamRecording.requestCamera();});
     await page.waitForFunction(()=>JamRecording.getCameraState().status==='live');
     const camera=page.locator('.rb-camera'),resize=page.locator('.rb-camera-resize');
     await color('.rb-camera-resize path','stroke',colors.default);

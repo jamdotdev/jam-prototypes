@@ -127,6 +127,7 @@ window.JamDefaultValues = {
       "pulseStrength": 4,
       "oneClick": true,
       "rulersButton": false,
+      "dimensions": false,
       "pickerStart": "window",
       "browserLogs": "connected",
       "electronLogs": "once",

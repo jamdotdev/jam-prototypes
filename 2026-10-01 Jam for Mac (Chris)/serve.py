@@ -39,7 +39,7 @@ def with_player_settings(group, value, fallback=None):
                  "placeholderOpacity": 50, "placeholderActiveOpacity": 100,
                  "placeholderOverlayColor": "#000000", "placeholderOverlayOpacity": 32,
                  "cameraZoom": 1, "cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4,
-                 "oneClick": True, "rulersButton": False, "pickerStart": "window", "browserLogs": "connected", "electronLogs": "once"}
+                 "oneClick": True, "rulersButton": False, "dimensions": False, "pickerStart": "window", "browserLogs": "connected", "electronLogs": "once"}
         return {**{key: fallback.get(key, default) for key, default in added.items()}, **value}
     if group in ("handoff", "permissions") and isinstance(value, dict):
         fallback = fallback or {}
@@ -153,7 +153,7 @@ def validate_default_values(group, value):
                   "stiffness": (80, 500), "damping": (10, 50), "anticipation": (0, 100),
                   "beltSpring": (80, 500), "beltDamping": (10, 50),
                   "warningSeconds": (5, 30), "pulseStart": (600, 1600), "pulseEnd": (350, 600), "pulseStrength": (0, 8)}
-        flags = ("placeholderPinContrast", "camera", "microphone", "followCursor", "mirror", "showBounds", "loop", "oneClick", "rulersButton")
+        flags = ("placeholderPinContrast", "camera", "microphone", "followCursor", "mirror", "showBounds", "loop", "oneClick", "rulersButton", "dimensions")
         return (value["cameraMinSize"] <= value["cameraSize"] <= value["cameraMaxSize"] and
                 all(valid_color(value[key]) for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastHoverColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor")) and
                 value["mode"] in ("screen", "window", "area") and
