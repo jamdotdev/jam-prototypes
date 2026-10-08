@@ -60,7 +60,7 @@
       </div>
       <div class="rb-belt-active" hidden><button class="rb-icon-button rb-restart" title="Restart recording" aria-label="Restart recording">${icon('restart')}</button><div class="rb-active-controls"><button class="rb-icon-button rb-pause" title="Pause recording" aria-label="Pause recording"><span class="rb-pause-icon">${icon('pause')}</span><span class="rb-resume-icon">${icon('play')}</span></button><button class="rb-stop" title="Stop recording" aria-label="Stop recording">${icon('stop')}<span class="rb-stop-time">0:00</span><i class="rb-urgency-ring" aria-hidden="true"></i></button></div></div>
     </div>
-    <div class="rb-belt-toast" aria-hidden="true" hidden>${icon('restart')}${icon('status')}<span class="rb-belt-toast-label"></span></div>
+    <div class="rb-belt-toast" aria-hidden="true" hidden><span class="rb-spinner">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--i:${i}"></i>`).join('')}</span>${icon('status')}<span class="rb-belt-toast-label"></span></div>
     <div class="native-menu rb-device-menu" id="rb-camera-menu" role="menu" aria-label="Camera" hidden></div>
     <div class="native-menu rb-device-menu" id="rb-microphone-menu" role="menu" aria-label="Microphone" hidden></div>
     <div class="rb-capture-status" role="status" aria-live="polite"></div>

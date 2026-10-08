@@ -17,6 +17,7 @@ await row.click();await p.clock.runFor(100);
 let st=await state();assert.equal(st.alert,null,'no dialog');assert.equal(st.apps.notion.debug,'restarting');assert.equal(await start.getAttribute('aria-disabled'),'true');
 // Jam says what it's doing in a toast on the belt
 assert.ok(await toast.isVisible());assert.equal(await toast.locator('.rb-belt-toast-label').textContent(),'Restarting Notion to enable logs');
+assert.ok(await toast.locator('.rb-spinner').isVisible());assert.ok(await row.locator('.rb-spinner').isVisible(),'a spinner replaces the restart icon');assert.ok(await row.locator('.rb-sf').first().isHidden());
 const tb=await toast.boundingBox(),bb=await p.locator('.rb-belt').boundingBox();
 assert.ok(tb.y+tb.height<=bb.y,'the toast sits on top of the belt');assert.ok(Math.abs(tb.x+tb.width/2-(bb.x+bb.width/2))<1,'centred on the belt');
 // Notion closes, but its red tint stays where it was with gleaming waves running across it
@@ -34,7 +35,7 @@ st=await state();assert.equal(st.apps.notion.debug,'on');assert.equal(st.stage,'
 assert.ok(!(await closed()),'Notion is back, already loaded');assert.ok(!(await notionWindow.evaluate(el=>el.classList.contains('is-launching'))));
 assert.ok(!(await frame.evaluate(el=>el.classList.contains('is-reloading'))));assert.ok(await waves.isHidden());assert.equal(await waves.getAttribute('data-waves'),null);
 assert.equal(await p.locator('.rb-selection-notch .rb-notch-logs-label').textContent(),'Logs enabled');
-assert.equal(await toast.locator('.rb-belt-toast-label').textContent(),'Logs enabled for Notion');
+assert.equal(await toast.locator('.rb-belt-toast-label').textContent(),'Logs enabled for Notion');assert.ok(await toast.locator('.rb-spinner').isHidden());
 await p.clock.runFor(3000);assert.ok(await toast.isHidden());
 // Record without logs turned on records straight away
 await p.evaluate(()=>JamRecording.resetElectronApps());await hoverNotion();

@@ -1,10 +1,8 @@
-// Gleam waves that sweep diagonally across a canvas, from its top-left corner to its bottom-right.
+// A gleam that sweeps diagonally across a canvas, again and again,, from its top-left corner to its bottom-right.
 (function(){
   'use strict';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const PERIOD=2.2,LAYERS=24,STEP=6,BEND=.05,MARGIN=.18;
-  // Each pass is a broad gleam trailed by two fainter ripples.
-  const BANDS=[{lag:0,width:.2,alpha:.48},{lag:.16,width:.08,alpha:.26},{lag:.27,width:.05,alpha:.16}];
+  const PERIOD=2.2,LAYERS=24,STEP=6,BEND=.05,MARGIN=.18,WIDTH=.2,ALPHA=.48;
 
   function create(canvas){
     const ctx=canvas.getContext('2d');
@@ -18,22 +16,18 @@
     }
     function draw(time){
       fit();ctx.clearRect(0,0,width,height);
-      const dq=STEP/(Math.hypot(width,height)/2);
-      for(const band of BANDS){
-        const progress=((time/PERIOD-band.lag)%1+1)%1,center=-MARGIN+progress*(1+2*MARGIN),half=band.width/2;
-        // Each front is a straight line that only trails back as it nears the corners at either end.
-        const points=[];
-        for(let q=-1.1;q<=1.1+dq;q+=dq){const end=Math.max(0,(Math.abs(q)-.4)/.6);points.push({q,p:center-BEND*end*end});}
-        // Stacked layers narrow towards the middle, so the band is brightest along its crest and fades at its edges.
-        const alpha=1-Math.pow(1-band.alpha,1/LAYERS);
-        ctx.fillStyle=`rgba(255,244,240,${alpha})`;
-        for(let layer=1;layer<=LAYERS;layer++){
-          const share=half*layer/LAYERS;
-          ctx.beginPath();
-          for(const point of points)lineTo(point.p+share,point.q);
-          for(let i=points.length-1;i>=0;i--)lineTo(points[i].p-share,points[i].q);
-          ctx.closePath();ctx.fill();
-        }
+      const dq=STEP/(Math.hypot(width,height)/2),center=-MARGIN+(time/PERIOD%1)*(1+2*MARGIN);
+      // The front is a straight line that only trails back as it nears the corners at either end.
+      const points=[];
+      for(let q=-1.1;q<=1.1+dq;q+=dq){const end=Math.max(0,(Math.abs(q)-.4)/.6);points.push({q,p:center-BEND*end*end});}
+      // Stacked layers narrow towards the middle, so the gleam is brightest along its crest and fades at its edges.
+      ctx.fillStyle=`rgba(255,244,240,${1-Math.pow(1-ALPHA,1/LAYERS)})`;
+      for(let layer=1;layer<=LAYERS;layer++){
+        const share=WIDTH/2*layer/LAYERS;
+        ctx.beginPath();
+        for(const point of points)lineTo(point.p+share,point.q);
+        for(let i=points.length-1;i>=0;i--)lineTo(points[i].p-share,points[i].q);
+        ctx.closePath();ctx.fill();
       }
     }
     // `p` runs from the top-left corner (0) to the bottom-right (1), and `q` along a front, which at p = .5 joins the

@@ -60,7 +60,7 @@
 .rb-notch-logs-restart-label{background:linear-gradient(100deg,#ffffff8c 35%,#fffffff2 50%,#ffffff8c 65%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:rb-logs-sweep 2.4s ease-in-out infinite}
 .rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart-label{animation-duration:1.2s}
 .rb-selection-notch .rb-notch-logs-restart[aria-disabled="true"]{cursor:default;background:transparent}
-.rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart .rb-sf{animation:rb-logs-spin 1s linear infinite}
+.rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart .rb-sf,.rb-selection-notch:not([data-logs="restarting"]) .rb-notch-logs-restart .rb-spinner{display:none}
 .rb-notch-logs-restart-detail{font-size:11px;line-height:13px;font-weight:400;color:#ffffff73}
 .rb-notch-logs-restart-detail:empty,.rb-selection-notch:not(.is-card) .rb-notch-logs-restart-detail,.rb-selection-notch .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:none}
 /* On the card the row is a button as wide as the record pill, with any detail under its label. */
@@ -73,5 +73,4 @@
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:block;width:15px;height:15px;opacity:.75}
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart-label{background:none;-webkit-text-fill-color:currentColor;animation:none}
 @keyframes rb-logs-sweep{from{background-position:100% 0}to{background-position:0 0}}
-@keyframes rb-logs-spin{to{rotate:-360deg}}
-@media(prefers-reduced-motion:reduce){.rb-notch-logs-restart-label,.rb-selection-notch .rb-notch-logs-restart .rb-sf{animation:none}}
+@media(prefers-reduced-motion:reduce){.rb-notch-logs-restart-label{animation:none}}
