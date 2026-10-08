@@ -2,12 +2,11 @@
 
 Each bank renders the same eight gestures with a different instrument:
   glass  a deep glass mallet (Glass*)
-  harp   a soft harp-mallet with gentle attacks, an octave lower (Harp*)
 
 Renders WAVs into the current folder. Convert for the prototype with:
-  python3 tools/sound-bank.py glass harp && for f in Glass*.wav Harp*.wav; do afconvert -f m4af -d aac -b 256000 "$f" "assets/sounds/${f%.wav}.m4a"; done
-Pass `bank:Gesture` to render one sound, e.g. `python3 tools/sound-bank.py harp:Start`.
-The earlier, higher Jam* bank and a plucked-string bank are in this file's git history.
+  python3 tools/sound-bank.py glass && for f in Glass*.wav; do afconvert -f m4af -d aac -b 256000 "$f" "assets/sounds/${f%.wav}.m4a"; done
+Pass `bank:Gesture` to render one sound, e.g. `python3 tools/sound-bank.py glass:Start`.
+The earlier, higher Jam* bank and plucked-string and harp banks are in this file's git history.
 """
 import math, random, struct, wave, sys
 
@@ -44,23 +43,6 @@ def glass(f, level, decay):
             lp = lp * 0.85 + (rnd.random() * 2 - 1) * 0.15
             v += lp * 1.6 * (1 - t / 0.012)
         out.append(math.tanh(v * a * 1.3) / 1.3 * level)  # gentle saturation thickens the body
-    return out
-
-
-def harp(f, level, decay):
-    """Soft harp-mallet: rounded attack with no click, a bright open spread of harmonics that fade a little
-    faster than the fundamental, a lightly chorused pair of strings, and a light body an octave down."""
-    out = []; attack = 0.01
-    partials = [(n, 1 / n ** 1.25) for n in range(1, 11) if f * n < 16000]
-    for i in range(int(min(decay * 6, 3.5) * SR)):
-        t = i / SR
-        a = math.sin(min(1, t / attack) * math.pi / 2) ** 2
-        v = 0.0
-        for n, amp in partials:
-            e = math.exp(-t / (decay / n ** 0.5))
-            v += amp * e * (math.sin(2 * math.pi * f * n * t) + math.sin(2 * math.pi * f * n * 1.0017 * t + n)) * 0.5
-        body = 0.18 * math.sin(2 * math.pi * f / 2 * t) * math.exp(-t / (decay * 1.4)) * math.sin(min(1, t / 0.04) * math.pi / 2) ** 2
-        out.append((v + body) * a * level)
     return out
 
 
@@ -117,13 +99,9 @@ def write(name, buf, tier, bank):
         w.writeframes(b''.join(struct.pack('<hh', int(max(-1, min(1, a * g)) * 32767), int(max(-1, min(1, b * g)) * 32767)) for a, b in zip(*buf)))
 
 
-# D major 9 (D F# A C# E) for joy, voiced low for weight. The harp bank sits an octave below the glass.
+# D major 9 (D F# A C# E) for joy, voiced low for weight.
 BANKS = {
     'glass': {'voice': glass, 'octave': 0, 'ring': 1.0, 'length': 1.0, 'damp': 0.4, 'air': 0, 'lifts': {}},
-    # Softer notes ring longer. Lifts move whole gestures by octaves for contrast: starting and resuming
-    # sit an octave above pausing and stopping, so energy rising and settling is heard as register.
-    'harp': {'voice': harp, 'octave': -1, 'ring': 2.2, 'length': 1.8, 'damp': 0.15, 'air': 0.6,
-             'lifts': {'Start': 1, 'Resume': 1, 'Restart': 1, 'Switch': 1, 'Limit': 1}},
 }
 
 

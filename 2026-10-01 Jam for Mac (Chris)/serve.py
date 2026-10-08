@@ -83,7 +83,7 @@ def validate_default_shape(value, template):
 
 
 SOUNDS = ("none", "TunedChimeA", "TunedChimeB", "TunedConfirmUp", "TunedCoolClick", "TunedCountDownShutter", "TunedErrorBloop", "TunedForwardMinimal", "TunedGreetingAir", "TunedGreetingBloom", "TunedGreetingPad", "TunedHeroSimpleCelebration02", "TunedHoverTap", "TunedPositiveStart", "TunedQuickBlip", "TunedReverseBlip", "TunedSimpleCelebration", "TunedSoftTap", "TunedStartUp", "TunedSuccessChime", "TunedTickTock", "TunedUnlock",
-          "GlassGreeting", "GlassLimit", "GlassPause", "GlassRestart", "GlassResume", "GlassStart", "GlassStop", "GlassSwitch", "HarpGreeting", "HarpLimit", "HarpPause", "HarpRestart", "HarpResume", "HarpStart", "HarpStop", "HarpSwitch",
+          "GlassGreeting", "GlassLimit", "GlassPause", "GlassRestart", "GlassResume", "GlassStart", "GlassStop", "GlassSwitch", 
           "JamGreeting", "JamLimit", "JamPause", "JamRestart", "JamResume", "JamStart", "JamStop", "JamSwitch",
           "ChimeA", "ChimeB", "ConfirmUp", "CoolClick", "CountDownShutter", "ErrorBloop", "ForwardMinimal",
           "GreetingAir", "GreetingBloom", "GreetingPad", "HeroSimpleCelebration02", "HoverTap", "PositiveStart", "QuickBlip",

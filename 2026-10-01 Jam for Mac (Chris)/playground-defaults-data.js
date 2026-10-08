@@ -153,19 +153,19 @@ window.JamDefaultValues = {
     "sounds": {
       "enabled": true,
       "volume": 60,
-      "start": "GlassStart",
-      "pause": "GlassPause",
-      "resume": "GlassResume",
-      "restart": "GlassRestart",
-      "limit": "GlassLimit",
-      "stop": "GlassStop"
+      "start": "TunedHeroSimpleCelebration02",
+      "pause": "TunedReverseBlip",
+      "resume": "TunedQuickBlip",
+      "restart": "TunedCountDownShutter",
+      "limit": "TunedTickTock",
+      "stop": "TunedSuccessChime"
     },
     "greeting": {
-      "sound": "GlassGreeting",
+      "sound": "TunedGreetingBloom",
       "volume": 70
     },
     "permissionSound": {
-      "sound": "GlassSwitch",
+      "sound": "TunedCoolClick",
       "volume": 70
     }
   }

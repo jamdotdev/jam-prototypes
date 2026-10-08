@@ -2,27 +2,28 @@
   'use strict';
   // UI sounds for recording moments. Watches JamRecording's state rather than being called from it,
   // so the belt code stays unaware of audio.
-  // Each bank sets every sound at once. Glass*, Harp* and the earlier Jam* are generated systems from
+  // Each bank sets every sound at once. Glass* and the earlier Jam* are generated systems from
   // tools/sound-bank.py; Tuned* are the supplied picks fitted to D major and matched in loudness by
   // tools/tune-sounds.py. The untouched originals are kept for auditioning.
   const GESTURES = { start: 'Start', pause: 'Pause', resume: 'Resume', restart: 'Restart', limit: 'Limit', stop: 'Stop', greeting: 'Greeting', toggle: 'Switch' };
   const generated = (prefix) => Object.fromEntries(Object.entries(GESTURES).map(([key, gesture]) => [key, prefix + gesture]));
   const BANKS = [
-    { id: 'Glass', label: 'Glass mallet', sounds: generated('Glass') },
-    { id: 'Harp', label: 'Soft harp', sounds: generated('Harp') },
     { id: 'Tuned', label: 'Your picks, tuned', sounds: { start: 'TunedHeroSimpleCelebration02', pause: 'TunedReverseBlip',
       resume: 'TunedQuickBlip', restart: 'TunedCountDownShutter', limit: 'TunedTickTock', stop: 'TunedSuccessChime',
       greeting: 'TunedGreetingBloom', toggle: 'TunedCoolClick' } },
+    { id: 'Glass', label: 'Glass mallet', sounds: generated('Glass') },
     { id: 'Jam', label: 'Jam (first pass)', sounds: generated('Jam') },
   ];
-  const FILES = ['GlassGreeting', 'GlassLimit', 'GlassPause', 'GlassRestart', 'GlassResume', 'GlassStart', 'GlassStop', 'GlassSwitch', 'HarpGreeting', 'HarpLimit', 'HarpPause', 'HarpRestart', 'HarpResume', 'HarpStart', 'HarpStop', 'HarpSwitch',
-    'TunedChimeA', 'TunedChimeB', 'TunedConfirmUp', 'TunedCoolClick', 'TunedCountDownShutter', 'TunedErrorBloop', 'TunedForwardMinimal',
-    'TunedGreetingAir', 'TunedGreetingBloom', 'TunedGreetingPad', 'TunedHeroSimpleCelebration02', 'TunedHoverTap', 'TunedPositiveStart', 'TunedQuickBlip',
-    'TunedReverseBlip', 'TunedSimpleCelebration', 'TunedSoftTap', 'TunedStartUp', 'TunedSuccessChime', 'TunedTickTock', 'TunedUnlock',
-    'JamGreeting', 'JamLimit', 'JamPause', 'JamRestart', 'JamResume', 'JamStart', 'JamStop', 'JamSwitch',
-    'ChimeA', 'ChimeB', 'ConfirmUp', 'CoolClick', 'CountDownShutter', 'ErrorBloop', 'ForwardMinimal',
-    'GreetingAir', 'GreetingBloom', 'GreetingPad', 'HeroSimpleCelebration02', 'HoverTap', 'PositiveStart', 'QuickBlip',
-    'ReverseBlip', 'SimpleCelebration', 'SoftTap', 'StartUp', 'SuccessChime', 'TickTock', 'Unlock'];
+  const FILES = [
+    'TunedChimeA', 'TunedChimeB', 'TunedConfirmUp', 'TunedCoolClick', 'TunedCountDownShutter', 'TunedErrorBloop',
+    'TunedForwardMinimal', 'TunedGreetingAir', 'TunedGreetingBloom', 'TunedGreetingPad',
+    'TunedHeroSimpleCelebration02', 'TunedHoverTap', 'TunedPositiveStart', 'TunedQuickBlip', 'TunedReverseBlip',
+    'TunedSimpleCelebration', 'TunedSoftTap', 'TunedStartUp', 'TunedSuccessChime', 'TunedTickTock', 'TunedUnlock',
+    'GlassGreeting', 'GlassLimit', 'GlassPause', 'GlassRestart', 'GlassResume', 'GlassStart', 'GlassStop',
+    'GlassSwitch', 'JamGreeting', 'JamLimit', 'JamPause', 'JamRestart', 'JamResume', 'JamStart', 'JamStop',
+    'JamSwitch', 'ChimeA', 'ChimeB', 'ConfirmUp', 'CoolClick', 'CountDownShutter', 'ErrorBloop', 'ForwardMinimal',
+    'GreetingAir', 'GreetingBloom', 'GreetingPad', 'HeroSimpleCelebration02', 'HoverTap', 'PositiveStart',
+    'QuickBlip', 'ReverseBlip', 'SimpleCelebration', 'SoftTap', 'StartUp', 'SuccessChime', 'TickTock', 'Unlock'];
   const MOMENTS = [
     { id: 'start', label: 'Recording starts' },
     { id: 'pause', label: 'Paused' },
@@ -31,13 +32,13 @@
     { id: 'limit', label: 'Final seconds' },
     { id: 'stop', label: 'Recording ends' },
   ];
-  const fallback = { enabled: true, volume: 70, start: 'GlassStart', pause: 'GlassPause', resume: 'GlassResume',
-    restart: 'GlassRestart', limit: 'GlassLimit', stop: 'GlassStop' };
+  const fallback = { enabled: true, volume: 70, start: 'TunedHeroSimpleCelebration02', pause: 'TunedReverseBlip',
+    resume: 'TunedQuickBlip', restart: 'TunedCountDownShutter', limit: 'TunedTickTock', stop: 'TunedSuccessChime' };
   const valid = (name) => name === 'none' || FILES.includes(name);
-  const greetingFallback = { sound: 'GlassGreeting', volume: 70 };
+  const greetingFallback = { sound: 'TunedGreetingBloom', volume: 70 };
   let settings = { ...fallback };
   let greeting = { ...greetingFallback };
-  const toggleFallback = { sound: 'GlassSwitch', volume: 70 };
+  const toggleFallback = { sound: 'TunedCoolClick', volume: 70 };
   let toggle = { ...toggleFallback };
   const buffers = new Map();
 
