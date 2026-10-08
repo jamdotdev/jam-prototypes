@@ -50,6 +50,7 @@
     <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
+    <div class="rb-belt-logs" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span class="rb-source-stack"></span><span>Capturing logs</span></div>
     <div class="rb-belt" role="toolbar" aria-label="Recording controls">
       <div class="rb-belt-idle">
         <div class="rb-inputs"><div class="rb-modes" role="group" aria-label="Recording source">${[['screen','display'],['window','window'],['area','area']].map(([name,glyph])=>`<button type="button" class="rb-mode" data-mode="${name}" aria-label="Record ${name}" aria-pressed="false" title="${name[0].toUpperCase()+name.slice(1)}">${icon(glyph)}</button>`).join('')}</div>
@@ -59,7 +60,6 @@
         <button class="rb-icon-button rb-close" title="Close recording belt" aria-label="Close recording belt">${icon('close')}</button>
       </div>
       <div class="rb-belt-active" hidden><button class="rb-icon-button rb-restart" title="Restart recording" aria-label="Restart recording">${icon('restart')}</button><div class="rb-active-controls"><button class="rb-icon-button rb-pause" title="Pause recording" aria-label="Pause recording"><span class="rb-pause-icon">${icon('pause')}</span><span class="rb-resume-icon">${icon('play')}</span></button><button class="rb-stop" title="Stop recording" aria-label="Stop recording">${icon('stop')}<span class="rb-stop-time">0:00</span><i class="rb-urgency-ring" aria-hidden="true"></i></button></div></div>
-      <div class="rb-belt-logs" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span class="rb-source-stack"></span><span>Capturing logs</span></div>
     </div>
     <div class="native-menu rb-device-menu" id="rb-camera-menu" role="menu" aria-label="Camera" hidden></div>
     <div class="native-menu rb-device-menu" id="rb-microphone-menu" role="menu" aria-label="Microphone" hidden></div>
@@ -275,7 +275,7 @@
       if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML=rows.map(([key,name,file,logs,optin])=>`<div class="rb-source" data-state="${logs.state}"><img src="assets/recording/${file}" width="18" height="18" alt=""><span class="rb-source-name">${name}</span>${optin?`<button type="button" class="rb-source-enable" data-source="${key}" title="Restarts ${name}">Turn on</button>`:`<span class="rb-source-state">${logs.label}</span>`}</div>`).join('');}
     }
     const pill=$('.rb-belt-logs'),live=active&&settings.mode==='screen'&&!isIdle()&&connected.length>0;
-    pill.hidden=!live;if(live)syncSourceStack(pill.querySelector('.rb-source-stack'),connected);
+    pill.hidden=!live;belt.classList.toggle('has-logs',live);if(live){syncSourceStack(pill.querySelector('.rb-source-stack'),connected);renderBelt();}
   }
   function setSafariLogs(value){if(!['connected','unavailable'].includes(value))return;safariLogs=value;syncSelection();emit();}
   function cardTarget(){
@@ -501,11 +501,15 @@
     const slowRate=a-Math.sqrt(Math.max(0,a*a-settings.beltSpring));
     return Math.max(1.6,Math.min(8,-Math.log(.0001)/slowRate));
   }
+  const BELT_LOGS_RISE=32;
   function renderBelt(){
     if(transition){if(reduced.matches||previewTime>=duration()){pose={...transition.to};velocity={x:0,y:0,width:0};}else for(const key of ['x','y','width']){const s=sample(previewTime,transition.from[key],transition.velocity[key],transition.to[key]);pose[key]=s.value;velocity[key]=s.velocity;}}
     // Preserve the native belt size, scaling only this control on narrow displays.
     const width=clamp(pose.width,170,650),s=Math.min(1,(W-16)/IDLE_WIDTH),displayWidth=width*s;
-    belt.style.width=`${width}px`;belt.style.transform=`translate3d(${clamp(pose.x,displayWidth/2+8,W-displayWidth/2-8)-displayWidth/2}px,${clamp(pose.y,28+26*s,H-26*s)-26*s}px,0) scale(${s})`;
+    const x=clamp(pose.x,displayWidth/2+8,W-displayWidth/2-8)-displayWidth/2,y=clamp(pose.y,28+26*s,H-26*s)-26*s;
+    belt.style.width=`${width}px`;belt.style.transform=`translate3d(${x}px,${y}px,0) scale(${s})`;
+    // The logs notch is as wide as the bar and runs down behind it, so the two read as one shape.
+    const logs=$('.rb-belt-logs');if(!logs.hidden){logs.style.width=`${width}px`;logs.style.transform=`translate3d(${x}px,${y-BELT_LOGS_RISE*s}px,0) scale(${s})`;}
   }
   function animateBelt(to,from=pose){transition={from:{...from},velocity:{...velocity},to:{...to}};previewTime=0;previewPlaying=!reduced.matches;loopHold=0;if(reduced.matches)previewTime=duration();renderBelt();wake();}
   function loopBeltAnimation(){

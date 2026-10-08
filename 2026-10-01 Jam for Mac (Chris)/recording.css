@@ -241,8 +241,11 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-source-state{font-size:11px;color:#ffffff73}.rb-source[data-state="connected"] .rb-source-state{color:#89ff9fcc}
 .rb-source-enable{height:20px;padding:0 9px;border-radius:10px;background:#ffffff1f;color:#fff;font-size:11px;line-height:20px;font-weight:510;cursor:pointer}
 @media(hover:hover) and (pointer:fine){.rb-source-enable:hover{background:#ffffff33}}
-.rb-belt-logs{position:absolute;left:50%;bottom:calc(100% + 6px);translate:-50% 0;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px 0 13px;border-radius:15px;background:#1e1e1e;box-shadow:0 0 1px #00000087,0 12px 20px -6px #0000003d,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;pointer-events:none;animation:rb-belt-logs-in 220ms cubic-bezier(.2,0,0,1)}
+.rb-belt-logs{position:absolute;top:0;left:0;z-index:11;transform-origin:top left;box-sizing:border-box;height:84px;display:flex;align-items:flex-start;justify-content:center;gap:8px;padding:8px 14px 0;border-radius:20px 20px 26px 26px;background:#1e1e1e;box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;pointer-events:none;animation:rb-belt-logs-in 220ms cubic-bezier(.2,0,0,1)}
 .rb-belt-logs[hidden]{display:none}
-.rb-belt .rb-belt-logs .rb-source-stack img{width:18px;height:18px}
-@keyframes rb-belt-logs-in{from{opacity:0;translate:-50% 6px}}
+.rb-belt-logs .rb-dot-serpent{margin-top:3.75px}
+.rb-belt-logs .rb-source-stack{margin-top:-1px}
+/* The bar turns opaque over the notch so its dark edge doesn't show through the frosted glass */
+.rb-belt.has-logs{background:#f4f4f4}
+@keyframes rb-belt-logs-in{from{opacity:0;translate:0 10px}}
 @media(prefers-reduced-motion:reduce){.rb-sources-menu,.rb-belt-logs{animation:none}.rb-sources-caret svg{transition:none}}
