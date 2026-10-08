@@ -82,7 +82,8 @@ def validate_default_shape(value, template):
     return False
 
 
-SOUNDS = ("none", "GlassGreeting", "GlassLimit", "GlassPause", "GlassRestart", "GlassResume", "GlassStart", "GlassStop", "GlassSwitch", "PluckGreeting", "PluckLimit", "PluckPause", "PluckRestart", "PluckResume", "PluckStart", "PluckStop", "PluckSwitch",
+SOUNDS = ("none", "TunedChimeA", "TunedChimeB", "TunedConfirmUp", "TunedCoolClick", "TunedCountDownShutter", "TunedErrorBloop", "TunedForwardMinimal", "TunedGreetingAir", "TunedGreetingBloom", "TunedGreetingPad", "TunedHeroSimpleCelebration02", "TunedHoverTap", "TunedPositiveStart", "TunedQuickBlip", "TunedReverseBlip", "TunedSimpleCelebration", "TunedSoftTap", "TunedStartUp", "TunedSuccessChime", "TunedTickTock", "TunedUnlock",
+          "GlassGreeting", "GlassLimit", "GlassPause", "GlassRestart", "GlassResume", "GlassStart", "GlassStop", "GlassSwitch", "PluckGreeting", "PluckLimit", "PluckPause", "PluckRestart", "PluckResume", "PluckStart", "PluckStop", "PluckSwitch",
           "JamGreeting", "JamLimit", "JamPause", "JamRestart", "JamResume", "JamStart", "JamStop", "JamSwitch",
           "ChimeA", "ChimeB", "ConfirmUp", "CoolClick", "CountDownShutter", "ErrorBloop", "ForwardMinimal",
           "GreetingAir", "GreetingBloom", "GreetingPad", "HeroSimpleCelebration02", "HoverTap", "PositiveStart", "QuickBlip",

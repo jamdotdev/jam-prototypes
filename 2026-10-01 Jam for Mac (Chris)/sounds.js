@@ -2,10 +2,23 @@
   'use strict';
   // UI sounds for recording moments. Watches JamRecording's state rather than being called from it,
   // so the belt code stays unaware of audio.
-  // Each bank (Glass*, Pluck*, and the earlier Jam*) is one system from tools/sound-bank.py.
-  // The rest are earlier picks kept for auditioning.
-  const BANKS = [['Glass', 'Glass mallet'], ['Pluck', 'String pluck'], ['Jam', 'Jam (first pass)']];
+  // Each bank sets every sound at once. Glass*, Pluck* and the earlier Jam* are generated systems from
+  // tools/sound-bank.py; Tuned* are the supplied picks fitted to D major and matched in loudness by
+  // tools/tune-sounds.py. The untouched originals are kept for auditioning.
+  const GESTURES = { start: 'Start', pause: 'Pause', resume: 'Resume', restart: 'Restart', limit: 'Limit', stop: 'Stop', greeting: 'Greeting', toggle: 'Switch' };
+  const generated = (prefix) => Object.fromEntries(Object.entries(GESTURES).map(([key, gesture]) => [key, prefix + gesture]));
+  const BANKS = [
+    { id: 'Glass', label: 'Glass mallet', sounds: generated('Glass') },
+    { id: 'Pluck', label: 'String pluck', sounds: generated('Pluck') },
+    { id: 'Tuned', label: 'Your picks, tuned', sounds: { start: 'TunedHeroSimpleCelebration02', pause: 'TunedReverseBlip',
+      resume: 'TunedQuickBlip', restart: 'TunedCountDownShutter', limit: 'TunedTickTock', stop: 'TunedSuccessChime',
+      greeting: 'TunedGreetingBloom', toggle: 'TunedCoolClick' } },
+    { id: 'Jam', label: 'Jam (first pass)', sounds: generated('Jam') },
+  ];
   const FILES = ['GlassGreeting', 'GlassLimit', 'GlassPause', 'GlassRestart', 'GlassResume', 'GlassStart', 'GlassStop', 'GlassSwitch', 'PluckGreeting', 'PluckLimit', 'PluckPause', 'PluckRestart', 'PluckResume', 'PluckStart', 'PluckStop', 'PluckSwitch',
+    'TunedChimeA', 'TunedChimeB', 'TunedConfirmUp', 'TunedCoolClick', 'TunedCountDownShutter', 'TunedErrorBloop', 'TunedForwardMinimal',
+    'TunedGreetingAir', 'TunedGreetingBloom', 'TunedGreetingPad', 'TunedHeroSimpleCelebration02', 'TunedHoverTap', 'TunedPositiveStart', 'TunedQuickBlip',
+    'TunedReverseBlip', 'TunedSimpleCelebration', 'TunedSoftTap', 'TunedStartUp', 'TunedSuccessChime', 'TunedTickTock', 'TunedUnlock',
     'JamGreeting', 'JamLimit', 'JamPause', 'JamRestart', 'JamResume', 'JamStart', 'JamStop', 'JamSwitch',
     'ChimeA', 'ChimeB', 'ConfirmUp', 'CoolClick', 'CountDownShutter', 'ErrorBloop', 'ForwardMinimal',
     'GreetingAir', 'GreetingBloom', 'GreetingPad', 'HeroSimpleCelebration02', 'HoverTap', 'PositiveStart', 'QuickBlip',
@@ -114,17 +127,18 @@
   }
 
   // A bank sets every sound at once: the belt moments, the greeting, and the permission switch.
-  function picks() { return [...MOMENTS.map((moment) => settings[moment.id]), greeting.sound, toggle.sound]; }
+  function picks() { return { ...Object.fromEntries(MOMENTS.map((moment) => [moment.id, settings[moment.id]])), greeting: greeting.sound, toggle: toggle.sound }; }
   function getBank() {
-    const bank = BANKS.find(([prefix]) => picks().every((name) => name.startsWith(prefix)));
-    return bank ? bank[0] : 'custom';
+    const current = picks();
+    return BANKS.find((bank) => Object.keys(GESTURES).every((key) => bank.sounds[key] === current[key]))?.id || 'custom';
   }
-  function setBank(prefix) {
-    if (!BANKS.some(([id]) => id === prefix)) return;
-    updateSettings(Object.fromEntries(MOMENTS.map((moment) => [moment.id, prefix + moment.id[0].toUpperCase() + moment.id.slice(1)])));
-    updateGreeting({ sound: `${prefix}Greeting` });
-    updateToggle({ sound: `${prefix}Switch` });
-    play(`${prefix}Start`, { force: true });
+  function setBank(id) {
+    const bank = BANKS.find((item) => item.id === id);
+    if (!bank) return;
+    updateSettings(Object.fromEntries(MOMENTS.map((moment) => [moment.id, bank.sounds[moment.id]])));
+    updateGreeting({ sound: bank.sounds.greeting });
+    updateToggle({ sound: bank.sounds.toggle });
+    play(bank.sounds.start, { force: true });
   }
 
   let last = null;
@@ -146,7 +160,7 @@
   window.JamSounds = {
     files: FILES,
     moments: MOMENTS,
-    banks: BANKS,
+    banks: BANKS.map((bank) => [bank.id, bank.label]),
     getBank,
     setBank,
     getSettings: () => ({ ...settings }),
