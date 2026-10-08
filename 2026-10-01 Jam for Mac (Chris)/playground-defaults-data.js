@@ -1,6 +1,6 @@
 window.JamDefaultValues = {
   "version": 1,
-  "revision": 34,
+  "revision": 36,
   "groups": {
     "welcome": {
       "settings": {
@@ -125,6 +125,11 @@ window.JamDefaultValues = {
       "pulseStart": 1000,
       "pulseEnd": 350,
       "pulseStrength": 4,
+      "oneClick": true,
+      "rulersButton": false,
+      "pickerStart": "window",
+      "browserLogs": "connected",
+      "electronLogs": "once",
       "mode": "window",
       "camera": true,
       "microphone": true,
@@ -141,11 +146,6 @@ window.JamDefaultValues = {
       "beltSpring": 280,
       "beltDamping": 28,
       "showBounds": false,
-      "oneClick": true,
-      "rulersButton": false,
-      "pickerStart": "window",
-      "browserLogs": "connected",
-      "electronLogs": "once",
       "rate": 1,
       "loop": false
     },
@@ -158,6 +158,10 @@ window.JamDefaultValues = {
       "restart": "CountDownShutter",
       "limit": "TickTock",
       "stop": "SuccessChime"
+    },
+    "greeting": {
+      "sound": "GreetingPad",
+      "volume": 60
     }
   }
 };

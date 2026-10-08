@@ -99,6 +99,11 @@
       ]),
     ];
     if(screen==='welcome')return [
+      section('greeting','Greeting sound',[
+        select('greeting-sound','Sound',()=>S().getGreeting().sound,value=>S().chooseGreeting(value),[['none','None'],...S().files.map(name=>[name,name])]),
+        slider('greeting-volume','Volume',()=>S().getGreeting().volume,value=>S().updateGreeting({volume:value}),0,100,1,'%'),
+        action('play-greeting','Play greeting',()=>S().playGreeting()),
+      ]),
       section('stickers','Stickers',[
         welcomeSetting('stagger','Stagger',0,90,5,'ms'),welcomeSetting('turn','Arrival turn',0,120,5,'°'),
         welcomeSetting('drift','Slow rotation',0,5,.1,'°/s'),welcomeSetting('depth','Perspective',0,60,1,'%'),
