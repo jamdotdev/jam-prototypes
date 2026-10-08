@@ -60,6 +60,7 @@
       </div>
       <div class="rb-belt-active" hidden><button class="rb-icon-button rb-restart" title="Restart recording" aria-label="Restart recording">${icon('restart')}</button><div class="rb-active-controls"><button class="rb-icon-button rb-pause" title="Pause recording" aria-label="Pause recording"><span class="rb-pause-icon">${icon('pause')}</span><span class="rb-resume-icon">${icon('play')}</span></button><button class="rb-stop" title="Stop recording" aria-label="Stop recording">${icon('stop')}<span class="rb-stop-time">0:00</span><i class="rb-urgency-ring" aria-hidden="true"></i></button></div></div>
     </div>
+    <div class="rb-belt-toast" aria-hidden="true" hidden>${icon('restart')}${icon('status')}<span class="rb-belt-toast-label"></span></div>
     <div class="native-menu rb-device-menu" id="rb-camera-menu" role="menu" aria-label="Camera" hidden></div>
     <div class="native-menu rb-device-menu" id="rb-microphone-menu" role="menu" aria-label="Microphone" hidden></div>
     <div class="rb-capture-status" role="status" aria-live="polite"></div>
@@ -86,7 +87,7 @@
   const selectionSizing={area:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},finder:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},browser:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},notion:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}};
   // Electron apps record console logs only in debug mode, which they get at launch. `enabled` remembers the user turned logs on.
   const electronApps={notion:{debug:'off',declined:false,enabled:false,timer:0}};
-  let alertTarget=null,alertReturn=null,bannerTimer=0;
+  let alertTarget=null,alertReturn=null,bannerTimer=0,toastTimer=0,beltBox=null;
   let selectionNotch=null,selectionRulers=null;
   let hoverTarget=null,hoverHold=false;
   let selectedWindow=null,stage='idle',elapsed=0,active=false,raf=0,lastFrame=0,drag=null;
@@ -181,7 +182,7 @@
   function syncWindowOverlays(){
     const target=cardTarget(),frame=$('.rb-hover-frame'),el=windows[target]&&$(`[data-window="${target}"]`);
     frame.hidden=!el;
-    if(el){rectStyle(frame,windows[target]);frame.classList.toggle('is-quitting',el.classList.contains('is-quitting'));frame.classList.toggle('is-launching',el.classList.contains('is-launching'));}
+    if(el){rectStyle(frame,windows[target]);frame.classList.toggle('is-reloading',electronApps[target]?.debug==='restarting'||el.matches('.is-quitting,.is-launching'));}
     const notch=$('.rb-capture-notch'),rect=settings.mode==='window'&&!isIdle()&&windows[selectedWindow];
     notch.hidden=!rect||windowLogs(selectedWindow)?.state!=='connected';
     if(notch.hidden)return;
@@ -245,7 +246,7 @@
   }
   function windowLogs(name){
     const app=electronApps[name];
-    if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`,detail:settings.electronLogs==='ask'?'':'Logs turn on as it reopens'}:settings.electronLogs==='ask'?{state:'restart',label:'Restart to capture logs'}:{state:'optin',label:'Turn on console logs',detail:`Restarts ${targetNames[name]}`};
+    if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`,detail:settings.electronLogs==='once'?'Logs turn on as it reopens':''}:settings.electronLogs==='once'?{state:'optin',label:'Turn on console logs',detail:`Restarts ${targetNames[name]}`}:{state:'restart',label:'Restart to capture logs'};
     if(name!=='browser')return null;
     return settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Logs unavailable'};
   }
@@ -347,24 +348,25 @@
     if(settings.electronLogs==='ask')showRestartAlert(name);else restartElectronApp(name);
   }
   function relaunchWindow(name,quitDelay,loadDelay,done){
-    const app=electronApps[name],el=$(`[data-window="${name}"]`),quick=reduced.matches;
+    const app=electronApps[name],el=$(`[data-window="${name}"]`);
     clearTimeout(app.timer);el.classList.remove('is-launching');el.classList.add('is-quitting');syncWindowOverlays();
     app.timer=setTimeout(()=>{
       el.classList.replace('is-quitting','is-launching');syncWindowOverlays();
-      app.timer=setTimeout(()=>{el.classList.remove('is-launching');syncWindowOverlays();done();},quick?Math.min(loadDelay,300):loadDelay);
-    },quick?Math.min(quitDelay,150):quitDelay);
+      app.timer=setTimeout(()=>{el.classList.remove('is-launching');syncWindowOverlays();done();},loadDelay);
+    },quitDelay);
   }
   function restartElectronApp(name,{background=false,onDone}={}){
-    const app=electronApps[name];
+    const app=electronApps[name],appName=targetNames[name];
     app.debug='restarting';
-    if(!background){hoverTarget=name;hoverHold=true;}
-    // The app quits, disappears for a moment, then relaunches and loads before logs connect.
-    relaunchWindow(name,650,1300,()=>{
+    if(!background){hoverTarget=name;hoverHold=true;showBeltToast(`Restarting ${appName} to enable logs`,'restarting');}
+    // Quitting, relaunching and loading takes an Electron app about 4 seconds, and logs connect once it has loaded.
+    relaunchWindow(name,2000,2000,()=>{
       app.debug='on';app.enabled=true;syncSelection();
-      $('.rb-capture-status').textContent=`${targetNames[name]} restarted. Logs enabled.`;onDone?.();emit();
+      if(!background)showBeltToast(`Logs enabled for ${appName}`,'done');
+      $('.rb-capture-status').textContent=`${appName} restarted. Logs enabled.`;onDone?.();emit();
     });
     syncSelection();if(!background)$('.rb-record-card .rb-picker-start').focus({preventScroll:true});
-    $('.rb-capture-status').textContent=`Restarting ${targetNames[name]}`;
+    $('.rb-capture-status').textContent=`Restarting ${appName} to enable logs`;
     emit();
   }
   function reopenElectronApp(name){
@@ -398,9 +400,29 @@
     banner.classList.add('is-leaving');
     bannerTimer=setTimeout(()=>{banner.hidden=true;banner.classList.remove('is-leaving');},200);
   }
+  function showBeltToast(text,state){
+    const toast=$('.rb-belt-toast');clearTimeout(toastTimer);
+    toast.dataset.state=state;$('.rb-belt-toast-label').textContent=text;
+    toast.classList.remove('is-leaving');toast.hidden=false;placeBeltToast();
+    if(state==='done')toastTimer=setTimeout(hideBeltToast,2600);
+  }
+  function hideBeltToast(){
+    const toast=$('.rb-belt-toast');clearTimeout(toastTimer);
+    if(toast.hidden)return;
+    if(reduced.matches){toast.hidden=true;return;}
+    toast.classList.add('is-leaving');
+    toastTimer=setTimeout(()=>{toast.hidden=true;toast.classList.remove('is-leaving');},200);
+  }
+  // The toast rises out of the top of the belt, or drops below it when the belt is dragged to the top of the screen.
+  function placeBeltToast(){
+    const toast=$('.rb-belt-toast');if(toast.hidden||!beltBox)return;
+    const width=toast.offsetWidth,height=toast.offsetHeight,below=beltBox.y-height-8<36;
+    toast.classList.toggle('is-below',below);
+    toast.style.left=`${clamp(beltBox.x+beltBox.width/2-width/2,8,W-width-8)}px`;toast.style.top=`${below?beltBox.y+beltBox.height+8:beltBox.y-height-8}px`;
+  }
   function resetElectronApps(){
     if(alertTarget)closeRestartAlert();
-    hideBanner();
+    hideBanner();hideBeltToast();
     for(const [name,app]of Object.entries(electronApps)){clearTimeout(app.timer);Object.assign(app,{debug:'off',declined:false,enabled:false,timer:0});$(`[data-window="${name}"]`).classList.remove('is-quitting','is-launching');}
     syncSelection();emit();
   }
@@ -475,7 +497,9 @@
     if(transition){if(reduced.matches||previewTime>=duration()){pose={...transition.to};velocity={x:0,y:0,width:0};}else for(const key of ['x','y','width']){const s=sample(previewTime,transition.from[key],transition.velocity[key],transition.to[key]);pose[key]=s.value;velocity[key]=s.velocity;}}
     // Preserve the native belt size, scaling only this control on narrow displays.
     const width=clamp(pose.width,170,650),s=Math.min(1,(W-16)/IDLE_WIDTH),displayWidth=width*s;
-    belt.style.width=`${width}px`;belt.style.transform=`translate3d(${clamp(pose.x,displayWidth/2+8,W-displayWidth/2-8)-displayWidth/2}px,${clamp(pose.y,28+26*s,H-26*s)-26*s}px,0) scale(${s})`;
+    const x=clamp(pose.x,displayWidth/2+8,W-displayWidth/2-8)-displayWidth/2,y=clamp(pose.y,28+26*s,H-26*s)-26*s;
+    belt.style.width=`${width}px`;belt.style.transform=`translate3d(${x}px,${y}px,0) scale(${s})`;
+    beltBox={x,y,width:displayWidth,height:52*s};placeBeltToast();
   }
   function animateBelt(to,from=pose){transition={from:{...from},velocity:{...velocity},to:{...to}};previewTime=0;previewPlaying=!reduced.matches;loopHold=0;if(reduced.matches)previewTime=duration();renderBelt();wake();}
   function loopBeltAnimation(){
@@ -518,7 +542,7 @@
       else if(key==='mode'&&['screen','window','area'].includes(patch.mode))settings.mode=patch.mode;
       else if(key==='pickerStart'&&['window','button'].includes(patch[key]))settings[key]=patch[key];
       else if(key==='browserLogs'&&['connected','unavailable'].includes(patch[key]))settings[key]=patch[key];
-      else if(key==='electronLogs'&&['once','ask'].includes(patch[key]))settings[key]=patch[key];
+      else if(key==='electronLogs'&&['restart','once','ask'].includes(patch[key]))settings[key]=patch[key];
       else if(key==='cameraDevice'&&typeof patch[key]==='string'&&patch[key].length<=64)settings[key]=patch[key];
       else if(['placeholderColor','placeholderContrastColor','placeholderContrastHoverColor','placeholderContrastActiveColor','placeholderContrastEdgeColor','placeholderOverlayColor'].includes(key)&&typeof patch[key]==='string'&&patch[key].length<=64&&CSS.supports('color',patch[key])&&!/var\(|currentcolor|inherit|initial|unset/i.test(patch[key]))settings[key]=patch[key];
       else if(key==='microphoneDevice'&&['MacBook','AirPods Pro 3','ZoomAudioDevice','BoseQC Ultra Headphones','Mac Studio Display Microphone'].includes(patch[key]))settings[key]=patch[key];

@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');const {chromium}=require(process.env.
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1440,height:900}});const errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto(process.env.RECORDING_TEST_URL||'http://127.0.0.1:8765/?surface=recording');await p.waitForFunction(()=>window.JamRecording);
 await p.evaluate(()=>{JamRecording.updateSettings({camera:false,oneClick:true,pickerStart:'window',electronLogs:'once'});JamRecording.setMode('window');JamRecording.resetElectronApps();});
-const state=()=>p.evaluate(()=>JamRecording.getState());const debugIs=value=>p.waitForFunction(value=>JamRecording.getState().apps.notion.debug===value,value,{timeout:6000});
+const state=()=>p.evaluate(()=>JamRecording.getState());const debugIs=value=>p.waitForFunction(value=>JamRecording.getState().apps.notion.debug===value,value,{timeout:8000});
 const card=p.locator('.rb-record-card'),start=card.locator('.rb-picker-start'),row=p.locator('.rb-selection-notch .rb-notch-logs-restart'),banner=p.locator('.rb-banner'),notice=p.locator('#draft-logs-notice');
 const nb=await p.locator('[data-window="notion"]').boundingBox(),point={x:nb.x+nb.width-40,y:nb.y+nb.height-30};
 const hoverNotion=async()=>{await p.mouse.move(point.x,point.y);await p.waitForTimeout(100);};

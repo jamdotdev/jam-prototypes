@@ -145,7 +145,7 @@ window.JamDefaultValues = {
       "rulersButton": false,
       "pickerStart": "window",
       "browserLogs": "connected",
-      "electronLogs": "once",
+      "electronLogs": "restart",
       "rate": 1,
       "loop": false
     }

@@ -24,7 +24,7 @@ await alert.locator('[data-choice="restart"]').click();await p.waitForTimeout(10
 st=await state();assert.equal(st.apps.notion.debug,'restarting');assert.equal(await start.getAttribute('aria-disabled'),'true');
 assert.equal((await restartRow.textContent()).trim(),'Restarting Notion…');
 await start.click({force:true});await p.waitForTimeout(100);assert.equal((await state()).stage,'idle','Record waits for the restart');
-await p.waitForFunction(()=>JamRecording.getState().apps.notion.debug==='on',null,{timeout:5000});
+await p.waitForFunction(()=>JamRecording.getState().apps.notion.debug==='on',null,{timeout:8000});
 st=await state();assert.equal(st.stage,'idle','back to the card, not recording');assert.equal(st.target,'notion');
 assert.equal(await notch.locator('.rb-notch-logs-label').textContent(),'Logs enabled');assert.ok(await restartRow.isHidden());
 assert.equal(await start.getAttribute('aria-disabled'),'false');

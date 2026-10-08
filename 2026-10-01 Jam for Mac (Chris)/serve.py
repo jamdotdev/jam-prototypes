@@ -39,7 +39,7 @@ def with_player_settings(group, value, fallback=None):
                  "placeholderOpacity": 50, "placeholderActiveOpacity": 100,
                  "placeholderOverlayColor": "#000000", "placeholderOverlayOpacity": 32,
                  "cameraZoom": 1, "cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4,
-                 "oneClick": True, "rulersButton": False, "pickerStart": "window", "browserLogs": "connected", "electronLogs": "once"}
+                 "oneClick": True, "rulersButton": False, "pickerStart": "window", "browserLogs": "connected", "electronLogs": "restart"}
         return {**{key: fallback.get(key, default) for key, default in added.items()}, **value}
     if group in ("handoff", "permissions") and isinstance(value, dict):
         fallback = fallback or {}
@@ -150,7 +150,7 @@ def validate_default_values(group, value):
                 all(valid_color(value[key]) for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastHoverColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor")) and
                 value["mode"] in ("screen", "window", "area") and
                 value["pickerStart"] in ("window", "button") and value["browserLogs"] in ("connected", "unavailable") and
-                value["electronLogs"] in ("once", "ask") and
+                value["electronLogs"] in ("restart", "once", "ask") and
                 isinstance(value["cameraDevice"], str) and 0 < len(value["cameraDevice"]) <= 64 and
                 value["microphoneDevice"] in ("MacBook", "AirPods Pro 3", "ZoomAudioDevice", "BoseQC Ultra Headphones", "Mac Studio Display Microphone") and
                 all(type(value[key]) is bool for key in flags) and
