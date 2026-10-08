@@ -24,7 +24,7 @@ When served by `serve.py`, **Make Default** in the sidebar saves the current con
 
 The first-launch window: an entrance animation with orbiting stickers over a reveal grid, then **Continue in browser**. The sidebar can replay the entrance, tune the sticker orbit, and pause and scrub through each stage.
 
-The entrance opens with a soft pad greeting that fades out over several seconds (browsers hold it until the first click when the page loads). The sidebar's Greeting sound section picks it, including three synthesized pads (`GreetingPad`, `GreetingBloom`, `GreetingAir`), sets its volume, and replays it.
+The entrance opens with a soft pad greeting that fades out over several seconds (browsers hold it until the first click when the page loads). The sidebar's Greeting sound section picks it, including three synthesized pads (`GreetingBloom` by default, `GreetingPad`, `GreetingAir`), sets its volume, and replays it.
 
 Continue in browser animates the cursor handoff, then opens `auth.html`, a simulated "Launching Jam" page with an "Open Jam.app?" dialog. Served locally on macOS, `serve.py` opens it in your default browser and waits for you to return. On the hosted page it opens in a popup. Confirming returns to the app's permissions step (Screen Recording, Camera, Microphone). No real sign-in happens and no OS permissions are requested.
 

@@ -16,7 +16,7 @@
   const fallback = { enabled: true, volume: 70, start: 'PositiveStart', pause: 'ReverseBlip', resume: 'QuickBlip',
     restart: 'CountDownShutter', limit: 'TickTock', stop: 'SuccessChime' };
   const valid = (name) => name === 'none' || FILES.includes(name);
-  const greetingFallback = { sound: 'GreetingPad', volume: 60 };
+  const greetingFallback = { sound: 'GreetingBloom', volume: 60 };
   let settings = { ...fallback };
   let greeting = { ...greetingFallback };
   const buffers = new Map();

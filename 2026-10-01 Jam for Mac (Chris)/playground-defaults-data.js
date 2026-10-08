@@ -160,7 +160,7 @@ window.JamDefaultValues = {
       "stop": "SuccessChime"
     },
     "greeting": {
-      "sound": "GreetingPad",
+      "sound": "GreetingBloom",
       "volume": 60
     }
   }
