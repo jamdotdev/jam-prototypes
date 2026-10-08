@@ -272,7 +272,10 @@
     if(screen){
       syncSourceStack(row.querySelector('.rb-source-stack'),connected);
       row.dataset.connected=String(connected.length>0);row.setAttribute('aria-expanded',String(sourcesOpen));
-      $('.rb-picker-sources-label').textContent=connected.length?`${connected.length} source${connected.length===1?'':'s'} connected`:'No sources connected';
+      // The label matches the window card's; the icons say which apps, and the accessible name lists them.
+      const names=connected.map(([,name])=>name);
+      $('.rb-picker-sources-label').textContent=connected.length?'Logs enabled':'No logs';
+      row.setAttribute('aria-label',connected.length?`Logs enabled from ${names.length>1?`${names.slice(0,-1).join(', ')} and ${names.at(-1)}`:names[0]}. Log sources`:'No logs. Log sources');
       // Rebuilt only when a state changes, so a press on a switch isn't lost to a re-render.
       const rows=logSources.map(([key,name,file])=>[key,name,file,sourceLogs(key)]),key=rows.map(([,,,logs])=>logs.state).join();
       if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML='<div class="native-menu-label">Log sources</div>'+rows.map(([key,name,file,logs])=>{
