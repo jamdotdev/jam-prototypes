@@ -220,3 +220,29 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .recording-scene[data-alert="true"] .rb-record-card,.recording-scene[data-alert="true"] .rb-selection-notch{visibility:hidden}
 .recording-scene[data-alert="true"] .rb-hover-frame{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.rb-dot-serpent i{animation:none;opacity:calc(.12 + var(--order) * .09)}.rb-hover-frame.is-launching{animation:none}.rb-hover-frame.is-quitting{transition:none}.rb-banner,.rb-alert,.rb-mock-window.is-launching,.rb-mock-window.is-launching :is(.rb-notion-crumbs,.rb-notion-body) i{animation:none}.rb-mock-window.is-quitting{transition:none}}
+/* Full screen log sources: a summary row on the screen card, the list it opens, and a pill above the bar while recording */
+.rb-record-card[data-target="screen"] .rb-picker-controls{position:relative}
+.rb-picker-sources{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:32px;margin-top:-4px;padding:4px 16px 0;border-radius:0 0 16px 16px;background:transparent;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:pointer}
+.rb-picker-sources[hidden]{display:none}
+.rb-picker-sources::before{content:'';position:absolute;top:0;left:8px;right:8px;height:1px;background:#ffffff14}
+.rb-picker-sources[data-connected="false"]{color:#ffffff8c}
+.rb-source-stack{display:flex;flex:none}.rb-source-stack:empty{display:none}
+.rb-source-stack img{display:block;width:18px;height:18px;filter:drop-shadow(0 0 1px #1e1e1e)}.rb-source-stack img+img{margin-left:-6px}
+.rb-sources-caret{display:grid;place-items:center;width:16px;height:16px;margin-left:2px;border-radius:50%;background:#ffffff1a;color:#ffffffb3;transition:background-color 120ms ease}
+.rb-sources-caret svg{width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:rotate 160ms cubic-bezier(.2,0,0,1)}
+.rb-picker-sources[aria-expanded="true"] .rb-sources-caret svg{rotate:180deg}
+@media(hover:hover) and (pointer:fine){.rb-picker-sources:hover .rb-sources-caret{background:#ffffff29;color:#fff}}
+.rb-sources-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:3;display:flex;flex-direction:column;padding:5px;border-radius:16px;background:#1e1e1e;box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59;cursor:default;animation:rb-sources-in 160ms cubic-bezier(.2,0,0,1)}
+.rb-sources-menu[hidden]{display:none}
+@keyframes rb-sources-in{from{opacity:0;translate:0 -4px}}
+.rb-source{display:flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 8px;color:#ffffffd9;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap}
+.rb-source img{width:18px;height:18px;flex:none}
+.rb-source-name{flex:1}
+.rb-source-state{font-size:11px;color:#ffffff73}.rb-source[data-state="connected"] .rb-source-state{color:#89ff9fcc}
+.rb-source-enable{height:20px;padding:0 9px;border-radius:10px;background:#ffffff1f;color:#fff;font-size:11px;line-height:20px;font-weight:510;cursor:pointer}
+@media(hover:hover) and (pointer:fine){.rb-source-enable:hover{background:#ffffff33}}
+.rb-belt-logs{position:absolute;left:50%;bottom:calc(100% + 6px);translate:-50% 0;display:flex;align-items:center;gap:8px;height:30px;padding:0 14px 0 13px;border-radius:15px;background:#1e1e1e;box-shadow:0 0 1px #00000087,0 12px 20px -6px #0000003d,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;pointer-events:none;animation:rb-belt-logs-in 220ms cubic-bezier(.2,0,0,1)}
+.rb-belt-logs[hidden]{display:none}
+.rb-belt .rb-belt-logs .rb-source-stack img{width:18px;height:18px}
+@keyframes rb-belt-logs-in{from{opacity:0;translate:-50% 6px}}
+@media(prefers-reduced-motion:reduce){.rb-sources-menu,.rb-belt-logs{animation:none}.rb-sources-caret svg{transition:none}}

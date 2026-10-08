@@ -39,6 +39,7 @@
         recordingToggle('oneClick','One-click start'),
         select('pickerStart','Start from',()=>R().getSettings().pickerStart,value=>R().updateSettings({pickerStart:value}),[['window','Anywhere on window'],['button','Start button only']]),
         select('browserLogs','Chrome logs',()=>R().getSettings().browserLogs,value=>R().updateSettings({browserLogs:value}),[['connected','Extension connected'],['unavailable','Extension missing']]),
+        select('safariLogs','Safari logs',()=>R().getSafariLogs(),value=>R().setSafariLogs(value),[['connected','Extension connected'],['unavailable','Extension missing']]),
         select('electronLogs','Notion logs',()=>R().getSettings().electronLogs,value=>R().updateSettings({electronLogs:value}),[['once','Turn on once'],['ask','Ask on Record']]),
         action('reopen-notion','Reopen Notion',()=>R().reopenElectronApp('notion')),
         action('reset-notion','Reset Notion logs',()=>R().resetElectronApps()),

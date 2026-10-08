@@ -45,7 +45,7 @@
     <div class="rb-hover-frame" aria-hidden="true" hidden></div>
     <div class="rb-capture-notch" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span>Capturing logs</span></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
-    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
+    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div><button type="button" class="rb-picker-sources" aria-expanded="false" aria-controls="rb-sources-menu" hidden><span class="rb-source-stack"></span><span class="rb-picker-sources-label"></span><span class="rb-sources-caret" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2.75 4 5 6.25 7.25 4"/></svg></span></button><div class="rb-sources-menu" id="rb-sources-menu" role="group" aria-label="Log sources" hidden></div></div></div>
     <div class="rb-banner" role="status" hidden><img class="rb-banner-icon" src="assets/welcome/app-icon.png" width="36" height="36" alt=""><div class="rb-banner-text"><strong class="rb-banner-title"></strong><span class="rb-banner-body"></span></div><span class="rb-banner-time">now</span></div>
     <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
@@ -59,6 +59,7 @@
         <button class="rb-icon-button rb-close" title="Close recording belt" aria-label="Close recording belt">${icon('close')}</button>
       </div>
       <div class="rb-belt-active" hidden><button class="rb-icon-button rb-restart" title="Restart recording" aria-label="Restart recording">${icon('restart')}</button><div class="rb-active-controls"><button class="rb-icon-button rb-pause" title="Pause recording" aria-label="Pause recording"><span class="rb-pause-icon">${icon('pause')}</span><span class="rb-resume-icon">${icon('play')}</span></button><button class="rb-stop" title="Stop recording" aria-label="Stop recording">${icon('stop')}<span class="rb-stop-time">0:00</span><i class="rb-urgency-ring" aria-hidden="true"></i></button></div></div>
+      <div class="rb-belt-logs" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span class="rb-source-stack"></span><span>Capturing logs</span></div>
     </div>
     <div class="native-menu rb-device-menu" id="rb-camera-menu" role="menu" aria-label="Camera" hidden></div>
     <div class="native-menu rb-device-menu" id="rb-microphone-menu" role="menu" aria-label="Microphone" hidden></div>
@@ -249,6 +250,34 @@
     if(name!=='browser')return null;
     return settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Logs unavailable'};
   }
+  // A full screen can hold several apps sending logs, so the screen card and the recording bar summarise them all.
+  const logSources=[['browser','Chrome','chrome-app.png'],['safari','Safari','safari.png'],['notion','Notion','notion.png']];
+  let safariLogs='connected',sourcesOpen=false;
+  function sourceLogs(key){
+    if(key==='safari')return safariLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Extension missing'};
+    const logs=windowLogs(key);
+    return logs.state==='unavailable'?{state:'unavailable',label:'Extension missing'}:logs.state==='restarting'?{...logs,label:'Restarting…'}:logs;
+  }
+  function syncSourceStack(stack,list){
+    const key=list.map(([name])=>name).join();
+    if(stack.dataset.key!==key){stack.dataset.key=key;stack.innerHTML=list.map(([,name,file])=>`<img src="assets/recording/${file}" width="18" height="18" alt="${name}">`).join('');}
+  }
+  function syncLogSources(target){
+    const connected=logSources.filter(([key])=>sourceLogs(key).state==='connected'),row=$('.rb-picker-sources'),menu=$('.rb-sources-menu'),screen=target==='screen';
+    if(!screen)sourcesOpen=false;
+    row.hidden=!screen;menu.hidden=!sourcesOpen;
+    if(screen){
+      syncSourceStack(row.querySelector('.rb-source-stack'),connected);
+      row.dataset.connected=String(connected.length>0);row.setAttribute('aria-expanded',String(sourcesOpen));
+      $('.rb-picker-sources-label').textContent=connected.length?`${connected.length} source${connected.length===1?'':'s'} connected`:'No sources connected';
+      // Rebuilt only when a state changes, so a press on Turn on isn't lost to a re-render.
+      const rows=logSources.map(([key,name,file])=>{const logs=sourceLogs(key);return [key,name,file,logs,['optin','restart'].includes(logs.state)];}),key=rows.map(([,,,logs])=>logs.state).join();
+      if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML=rows.map(([key,name,file,logs,optin])=>`<div class="rb-source" data-state="${logs.state}"><img src="assets/recording/${file}" width="18" height="18" alt=""><span class="rb-source-name">${name}</span>${optin?`<button type="button" class="rb-source-enable" data-source="${key}" title="Restarts ${name}">Turn on</button>`:`<span class="rb-source-state">${logs.label}</span>`}</div>`).join('');}
+    }
+    const pill=$('.rb-belt-logs'),live=active&&settings.mode==='screen'&&!isIdle()&&connected.length>0;
+    pill.hidden=!live;if(live)syncSourceStack(pill.querySelector('.rb-source-stack'),connected);
+  }
+  function setSafariLogs(value){if(!['connected','unavailable'].includes(value))return;safariLogs=value;syncSelection();emit();}
   function cardTarget(){
     if(!active||!isIdle()||!settings.oneClick)return null;
     if(settings.mode==='area')return 'area';
@@ -259,6 +288,7 @@
     if(alertTarget&&(settings.mode!=='window'||!isIdle()))closeRestartAlert();
     root.dataset.alert=String(!!alertTarget);
     const target=cardTarget(),card=$('.rb-record-card');
+    syncLogSources(target);
     $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-hovered',el.dataset.window===target));
     syncWindowOverlays();
     root.dataset.screenHover=String(target==='screen');
@@ -698,6 +728,7 @@
       if(event.key.length===1&&!event.metaKey&&!event.ctrlKey&&event.key!==' '){typeBuffer+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typeBuffer='',500);next=items.findIndex(b=>b.textContent.toLowerCase().startsWith(typeBuffer));}
       if(next>=0){event.preventDefault();items[next].focus();}return;
     }
+    if(event.key==='Escape'&&sourcesOpen){sourcesOpen=false;syncSelection();$('.rb-picker-sources').focus({preventScroll:true});return;}
     if(event.key==='Escape'&&isIdle()){if(selectedWindow&&settings.mode==='window'){rememberCameraPosition();selectedWindow=null;syncSelection();}else JamPlayground.setSurface('onboarding');}
     if(event.target===bubble&&!settings.followCursor){if(event.key.startsWith('Arrow')){fixedAnchor=null;cameraSnap=null;}const amount=event.shiftKey?10:2;let used=true;if(event.key==='ArrowLeft')fixedCamera.x-=amount;else if(event.key==='ArrowRight')fixedCamera.x+=amount;else if(event.key==='ArrowUp')fixedCamera.y-=amount;else if(event.key==='ArrowDown')fixedCamera.y+=amount;else if(event.key==='+'||event.key==='=')resizeCamera(settings.cameraSize+4,event);else if(event.key==='-')resizeCamera(settings.cameraSize-4,event);else used=false;if(used){event.preventDefault();renderCamera(0);rememberCameraPosition();}}
     if(event.target===region&&settings.mode==='area'&&isIdle()){let x=area.x,y=area.y,n=event.shiftKey?10:1;if(event.key==='ArrowLeft')x-=n;else if(event.key==='ArrowRight')x+=n;else if(event.key==='ArrowUp')y-=n;else if(event.key==='ArrowDown')y+=n;else return;event.preventDefault();area.x=clamp(x,0,W-area.width);area.y=clamp(y,0,H-area.height);syncSelection();}
@@ -716,8 +747,10 @@
     el.addEventListener('focus',()=>setHover(el.dataset.picker));
     el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();startWindowRecording(el.dataset.picker);}});
   });
-  $('.rb-screen-picker').addEventListener('click',()=>{if(settings.pickerStart==='window')startTarget('screen');});
-  $('.rb-record-card').addEventListener('click',e=>{if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
+  $('.rb-screen-picker').addEventListener('click',()=>{if(sourcesOpen){sourcesOpen=false;syncSelection();}else if(settings.pickerStart==='window')startTarget('screen');});
+  $('.rb-picker-sources').addEventListener('click',()=>{sourcesOpen=!sourcesOpen;syncSelection();});
+  $('.rb-sources-menu').addEventListener('click',e=>{e.stopPropagation();const name=e.target.closest('.rb-source-enable')?.dataset.source;if(electronApps[name]?.debug==='off'&&isIdle())restartElectronApp(name,{background:true});});
+  $('.rb-record-card').addEventListener('click',e=>{if(sourcesOpen&&!e.target.closest('.rb-picker-controls')){sourcesOpen=false;syncSelection();return;}if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
   $('.rb-banner').addEventListener('click',hideBanner);
   $$('.rb-alert-button').forEach(button=>button.addEventListener('click',()=>answerRestartAlert(button.dataset.choice)));
   $('.rb-alert-layer').addEventListener('keydown',e=>{
@@ -816,7 +849,7 @@
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
     getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),alert:alertTarget,apps:Object.fromEntries(Object.entries(electronApps).map(([name,app])=>[name,{debug:app.debug,declined:app.declined,enabled:app.enabled}])),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
-    updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
+    getSafariLogs:()=>safariLogs,setSafariLogs,updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
