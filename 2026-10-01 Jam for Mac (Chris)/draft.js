@@ -444,6 +444,30 @@
     if (previous) URL.revokeObjectURL(previous);
     event.target.value = '';
   });
+  // An app recorded without its console logs gets the chance to turn them on, now that a restart costs nothing.
+  let logsNotice = null;
+  function renderLogsNotice(state) {
+    const panel = $('draft-logs-notice');
+    panel.hidden = !logsNotice;
+    if (!logsNotice) return;
+    const { app } = logsNotice;
+    panel.dataset.state = state;
+    $('draft-logs-title').textContent = state === 'on' ? `Console logs on for ${app}` : state === 'restarting' ? `Restarting ${app}…` : `No console logs from ${app}`;
+    $('draft-logs-body').textContent = state === 'on' ? `Your next recording of ${app} includes them.` : state === 'restarting' ? 'Logs turn on as it reopens.' : `Turn them on and your next recording of ${app} includes them. This restarts ${app}.`;
+    $('draft-logs-button').hidden = state !== 'offer';
+  }
+  function setLogsNotice(notice) {
+    logsNotice = notice || null;
+    renderLogsNotice('offer');
+  }
+  $('draft-logs-button').addEventListener('click', async () => {
+    if (!logsNotice) return;
+    const notice = logsNotice;
+    renderLogsNotice('restarting');
+    await notice.onEnable();
+    if (logsNotice === notice) renderLogsNotice('on');
+  });
+
   $('draft-create-button').addEventListener('click', () => {
     window.JamPlayground.notify(settings.connection === 'offline' ? 'Saved to drafts · prototype preview' : 'Jam created · prototype preview');
   });
@@ -461,6 +485,7 @@
     setRate: (value) => updateSettings({ playbackSpeed: value }),
     setLoop: (value) => updateSettings({ loop: value }),
     setTrimPreset,
+    setLogsNotice,
     setActive(value) {
       active = value;
       timeline.setActive(value && mediaReady);

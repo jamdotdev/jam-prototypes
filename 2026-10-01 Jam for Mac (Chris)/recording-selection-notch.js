@@ -1,10 +1,10 @@
 (() => {
   'use strict';
   const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
-  function create(root,{icon,onSize,onRatio,onOrientation,onPreset,onChangeWindow,onOpen,onClose,onToggleRulers=()=>{}}){
+  function create(root,{icon,onSize,onRatio,onOrientation,onPreset,onChangeWindow,onOpen,onClose,onToggleRulers=()=>{},onRestartLogs=()=>{}}){
     const notch=document.createElement('div');
     notch.className='rb-selection-notch';notch.role='group';notch.hidden=true;
-    notch.innerHTML=`<div class="rb-notch-backplate" aria-hidden="true"></div><div class="rb-notch-window-controls"><button type="button" class="rb-notch-change" aria-label="Change window" title="Change window">${icon('change')}<span class="rb-notch-change-label">Change window</span></button><i class="rb-notch-separator rb-notch-change-separator"></i><span class="rb-notch-logs" title="No logs">${icon('status')}<span class="rb-notch-logs-label">No logs</span></span><i class="rb-notch-separator"></i></div><div class="rb-notch-sizing"><button type="button" class="rb-notch-ratio" title="Change ratio" aria-label="Aspect ratio" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-ratio-menu">${icon('aspect')}<span></span></button><label class="rb-notch-field"><span class="sr-only">Capture width</span><input class="rb-notch-width" aria-label="Capture width" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><span class="rb-notch-times" aria-hidden="true">×</span><label class="rb-notch-field"><span class="sr-only">Capture height</span><input class="rb-notch-height" aria-label="Capture height" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><button type="button" class="rb-notch-resize" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-resize-menu">Resize</button><i class="rb-notch-separator rb-notch-rulers-separator" aria-hidden="true"></i><button type="button" class="rb-notch-rulers" title="Display rulers" aria-label="Display rulers" aria-pressed="false">${icon('rulers')}</button></div>`;
+    notch.innerHTML=`<div class="rb-notch-backplate" aria-hidden="true"></div><div class="rb-notch-window-controls"><button type="button" class="rb-notch-change" aria-label="Change window" title="Change window">${icon('change')}<span class="rb-notch-change-label">Change window</span></button><i class="rb-notch-separator rb-notch-change-separator"></i><span class="rb-notch-logs" title="No logs">${icon('status')}<span class="rb-notch-logs-label">No logs</span></span><button type="button" class="rb-notch-logs-restart" hidden><span class="rb-notch-logs-restart-main">${icon('restart')}${icon('logs')}<span class="rb-spinner" aria-hidden="true">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--i:${i}"></i>`).join('')}</span><span class="rb-notch-logs-restart-label"></span></span><span class="rb-notch-logs-restart-detail"></span></button><i class="rb-notch-separator"></i></div><div class="rb-notch-sizing"><button type="button" class="rb-notch-ratio" title="Change ratio" aria-label="Aspect ratio" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-ratio-menu">${icon('aspect')}<span></span></button><label class="rb-notch-field"><span class="sr-only">Capture width</span><input class="rb-notch-width" aria-label="Capture width" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><span class="rb-notch-times" aria-hidden="true">×</span><label class="rb-notch-field"><span class="sr-only">Capture height</span><input class="rb-notch-height" aria-label="Capture height" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><button type="button" class="rb-notch-resize" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-resize-menu">Resize</button><i class="rb-notch-separator rb-notch-rulers-separator" aria-hidden="true"></i><button type="button" class="rb-notch-rulers" title="Display rulers" aria-label="Display rulers" aria-pressed="false">${icon('rulers')}</button></div>`;
     const ratioMenu=document.createElement('div'),resizeMenu=document.createElement('div');
     for(const [menu,id,label] of [[ratioMenu,'rb-ratio-menu','Aspect ratio'],[resizeMenu,'rb-resize-menu','Resize presets']]){
       menu.id=id;menu.className='native-menu rb-sizing-menu';menu.role='menu';menu.tabIndex=-1;menu.setAttribute('aria-label',label);menu.hidden=true;root.append(menu);
@@ -106,6 +106,7 @@
     ratioButton.addEventListener('click',()=>show(ratioMenu,ratioButton));resizeButton.addEventListener('click',()=>show(resizeMenu,resizeButton));
     $('.rb-notch-change').addEventListener('click',onChangeWindow);
     $('.rb-notch-rulers').addEventListener('click',onToggleRulers);
+    $('.rb-notch-logs-restart').addEventListener('click',()=>{if($('.rb-notch-logs-restart').getAttribute('aria-disabled')!=='true')onRestartLogs();});
     for(const axis of ['width','height']){
       const input=$(`.rb-notch-${axis}`);
       const restore=()=>{input.value=String(Math.round(context.rect[axis]));input.removeAttribute('aria-invalid');};
@@ -159,9 +160,14 @@
       const logs=next.logs||{state:'none',label:'No logs'},changeWindow=next.changeWindow!==false;
       $('.rb-notch-change').hidden=!changeWindow;$('.rb-notch-change-separator').hidden=!changeWindow;
       notch.dataset.logs=logs.state;$('.rb-notch-logs-label').textContent=logs.label;$('.rb-notch-logs').title=logs.label;
+      // An app that needs a restart for logs offers it from the same row, and it waits there while restarting.
+      const restart=['restart','optin','restarting'].includes(logs.state),restartButton=$('.rb-notch-logs-restart');
+      $('.rb-notch-logs').hidden=restart;restartButton.hidden=!restart;
+      $('.rb-notch-logs-restart-label').textContent=logs.label;$('.rb-notch-logs-restart-detail').textContent=logs.detail||'';
+      restartButton.setAttribute('aria-disabled',String(logs.state==='restarting'));
       notch.classList.toggle('is-card',!!next.card);
       const digits=next.card?`:${$('.rb-notch-width').value.length}:${$('.rb-notch-height').value.length}`:'';
-      const natural=measureWidth(`${windowMode}:${changeWindow}:${!!next.rulers}:${!!next.card}:${!!next.logs}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}${digits}`);
+      const natural=measureWidth(`${windowMode}:${changeWindow}:${!!next.rulers}:${!!next.card}:${!!next.logs}:${logs.state}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}${digits}`);
       if(next.card){
         // On the record card the notch is the panel behind the record pill, and the caller places it.
         notch.classList.remove('is-compact','is-floating','is-inset','is-above');
