@@ -45,11 +45,12 @@
     <div class="rb-hover-frame" aria-hidden="true" hidden><canvas class="rb-hover-waves"></canvas></div>
     <div class="rb-capture-notch" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span>Capturing logs</span></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
-    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div></div></div>
+    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div><button type="button" class="rb-picker-sources" aria-expanded="false" aria-controls="rb-sources-menu" hidden><span class="rb-source-stack"></span><span class="rb-picker-sources-label"></span><span class="rb-sources-caret" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2.75 4 5 6.25 7.25 4"/></svg></span></button><div class="native-menu rb-sources-menu" id="rb-sources-menu" role="menu" aria-label="Log sources" hidden></div></div></div>
     <div class="rb-banner" role="status" hidden><img class="rb-banner-icon" src="assets/welcome/app-icon.png" width="36" height="36" alt=""><div class="rb-banner-text"><strong class="rb-banner-title"></strong><span class="rb-banner-body"></span></div><span class="rb-banner-time">now</span></div>
     <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
+    <div class="rb-belt-logs" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span class="rb-source-stack"></span><span>Capturing logs</span></div>
     <div class="rb-belt" role="toolbar" aria-label="Recording controls">
       <div class="rb-belt-idle">
         <div class="rb-inputs"><div class="rb-modes" role="group" aria-label="Recording source">${[['screen','display'],['window','window'],['area','area']].map(([name,glyph])=>`<button type="button" class="rb-mode" data-mode="${name}" aria-label="Record ${name}" aria-pressed="false" title="${name[0].toUpperCase()+name.slice(1)}">${icon(glyph)}</button>`).join('')}</div>
@@ -253,6 +254,45 @@
     if(name!=='browser')return null;
     return settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Logs unavailable'};
   }
+  // A full screen can hold several apps sending logs, so the screen card and the recording bar summarise them all.
+  const logSources=[['browser','Chrome','chrome-app.png'],['safari','Safari','safari.png'],['notion','Notion','notion.png']];
+  // Muted sources stay connected but are left out of the recording.
+  let safariLogs='connected',sourcesOpen=false;const mutedSources=new Set();
+  function sourceLogs(key){
+    if(key==='safari')return safariLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Extension missing'};
+    const logs=windowLogs(key);
+    return logs.state==='unavailable'?{state:'unavailable',label:'Extension missing'}:logs.state==='restarting'?{...logs,label:'Restarting…'}:logs;
+  }
+  // App icons are cropped to their tile so their corners can be rounder than the stock artwork.
+  const appIcon=(file,alt='')=>`<span class="rb-app-icon"><img src="assets/recording/${file}" alt="${alt}"></span>`;
+  function syncSourceStack(stack,list){
+    const key=list.map(([name])=>name).join();
+    if(stack.dataset.key!==key){stack.dataset.key=key;stack.innerHTML=list.map(([,name,file])=>appIcon(file,name)).join('');}
+  }
+  function syncLogSources(target){
+    const connected=logSources.filter(([key])=>sourceLogs(key).state==='connected'&&!mutedSources.has(key)),row=$('.rb-picker-sources'),menu=$('.rb-sources-menu'),screen=target==='screen';
+    if(!screen)sourcesOpen=false;
+    row.hidden=!screen;menu.hidden=!sourcesOpen;
+    if(screen){
+      syncSourceStack(row.querySelector('.rb-source-stack'),connected);
+      row.dataset.connected=String(connected.length>0);row.setAttribute('aria-expanded',String(sourcesOpen));
+      // The label matches the window card's; the icons say which apps, and the accessible name lists them.
+      const names=connected.map(([,name])=>name);
+      $('.rb-picker-sources-label').textContent=connected.length?'Logs enabled':'No logs';
+      row.setAttribute('aria-label',connected.length?`Logs enabled from ${names.length>1?`${names.slice(0,-1).join(', ')} and ${names.at(-1)}`:names[0]}. Log sources`:'No logs. Log sources');
+      // Rebuilt only when a state changes, so a press on a switch isn't lost to a re-render.
+      const rows=logSources.map(([key,name,file])=>[key,name,file,sourceLogs(key)]),key=rows.map(([,,,logs])=>logs.state).join();
+      if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML='<div class="native-menu-label">Log sources</div>'+rows.map(([key,name,file,logs])=>{
+        const on=logs.state==='restarting'||logs.state==='connected'&&!mutedSources.has(key),disabled=['unavailable','restarting'].includes(logs.state);
+        const detail=logs.state==='unavailable'?'Extension missing':logs.state==='restarting'?'Restarting…':['optin','restart'].includes(logs.state)?`Restarts ${name} to turn on`:'';
+        return `<button type="button" class="native-menu-item rb-source" role="menuitemcheckbox" aria-checked="${on}"${disabled?' aria-disabled="true"':''} data-source="${key}" data-state="${logs.state}">${appIcon(file)}<span class="rb-source-text"><span class="rb-source-name">${name}</span>${detail?`<span class="rb-source-detail">${detail}</span>`:''}</span><span class="rb-source-switch" aria-hidden="true"></span></button>`;}).join('');}
+      // Switches flip in place so they animate.
+      for(const item of menu.querySelectorAll('.rb-source')){const logs=sourceLogs(item.dataset.source);item.setAttribute('aria-checked',String(logs.state==='restarting'||logs.state==='connected'&&!mutedSources.has(item.dataset.source)));}
+    }
+    const pill=$('.rb-belt-logs'),live=active&&settings.mode==='screen'&&!isIdle()&&connected.length>0;
+    pill.hidden=!live;belt.classList.toggle('has-logs',live);if(live){syncSourceStack(pill.querySelector('.rb-source-stack'),connected);renderBelt();}
+  }
+  function setSafariLogs(value){if(!['connected','unavailable'].includes(value))return;safariLogs=value;syncSelection();emit();}
   function cardTarget(){
     if(!active||!isIdle()||!settings.oneClick)return null;
     if(settings.mode==='area')return 'area';
@@ -263,15 +303,16 @@
     if(alertTarget&&(settings.mode!=='window'||!isIdle()))closeRestartAlert();
     root.dataset.alert=String(!!alertTarget);
     const target=cardTarget(),card=$('.rb-record-card');
+    syncLogSources(target);
     $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-hovered',el.dataset.window===target));
     syncWindowOverlays();
     root.dataset.screenHover=String(target==='screen');
     if(!target){
       card.hidden=true;
-      selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'||settings.mode==='window'&&!!selectedWindow),key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rulers:settings.rulersButton,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
+      selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'&&settings.dimensions||settings.mode==='window'&&!!selectedWindow),dimensions:settings.dimensions,key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rulers:settings.rulersButton,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
       return;
     }
-    const rect=target==='area'?{...area}:target==='screen'?{x:0,y:0,width:W,height:H}:{...windows[target]},sizing=target!=='screen';
+    const rect=target==='area'?{...area}:target==='screen'?{x:0,y:0,width:W,height:H}:{...windows[target]},sizing=target!=='screen'&&(settings.dimensions||!!windowLogs(target));
     card.hidden=false;card.dataset.target=target;
     $('.rb-record-card .rb-picker-app').hidden=target==='area';
     if(target!=='area'&&card.dataset.art!==target){card.dataset.art=target;$('.rb-card-art').innerHTML=targetArt[target];$('.rb-record-card .rb-picker-name').textContent=targetNames[target];}
@@ -279,9 +320,9 @@
     $('.rb-record-card .rb-picker-start-label').textContent=label;
     if(target==='area'||target==='screen')start.removeAttribute('aria-label');else start.setAttribute('aria-label',`${label}, ${targetNames[target]}`);
     start.setAttribute('aria-disabled',String(electronApps[target]?.debug==='restarting'));
-    $('.rb-record-card .rb-picker-notch').hidden=sizing;
-    if(!sizing)$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
-    const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rulers:settings.rulersButton,rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
+    $('.rb-record-card .rb-picker-notch').hidden=target!=='screen'||!settings.dimensions;
+    if(target==='screen')$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
+    const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,dimensions:settings.dimensions,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rulers:settings.rulersButton,rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
     const controls=$('.rb-record-card .rb-picker-controls');controls.style.width=`${Math.max(CARD_WIDTH,notch?.width||0)}px`;
     // The notch is the panel behind the record pill, so it starts where the controls do.
     const cardWidth=card.offsetWidth,panelTop=controls.offsetTop,total=notch?panelTop+notch.height:card.offsetHeight;
@@ -360,14 +401,15 @@
       app.timer=setTimeout(()=>{el.classList.remove('is-launching');syncWindowOverlays();done();},loadingFor);
     },closedFor);
   }
-  function restartElectronApp(name,{background=false,onDone}={}){
+  function restartElectronApp(name,{background=false,toast=!background,onDone}={}){
     const app=electronApps[name],appName=targetNames[name];
     app.debug='restarting';
-    if(!background){hoverTarget=name;hoverHold=true;showBeltToast(`Restarting ${appName} to enable logs`,'restarting');}
+    if(!background){hoverTarget=name;hoverHold=true;}
+    if(toast)showBeltToast(`Restarting ${appName} to enable logs`,'restarting');
     // Quitting, relaunching and loading takes an Electron app about 4 seconds. Its window stays away until it has loaded with logs on.
     relaunchWindow(name,4000,0,()=>{
       app.debug='on';app.enabled=true;syncSelection();
-      if(!background)showBeltToast(`Logs enabled for ${appName}`,'done');
+      if(toast)showBeltToast(`Logs enabled for ${appName}`,'done');
       $('.rb-capture-status').textContent=`${appName} restarted. Logs enabled.`;onDone?.();emit();
     });
     syncSelection();if(!background)$('.rb-record-card .rb-picker-start').focus({preventScroll:true});
@@ -421,9 +463,9 @@
   // The toast rises out of the top of the belt, or drops below it when the belt is dragged to the top of the screen.
   function placeBeltToast(){
     const toast=$('.rb-belt-toast');if(toast.hidden||!beltBox)return;
-    const width=toast.offsetWidth,height=toast.offsetHeight,below=beltBox.y-height-8<36;
+    const width=toast.offsetWidth,height=toast.offsetHeight,top=beltBox.y-beltBox.rise,below=top-height-8<36;
     toast.classList.toggle('is-below',below);
-    toast.style.left=`${clamp(beltBox.x+beltBox.width/2-width/2,8,W-width-8)}px`;toast.style.top=`${below?beltBox.y+beltBox.height+8:beltBox.y-height-8}px`;
+    toast.style.left=`${clamp(beltBox.x+beltBox.width/2-width/2,8,W-width-8)}px`;toast.style.top=`${below?beltBox.y+beltBox.height+8:top-height-8}px`;
   }
   function resetElectronApps(){
     if(alertTarget)closeRestartAlert();
@@ -498,13 +540,16 @@
     const slowRate=a-Math.sqrt(Math.max(0,a*a-settings.beltSpring));
     return Math.max(1.6,Math.min(8,-Math.log(.0001)/slowRate));
   }
+  const BELT_LOGS_RISE=32;
   function renderBelt(){
     if(transition){if(reduced.matches||previewTime>=duration()){pose={...transition.to};velocity={x:0,y:0,width:0};}else for(const key of ['x','y','width']){const s=sample(previewTime,transition.from[key],transition.velocity[key],transition.to[key]);pose[key]=s.value;velocity[key]=s.velocity;}}
     // Preserve the native belt size, scaling only this control on narrow displays.
     const width=clamp(pose.width,170,650),s=Math.min(1,(W-16)/IDLE_WIDTH),displayWidth=width*s;
     const x=clamp(pose.x,displayWidth/2+8,W-displayWidth/2-8)-displayWidth/2,y=clamp(pose.y,28+26*s,H-26*s)-26*s;
     belt.style.width=`${width}px`;belt.style.transform=`translate3d(${x}px,${y}px,0) scale(${s})`;
-    beltBox={x,y,width:displayWidth,height:52*s};placeBeltToast();
+    // The logs notch is as wide as the bar and runs down behind it, so the two read as one shape.
+    const logs=$('.rb-belt-logs');if(!logs.hidden){logs.style.width=`${width}px`;logs.style.transform=`translate3d(${x}px,${y-BELT_LOGS_RISE*s}px,0) scale(${s})`;}
+    beltBox={x,y,width:displayWidth,height:52*s,rise:logs.hidden?0:BELT_LOGS_RISE*s};placeBeltToast();
   }
   function animateBelt(to,from=pose){transition={from:{...from},velocity:{...velocity},to:{...to}};previewTime=0;previewPlaying=!reduced.matches;loopHold=0;if(reduced.matches)previewTime=duration();renderBelt();wake();}
   function loopBeltAnimation(){
@@ -727,6 +772,7 @@
       if(event.key.length===1&&!event.metaKey&&!event.ctrlKey&&event.key!==' '){typeBuffer+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typeBuffer='',500);next=items.findIndex(b=>b.textContent.toLowerCase().startsWith(typeBuffer));}
       if(next>=0){event.preventDefault();items[next].focus();}return;
     }
+    if(event.key==='Escape'&&sourcesOpen){sourcesOpen=false;syncSelection();$('.rb-picker-sources').focus({preventScroll:true});return;}
     if(event.key==='Escape'&&isIdle()){if(selectedWindow&&settings.mode==='window'){rememberCameraPosition();selectedWindow=null;syncSelection();}else JamPlayground.setSurface('onboarding');}
     if(event.target===bubble&&!settings.followCursor){if(event.key.startsWith('Arrow')){fixedAnchor=null;cameraSnap=null;}const amount=event.shiftKey?10:2;let used=true;if(event.key==='ArrowLeft')fixedCamera.x-=amount;else if(event.key==='ArrowRight')fixedCamera.x+=amount;else if(event.key==='ArrowUp')fixedCamera.y-=amount;else if(event.key==='ArrowDown')fixedCamera.y+=amount;else if(event.key==='+'||event.key==='=')resizeCamera(settings.cameraSize+4,event);else if(event.key==='-')resizeCamera(settings.cameraSize-4,event);else used=false;if(used){event.preventDefault();renderCamera(0);rememberCameraPosition();}}
     if(event.target===region&&settings.mode==='area'&&isIdle()){let x=area.x,y=area.y,n=event.shiftKey?10:1;if(event.key==='ArrowLeft')x-=n;else if(event.key==='ArrowRight')x+=n;else if(event.key==='ArrowUp')y-=n;else if(event.key==='ArrowDown')y+=n;else return;event.preventDefault();area.x=clamp(x,0,W-area.width);area.y=clamp(y,0,H-area.height);syncSelection();}
@@ -745,8 +791,16 @@
     el.addEventListener('focus',()=>setHover(el.dataset.picker));
     el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();startWindowRecording(el.dataset.picker);}});
   });
-  $('.rb-screen-picker').addEventListener('click',()=>{if(settings.pickerStart==='window')startTarget('screen');});
-  $('.rb-record-card').addEventListener('click',e=>{if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
+  $('.rb-screen-picker').addEventListener('click',()=>{if(sourcesOpen){sourcesOpen=false;syncSelection();}else if(settings.pickerStart==='window')startTarget('screen');});
+  $('.rb-picker-sources').addEventListener('click',()=>{sourcesOpen=!sourcesOpen;syncSelection();});
+  $('.rb-sources-menu').addEventListener('click',e=>{
+    e.stopPropagation();const item=e.target.closest('.rb-source');if(!item||item.getAttribute('aria-disabled')==='true'||!isIdle())return;
+    const name=item.dataset.source,state=sourceLogs(name).state;
+    // Notion has to restart into debug mode before it can send logs; everything else just switches in or out.
+    if(['optin','restart'].includes(state)){mutedSources.delete(name);restartElectronApp(name,{background:true,toast:true});}
+    else if(state==='connected'){if(mutedSources.has(name))mutedSources.delete(name);else mutedSources.add(name);syncSelection();emit();}
+  });
+  $('.rb-record-card').addEventListener('click',e=>{if(sourcesOpen&&!e.target.closest('.rb-picker-controls')){sourcesOpen=false;syncSelection();return;}if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
   $('.rb-banner').addEventListener('click',hideBanner);
   $$('.rb-alert-button').forEach(button=>button.addEventListener('click',()=>answerRestartAlert(button.dataset.choice)));
   $('.rb-alert-layer').addEventListener('keydown',e=>{
@@ -845,7 +899,7 @@
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
     getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),alert:alertTarget,apps:Object.fromEntries(Object.entries(electronApps).map(([name,app])=>[name,{debug:app.debug,declined:app.declined,enabled:app.enabled}])),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
-    updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
+    getSafariLogs:()=>safariLogs,setSafariLogs,updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},

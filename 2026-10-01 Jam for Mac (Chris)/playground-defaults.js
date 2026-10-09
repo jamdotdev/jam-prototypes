@@ -149,10 +149,18 @@
           adapter.groups.some((group) => !Object.hasOwn(canonical.groups, group))) {
         throw new Error('A defaults screen needs known groups, read, and apply callbacks.');
       }
-      screens.set(screen, { ...adapter, groups: [...new Set(adapter.groups)] });
+      // A second adapter on the same screen (such as sounds on the recording belt) shares its Make Default.
+      const existing = screens.get(screen);
+      const merged = existing ? {
+        groups: [...new Set([...existing.groups, ...adapter.groups])],
+        read: () => ({ ...existing.read(), ...adapter.read() }),
+        apply: (values) => { existing.apply(values); adapter.apply(values); },
+        onReset: () => { existing.onReset?.(); adapter.onReset?.(); },
+      } : { ...adapter, groups: [...new Set(adapter.groups)] };
+      screens.set(screen, merged);
       adapter.apply(groupMap(adapter));
       changed(screen);
-      return () => { screens.delete(screen); changed(); };
+      return () => { if (existing) screens.set(screen, existing); else screens.delete(screen); changed(); };
     },
     isDirty,
     isSaving: (screen) => screen ? pending.has(screen) : pending.size > 0,

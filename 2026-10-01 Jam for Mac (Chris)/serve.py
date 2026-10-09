@@ -39,7 +39,7 @@ def with_player_settings(group, value, fallback=None):
                  "placeholderOpacity": 50, "placeholderActiveOpacity": 100,
                  "placeholderOverlayColor": "#000000", "placeholderOverlayOpacity": 32,
                  "cameraZoom": 1, "cameraMinSize": 12, "cameraMaxSize": 240, "warningSeconds": 10, "pulseStart": 1000, "pulseEnd": 350, "pulseStrength": 4,
-                 "oneClick": True, "rulersButton": False, "pickerStart": "window", "browserLogs": "connected", "electronLogs": "restart"}
+                 "oneClick": True, "rulersButton": False, "dimensions": False, "pickerStart": "window", "browserLogs": "connected", "electronLogs": "restart"}
         return {**{key: fallback.get(key, default) for key, default in added.items()}, **value}
     if group in ("handoff", "permissions") and isinstance(value, dict):
         fallback = fallback or {}
@@ -80,6 +80,14 @@ def validate_default_shape(value, template):
     if isinstance(template, str):
         return isinstance(value, str) and len(value) <= 64
     return False
+
+
+SOUNDS = ("none", "TunedChimeA", "TunedChimeB", "TunedConfirmUp", "TunedCoolClick", "TunedCountDownShutter", "TunedErrorBloop", "TunedForwardMinimal", "TunedGreetingAir", "TunedGreetingBloom", "TunedGreetingPad", "TunedHeroSimpleCelebration02", "TunedHoverTap", "TunedPositiveStart", "TunedQuickBlip", "TunedReverseBlip", "TunedSimpleCelebration", "TunedSoftTap", "TunedStartUp", "TunedSuccessChime", "TunedTickTock", "TunedUnlock",
+          "GlassGreeting", "GlassLimit", "GlassPause", "GlassRestart", "GlassResume", "GlassStart", "GlassStop", "GlassSwitch", 
+          "JamGreeting", "JamLimit", "JamPause", "JamRestart", "JamResume", "JamStart", "JamStop", "JamSwitch",
+          "ChimeA", "ChimeB", "ConfirmUp", "CoolClick", "CountDownShutter", "ErrorBloop", "ForwardMinimal",
+          "GreetingAir", "GreetingBloom", "GreetingPad", "HeroSimpleCelebration02", "HoverTap", "PositiveStart", "QuickBlip",
+          "ReverseBlip", "SimpleCelebration", "SoftTap", "StartUp", "SuccessChime", "TickTock", "Unlock")
 
 
 def validate_default_values(group, value):
@@ -145,7 +153,7 @@ def validate_default_values(group, value):
                   "stiffness": (80, 500), "damping": (10, 50), "anticipation": (0, 100),
                   "beltSpring": (80, 500), "beltDamping": (10, 50),
                   "warningSeconds": (5, 30), "pulseStart": (600, 1600), "pulseEnd": (350, 600), "pulseStrength": (0, 8)}
-        flags = ("placeholderPinContrast", "camera", "microphone", "followCursor", "mirror", "showBounds", "loop", "oneClick", "rulersButton")
+        flags = ("placeholderPinContrast", "camera", "microphone", "followCursor", "mirror", "showBounds", "loop", "oneClick", "rulersButton", "dimensions")
         return (value["cameraMinSize"] <= value["cameraSize"] <= value["cameraMaxSize"] and
                 all(valid_color(value[key]) for key in ("placeholderColor", "placeholderContrastColor", "placeholderContrastHoverColor", "placeholderContrastActiveColor", "placeholderContrastEdgeColor", "placeholderOverlayColor")) and
                 value["mode"] in ("screen", "window", "area") and
@@ -157,6 +165,11 @@ def validate_default_values(group, value):
                 all(type(value[key]) in (int, float) and math.isfinite(value[key]) and
                     between(value[key], *limits) for key, limits in bounds.items()) and
                 valid_rate(value["rate"]))
+    if group == "sounds":
+        return (type(value["enabled"]) is bool and between(value["volume"], 0, 100) and
+                all(value[key] in SOUNDS for key in ("start", "pause", "resume", "restart", "limit", "stop")))
+    if group in ("greeting", "permissionSound"):
+        return value["sound"] in SOUNDS and between(value["volume"], 0, 100)
     if group == "draft":
         return (value["connection"] in ("connected", "offline") and value["preview"] in ("video", "figma") and
                 between(value["handleResponse"], 80, 500) and between(value["springiness"], 0, 100) and

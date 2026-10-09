@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1440,height:900}});const errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto(process.env.RECORDING_TEST_URL||'http://127.0.0.1:8765/?surface=recording');await p.waitForFunction(()=>window.JamRecording);
-await p.evaluate(()=>{JamRecording.updateSettings({camera:false,oneClick:true,pickerStart:'window',browserLogs:'connected'});JamRecording.setMode('window');});
+await p.evaluate(()=>{JamRecording.updateSettings({dimensions:true,camera:false,oneClick:true,pickerStart:'window',browserLogs:'connected'});JamRecording.setMode('window');});
 const state=()=>p.evaluate(()=>JamRecording.getState());
 const card=p.locator('.rb-record-card'),start=card.locator('.rb-picker-start'),notch=p.locator('.rb-selection-notch');
 // the belt has no record button in one-click mode, and close sits at its end
