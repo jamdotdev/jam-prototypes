@@ -161,7 +161,8 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-dock-icon.is-finder{background:linear-gradient(#6fd2ff,#1d8bf1)}.rb-dock-icon.is-display{background:linear-gradient(#48484a,#1c1c1e)}
 .rb-picker-name{padding:4px 9px;color:#fff;font-size:17px;line-height:22px;font-weight:700;white-space:nowrap;text-shadow:0 2px 4px #00000017,0 4px 6px #00000017,0 0 1px #00000044}
 .rb-picker-controls{display:flex;flex-direction:column;gap:8px;width:230px;padding:8px 8px 0;border-radius:24px;cursor:default}
-.rb-record-card[data-target="screen"] .rb-picker-controls{padding-bottom:8px;background:#1e1e1e;box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59}
+/* Card panels are dark Liquid Glass: tinted, blurred and lit along the top edge */
+.rb-record-card[data-target="screen"] .rb-picker-controls{padding-bottom:8px;background:#1c1c1eb8;-webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8);box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 1px 0 #ffffff1f,inset 0 0 0 .5px #ffffff38}
 .rb-picker-start{position:relative;z-index:2;height:36px;display:flex;align-items:center;justify-content:center;padding:0 16px;border-radius:18px;background:linear-gradient(#f83b3e,#ff4d50);color:#fff;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:pointer}
 .rb-picker-notch{display:flex;justify-content:center}
 .rb-picker-notch[hidden]{display:none}
@@ -190,7 +191,7 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 
 /* Jam's restart alert, a standard macOS alert over the app it restarts */
 /* Hangs under a window being recorded while its console logs are captured */
-.rb-capture-notch{position:absolute;z-index:11;display:flex;align-items:center;gap:8px;height:36px;padding:0 18px;border-radius:0 0 18px 18px;background:#1e1e1e;box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 .5px #ffffff14,inset 0 0 .5px #ffffff59;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;pointer-events:none}
+.rb-capture-notch{position:absolute;z-index:11;display:flex;align-items:center;gap:8px;height:36px;padding:0 18px;border-radius:0 0 18px 18px;background:#1c1c1eb8;-webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8);box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 1px 0 #ffffff1f,inset 0 0 0 .5px #ffffff38;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;pointer-events:none}
 .rb-capture-notch[hidden]{display:none}
 .rb-capture-notch.is-inset{border-radius:18px 18px 0 0}
 /* Dot Matrix's Serpent at 12px: one pulse runs the 3 × 3 grid row by row, alternating direction */
@@ -234,3 +235,46 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .recording-scene[data-alert="true"] .rb-record-card,.recording-scene[data-alert="true"] .rb-selection-notch{visibility:hidden}
 .recording-scene[data-alert="true"] .rb-hover-frame{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.rb-dot-serpent i{animation:none;opacity:calc(.12 + var(--order) * .09)}.rb-mock-window.is-reopened,.rb-belt-toast{animation:none}.rb-spinner i{animation:none;opacity:calc(.2 + var(--i) * .1)}.rb-banner,.rb-alert,.rb-mock-window.is-launching,.rb-mock-window.is-launching :is(.rb-notion-crumbs,.rb-notion-body) i{animation:none}.rb-mock-window.is-quitting{transition:none}}
+/* Full screen log sources: a summary row on the screen card, the menu it opens, and a notch joined to the recording bar */
+.rb-record-card[data-target="screen"] .rb-picker-controls{position:relative}
+.rb-picker-sources{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:33px;padding:9px 16px 0;border-radius:0 0 16px 16px;background:transparent;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:pointer}
+.rb-picker-sources[hidden]{display:none}
+.rb-picker-sources::before{content:'';position:absolute;top:0;left:-8px;right:-8px;height:1px;background:#ffffff1a}
+.rb-picker-sources[data-connected="false"]{color:#ffffff8c}
+.rb-source-stack{display:flex;flex:none}.rb-source-stack:empty{display:none}
+.rb-source-stack .rb-app-icon+.rb-app-icon{margin-left:-5px}
+.rb-app-icon{position:relative;display:block;flex:none;width:18px;height:18px;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px #00000040,0 1px 2px #00000040}
+/* The artwork has a transparent margin around its tile; scaling it up crops to the tile */
+.rb-app-icon img{position:absolute;left:50%;top:50%;width:128%;height:128%;max-width:none;translate:-50% -50%;display:block}
+.rb-sources-caret{display:grid;place-items:center;flex:none;box-sizing:border-box;width:16px;min-width:16px;height:16px;padding:0;margin-left:2px;aspect-ratio:1;border-radius:50%;background:#ffffff1f;color:#ffffffb3;transition:background-color 120ms ease}
+.rb-sources-caret svg{display:block;width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:rotate 160ms cubic-bezier(.2,0,0,1)}
+.rb-picker-sources[aria-expanded="true"] .rb-sources-caret svg{rotate:180deg}
+@media(hover:hover) and (pointer:fine){.rb-picker-sources:hover .rb-sources-caret{background:#ffffff33;color:#fff}}
+/* A native macOS menu, opened from the summary row */
+.rb-sources-menu.native-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:3;min-width:0;max-width:none;max-height:none;padding:5px;border-radius:12px;cursor:default;animation:rb-sources-in 140ms cubic-bezier(.2,0,0,1)}
+.rb-sources-menu[hidden]{display:none}
+@keyframes rb-sources-in{from{opacity:0;translate:0 -3px}}
+.rb-source.native-menu-item{gap:8px;min-height:32px;padding:4px 8px}
+.rb-source.native-menu-item::before{display:none}
+.rb-source.native-menu-item:focus{background:transparent;color:inherit}
+@media(hover:hover) and (pointer:fine){.rb-source.native-menu-item:not([aria-disabled="true"]):hover{background:#0000000d}}
+.rb-source.native-menu-item:focus-visible{outline:2px solid #0068d999;outline-offset:-2px}
+.rb-source .rb-app-icon{width:20px;height:20px;border-radius:6px;box-shadow:0 0 0 .5px #0000002e}
+.rb-source-text{display:flex;flex:1;flex-direction:column;min-width:0;line-height:16px}
+.rb-source-detail{color:#79777d;font-size:11px;line-height:13px}
+.rb-source[aria-disabled="true"] :is(.rb-source-name,.rb-app-icon){opacity:.5}
+/* A small macOS switch, in Jam's green like the permission switches */
+.rb-source-switch{position:relative;flex:none;width:28px;height:16px;border-radius:8px;background:#00000017;box-shadow:inset 0 0 0 .5px #00000017;transition:background-color 160ms ease}
+.rb-source-switch::after{content:'';position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px #00000033,0 0 0 .5px #0000000d;transition:translate 180ms cubic-bezier(.2,0,0,1)}
+.rb-source[aria-checked="true"] .rb-source-switch{background:#9feb6c}
+.rb-source[aria-checked="true"] .rb-source-switch::after{translate:12px 0}
+.rb-source[aria-disabled="true"] .rb-source-switch{opacity:.5}
+@media(prefers-reduced-motion:reduce){.rb-source-switch,.rb-source-switch::after{transition:none}}
+.rb-belt-logs{position:absolute;top:0;left:0;z-index:11;transform-origin:top left;box-sizing:border-box;height:84px;display:flex;align-items:flex-start;justify-content:center;gap:8px;padding:8px 14px 0;border-radius:20px 20px 26px 26px;background:#1c1c1eb8;-webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8);box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 1px 0 #ffffff1f,inset 0 0 0 .5px #ffffff38;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;pointer-events:none;animation:rb-belt-logs-in 220ms cubic-bezier(.2,0,0,1)}
+.rb-belt-logs[hidden]{display:none}
+.rb-belt-logs .rb-dot-serpent{margin-top:3.75px}
+.rb-belt-logs .rb-source-stack{margin-top:-1px}
+/* The bar turns opaque over the notch so its dark edge doesn't show through the frosted glass */
+.rb-belt.has-logs{background:#f4f4f4}
+@keyframes rb-belt-logs-in{from{opacity:0;translate:0 10px}}
+@media(prefers-reduced-motion:reduce){.rb-sources-menu,.rb-belt-logs{animation:none}.rb-sources-caret svg{transition:none}}

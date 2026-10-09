@@ -151,7 +151,9 @@
       notch.classList.toggle('is-window',windowMode);notch.classList.toggle('is-ratio-locked',locked);
       $('.rb-notch-rulers').hidden=windowMode||!next.rulers;$('.rb-notch-rulers-separator').hidden=windowMode||!next.rulers;
       $('.rb-notch-rulers').setAttribute('aria-pressed',String(!!next.sizing.rulers));
-      notch.setAttribute('aria-label',`${windowMode?'Window':'Area'} sizing`);$('.rb-notch-window-controls').hidden=!windowMode||next.card&&!next.logs;
+      notch.setAttribute('aria-label',`${windowMode?'Window':'Area'} sizing`);
+      // Sizing waits for post-GA; without it the window controls are all the notch carries.
+      const dimensions=next.dimensions!==false;$('.rb-notch-sizing').hidden=!dimensions;$('.rb-notch-window-controls > .rb-notch-separator:last-child').hidden=!dimensions;$('.rb-notch-window-controls').hidden=!windowMode||next.card&&!next.logs;
       ratioButton.querySelector('span:last-child').textContent=locked?JamSelectionGeometry.label(next.sizing):'';
       ratioButton.setAttribute('aria-label',`Aspect ratio: ${JamSelectionGeometry.label(next.sizing)}`);
       for(const axis of ['width','height']){const input=$(`.rb-notch-${axis}`);if(document.activeElement!==input)input.value=String(Math.round(next.rect[axis]));input.style.setProperty('--digits',String(Math.max(3,input.value.length)));input.setAttribute('aria-description',locked?'Aspect ratio locked. Changing this value updates the other dimension.':'Size in pixels');}
@@ -167,7 +169,7 @@
       restartButton.setAttribute('aria-disabled',String(logs.state==='restarting'));
       notch.classList.toggle('is-card',!!next.card);
       const digits=next.card?`:${$('.rb-notch-width').value.length}:${$('.rb-notch-height').value.length}`:'';
-      const natural=measureWidth(`${windowMode}:${changeWindow}:${!!next.rulers}:${!!next.card}:${!!next.logs}:${logs.state}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}${digits}`);
+      const natural=measureWidth(`${dimensions}:${windowMode}:${changeWindow}:${!!next.rulers}:${!!next.card}:${!!next.logs}:${logs.state}:${logs.label}:${JamSelectionGeometry.label(next.sizing)}${digits}`);
       if(next.card){
         // On the record card the notch is the panel behind the record pill, and the caller places it.
         notch.classList.remove('is-compact','is-floating','is-inset','is-above');

@@ -1,4 +1,4 @@
-// A gleam that sweeps diagonally across a canvas, again and again,, from its top-left corner to its bottom-right.
+// A gleam that sweeps diagonally across a canvas, again and again, from its top-left corner to its bottom-right.
 (function(){
   'use strict';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');

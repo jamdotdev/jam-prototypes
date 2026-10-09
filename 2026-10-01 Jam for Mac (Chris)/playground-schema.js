@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   // This describes controls only. Engines own live values; JamDefaults owns baselines.
-  const W=()=>window.JamWelcome, F=()=>window.JamWelcomeFlow, G=()=>window.JamPlayground, D=()=>window.JamDraft, R=()=>window.JamRecording;
+  const W=()=>window.JamWelcome, F=()=>window.JamWelcomeFlow, G=()=>window.JamPlayground, D=()=>window.JamDraft, R=()=>window.JamRecording, S=()=>window.JamSounds;
   const option=(value,label)=>({value:String(value),label});
   const options=values=>values.map(value=>typeof value==='string'?option(value,value[0].toUpperCase()+value.slice(1)):option(...value));
   const field=(type,id,label,get,set,extra={})=>({type,id,label,get,set,...extra});
@@ -33,12 +33,14 @@
         select('stage','State',()=>R().getState().stage,value=>R().setStage(value),[['idle','Idle'],['recording','Recording'],['paused','Paused'],['limit','Time limit']]),
         recordingToggle('microphone','Microphone'),
         recordingToggle('rulersButton','Rulers button'),
+        recordingToggle('dimensions','Dimensions (post-GA)'),
         action('reset-selection','Reset selection',()=>R().resetSelection()),
       ]),
       section('window-picker','Window picker',[
         recordingToggle('oneClick','One-click start'),
         select('pickerStart','Start from',()=>R().getSettings().pickerStart,value=>R().updateSettings({pickerStart:value}),[['window','Anywhere on window'],['button','Start button only']]),
         select('browserLogs','Chrome logs',()=>R().getSettings().browserLogs,value=>R().updateSettings({browserLogs:value}),[['connected','Extension connected'],['unavailable','Extension missing']]),
+        select('safariLogs','Safari logs',()=>R().getSafariLogs(),value=>R().setSafariLogs(value),[['connected','Extension connected'],['unavailable','Extension missing']]),
         select('electronLogs','Notion logs',()=>R().getSettings().electronLogs,value=>R().updateSettings({electronLogs:value}),[['restart','Restart button'],['once','Turn on once'],['ask','Ask on Record']]),
         action('reopen-notion','Reopen Notion',()=>R().reopenElectronApp('notion')),
         action('reset-notion','Reset Notion logs',()=>R().resetElectronApps()),
@@ -71,6 +73,12 @@
         recordingColor('placeholderOverlayColor','Overlay color'),
         recordingSetting('placeholderOverlayOpacity','Overlay opacity',0,80,1,'%'),
       ]),
+      section('sounds','Sounds',[
+        select('sounds-bank','Bank',()=>S().getBank(),value=>S().setBank(value),[['custom','Custom'],...S().banks]),
+        toggle('sounds-enabled','Sounds',()=>S().getSettings().enabled,value=>S().updateSettings({enabled:value})),
+        slider('sounds-volume','Volume',()=>S().getSettings().volume,value=>S().updateSettings({volume:value}),0,100,1,'%'),
+        ...S().moments.map(moment=>select(`sound-${moment.id}`,moment.label,()=>S().getSettings()[moment.id],value=>S().choose(moment.id,value),[['none','None'],...S().files.map(name=>[name,name])])),
+      ]),
       section('belt','Belt spring',[
         recordingSetting('beltSpring','Stiffness',80,500,10,''),
         recordingSetting('beltDamping','Damping',10,50,1,''),
@@ -94,6 +102,12 @@
       ]),
     ];
     if(screen==='welcome')return [
+      section('greeting','Greeting sound',[
+        select('greeting-bank','Bank',()=>S().getBank(),value=>S().setBank(value),[['custom','Custom'],...S().banks]),
+        select('greeting-sound','Sound',()=>S().getGreeting().sound,value=>S().chooseGreeting(value),[['none','None'],...S().files.map(name=>[name,name])]),
+        slider('greeting-volume','Volume',()=>S().getGreeting().volume,value=>S().updateGreeting({volume:value}),0,100,1,'%'),
+        action('play-greeting','Play greeting',()=>S().playGreeting()),
+      ]),
       section('stickers','Stickers',[
         welcomeSetting('stagger','Stagger',0,90,5,'ms'),welcomeSetting('turn','Arrival turn',0,120,5,'°'),
         welcomeSetting('drift','Slow rotation',0,5,.1,'°/s'),welcomeSetting('depth','Perspective',0,60,1,'%'),
@@ -126,7 +140,12 @@
         action('simulate-return','Simulate return',()=>F().simulateReturn()),
       ]),
     ];
-    if(screen==='permissions')return [grid()];
+    if(screen==='permissions')return [grid(),section('switch-sound','Switch sound',[
+      select('permission-bank','Bank',()=>S().getBank(),value=>S().setBank(value),[['custom','Custom'],...S().banks]),
+      select('permission-sound','Turning on',()=>S().getToggle().sound,value=>S().chooseToggle(value),[['none','None'],...S().files.map(name=>[name,name])]),
+      slider('permission-volume','Volume',()=>S().getToggle().volume,value=>S().updateToggle({volume:value}),0,100,1,'%'),
+      action('play-permission-sound','Play sound',()=>S().playToggle()),
+    ])];
     if(screen==='onboarding')return [grid(),section('lens','Magnifying lens',[
       toggle('lens-enabled','Show lens',()=>G().getLensSettings().lensEnabled,value=>G().updateLensSettings({lensEnabled:value})),
       select('lens-zoom','Magnification',()=>String(G().getLensSettings().lensZoom),value=>G().updateLensSettings({lensZoom:Number(value)}),[[1.5,'1.5×'],[2,'2×'],[3,'3×'],[4,'4×']]),

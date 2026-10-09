@@ -10,7 +10,7 @@ const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<.6,`${
   page.on('response',response=>{if(response.status()>=400&&/recording-selection|assets\/recording\/sf/.test(response.url()))errors.push(`${response.status()} ${response.url()}`);});
   const state=()=>page.evaluate(()=>JamRecording.getState()),rect=async()=> (await state()).bounds;
   // Edge placement belongs to the select-then-record flow; one-click start puts the notch on the record card.
-  const mode=async value=>{await page.evaluate(value=>{JamRecording.updateSettings({oneClick:false});JamRecording.setStage('idle');JamRecording.setMode(value);},value);};
+  const mode=async value=>{await page.evaluate(value=>{JamRecording.updateSettings({dimensions:true,oneClick:false});JamRecording.setStage('idle');JamRecording.setMode(value);},value);};
   const notch=page.locator('.rb-selection-notch'),ratioButton=page.locator('.rb-notch-ratio'),resizeButton=page.locator('.rb-notch-resize');
   async function ratio(preset){await ratioButton.click();await page.locator(`#rb-ratio-menu [data-ratio="${preset}"]`).click();}
   async function orientation(value){await ratioButton.click();await page.getByRole('button',{name:value==='vertical'?'Vertical':'Horizontal',exact:true}).click();await page.keyboard.press('Escape');}
