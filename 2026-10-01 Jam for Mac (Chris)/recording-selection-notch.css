@@ -76,3 +76,11 @@
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart-label{background:none;-webkit-text-fill-color:currentColor;animation:none}
 @keyframes rb-logs-sweep{from{background-position:100% 0}to{background-position:0 0}}
 @media(prefers-reduced-motion:reduce){.rb-notch-logs-restart-label{animation:none}}
+
+/* Safari: connecting the extension is a calm setup step; a missing permission is a warning that it's waiting on the user. */
+.recording-scene .rb-selection-notch:is([data-logs="connect"],[data-logs="permission"]) .rb-notch-logs-restart{color:#ffffffd9}
+.rb-selection-notch:is([data-logs="connect"],[data-logs="permission"]) .rb-notch-logs-restart .rb-sf[data-symbol="arrow.counterclockwise"]{display:none}
+.rb-selection-notch:is([data-logs="connect"],[data-logs="permission"]) .rb-notch-logs-restart-label{background:none;-webkit-text-fill-color:currentColor;animation:none}
+.rb-selection-notch[data-logs="connect"] .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:block;width:15px;height:15px;opacity:.75}
+.rb-selection-notch[data-logs="permission"] .rb-notch-logs-restart-label{color:#ffb340;-webkit-text-fill-color:#ffb340}
+.rb-selection-notch[data-logs="permission"] .rb-notch-logs-restart-main::before{content:'';width:6px;height:6px;margin:0 2px;border-radius:50%;background:#ff9f0a;box-shadow:0 0 0 3px #ff9f0a33}

@@ -162,8 +162,8 @@
       const logs=next.logs||{state:'none',label:'No logs'},changeWindow=next.changeWindow!==false;
       $('.rb-notch-change').hidden=!changeWindow;$('.rb-notch-change-separator').hidden=!changeWindow;
       notch.dataset.logs=logs.state;$('.rb-notch-logs-label').textContent=logs.label;$('.rb-notch-logs').title=logs.label;
-      // An app that needs a restart for logs offers it from the same row, and it waits there while restarting.
-      const restart=['restart','optin','restarting'].includes(logs.state),restartButton=$('.rb-notch-logs-restart');
+      // An app that needs a step before logs (a restart, or Safari's extension setup) offers it from the same row, and it waits there while restarting.
+      const restart=['restart','optin','restarting','connect','permission'].includes(logs.state),restartButton=$('.rb-notch-logs-restart');
       $('.rb-notch-logs').hidden=restart;restartButton.hidden=!restart;
       $('.rb-notch-logs-restart-label').textContent=logs.label;$('.rb-notch-logs-restart-detail').textContent=logs.detail||'';
       restartButton.setAttribute('aria-disabled',String(logs.state==='restarting'));

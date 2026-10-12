@@ -48,6 +48,10 @@ Work happens on a branch and lands through a PR. Commits use conventional prefix
   rejects keys it doesn't have.
 - **Style varies by file.** The recording files are written densely, with many statements per line; the others are
   conventionally formatted. Match the file you're editing.
+- **Safari lives in `recording-safari.js`.** It owns Safari's extension state (enabled, and which websites it may
+  access), the Safari chrome inside the browser window, the guide tab, the permission popover, the Settings ›
+  Extensions pane and the menu bar status menu. `recording.js` turns that state into the card's logs row and the full
+  screen sources, and only Safari's own windows and the guide take the pointer away from the window picker.
 - **Respect reduced motion.** Every animated surface checks `prefers-reduced-motion` and jumps to end states.
 
 ## Tests

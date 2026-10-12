@@ -1,0 +1,139 @@
+/* Safari plays the browser window: Safari's toolbar and tab bar replace Chrome's address bar. */
+.sf-toolbar,.sf-tabs,.sf-guide{display:none}
+.recording-scene[data-browser="safari"] .rb-browser .rb-browser-address{display:none}
+.recording-scene[data-browser="safari"] .rb-browser .rb-window-titlebar{gap:12px;background:#f6f5f7;box-shadow:none}
+.recording-scene[data-browser="safari"] .rb-browser .rb-window-drag-icon{order:-1;margin-left:-4px;color:#8a888e}
+.recording-scene[data-browser="safari"] .sf-toolbar{display:flex;flex:1;align-items:center;gap:12px;min-width:0}
+.recording-scene[data-browser="safari"] .sf-tabs{display:flex;height:30px;gap:1px;padding:0 6px 0;background:#e9e7eb;box-shadow:inset 0 .5px 0 #0000001a,inset 0 -.5px 0 #0000001f}
+.recording-scene[data-browser="safari"] .rb-browser-content{height:calc(100% - 73px)}
+.recording-scene[data-browser="safari"] .sf-guide:not([hidden]){display:block;height:calc(100% - 73px);overflow:auto;background:#f5f5f7}
+.recording-scene[data-browser="safari"] .rb-browser-content[hidden]{display:none}
+.sf-nav{display:flex;gap:14px;padding:0 4px}
+.sf-chevron{width:7px;height:7px;border:solid #8a888e;border-width:0 0 1.6px 1.6px;rotate:45deg;opacity:.45}.sf-chevron.is-back{opacity:1}
+.sf-address{display:flex;flex:1;align-items:center;justify-content:center;height:26px;min-width:0;border-radius:7px;background:#e6e4e8;color:#3c3c43;font-size:12px}
+.sf-address-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sf-extension{position:relative;display:grid;place-items:center;flex:none;width:28px;height:24px;padding:0;border-radius:6px;background:transparent;cursor:default}
+.sf-extension[hidden]{display:none}
+.sf-extension img{width:14px;height:16px}
+@media(hover:hover) and (pointer:fine){.sf-extension:hover{background:#0000000d}}
+.sf-extension[aria-expanded="true"]{background:#00000014}
+/* Safari greys an extension's button on sites it can't access yet */
+.sf-extension.is-waiting img{filter:grayscale(1);opacity:.45}
+.sf-extension.is-pulsing::after{content:'';position:absolute;inset:-3px;border-radius:9px;box-shadow:0 0 0 2px #0a84ff;animation:sf-pulse 1.6s ease-out infinite}
+@keyframes sf-pulse{0%{opacity:1;scale:1}70%,100%{opacity:0;scale:1.35}}
+.sf-tools{display:flex;gap:12px;padding-right:2px}.sf-tools i{width:14px;height:14px;border:1.5px solid #8a888e;border-radius:3px;opacity:.8}.sf-tools i+i{border-radius:2px;box-shadow:3px -3px 0 -1.5px #f6f5f7,3px -3px 0 0 #8a888e}
+.sf-tab{position:relative;display:flex;flex:1;align-items:center;justify-content:center;min-width:0;max-width:240px;height:24px;margin-top:3px;padding:0 24px;border-radius:6px;background:transparent;color:#6e6c72;font-size:11px;cursor:default}
+.sf-tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sf-tab[aria-selected="true"]{background:#f6f5f7;color:#1d1d1f;box-shadow:0 0 0 .5px #0000001a,0 1px 1px #0000000d}
+@media(hover:hover) and (pointer:fine){.sf-tab[aria-selected="false"]:hover{background:#0000000a}}
+.sf-tab-close{position:absolute;left:6px;top:5px;width:14px;height:14px;border-radius:4px}
+.sf-tab-close::before,.sf-tab-close::after{content:'';position:absolute;left:3px;top:6.25px;width:8px;height:1.5px;border-radius:1px;background:#6e6c72;rotate:45deg}.sf-tab-close::after{rotate:-45deg}
+@media(hover:hover) and (pointer:fine){.sf-tab-close:hover{background:#00000014}}
+
+/* Tabs and the extension button sit above the window picker so they work while picking; during the guide the whole window is the user's to click. */
+.sf-tabs,.sf-extension{position:relative;z-index:6}
+.recording-scene[data-safari-guide="true"] .rb-window-picker[data-picker="browser"]{display:none}
+
+/* Safari's permission popover, under the extension's toolbar button */
+.sf-popover{position:absolute;top:40px;z-index:20;width:272px;padding:14px;border-radius:12px;background:#f2f2f4f2;backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);box-shadow:0 0 0 .5px #00000033,0 12px 30px #0000002e,0 4px 10px #0000001a;color:#1d1d1f;animation:sf-popover-in 140ms cubic-bezier(.2,0,0,1)}
+.sf-popover[hidden]{display:none}
+.sf-popover::before{content:'';position:absolute;top:-6px;left:var(--arrow-x,240px);width:12px;height:12px;rotate:45deg;background:#f2f2f4;box-shadow:-.5px -.5px 0 #00000026}
+.sf-popover-head{display:flex;gap:10px;align-items:flex-start}
+.sf-popover-head .sf-jam-icon{width:32px;height:32px;flex:none}
+.sf-popover-head p{margin:0;font-size:11px;line-height:14px;color:#3c3c43d9}
+.sf-popover-head strong{display:block;margin-bottom:4px;font-size:12px;line-height:15px;font-weight:600;color:#1d1d1f}
+.sf-popover-buttons{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.sf-popover-buttons button{height:24px;border-radius:6px;background:#fff;color:#1d1d1f;font-size:12px;font-weight:500;box-shadow:0 0 0 .5px #0000001f,0 .5px 1px #00000026;cursor:default}
+.sf-popover-buttons button.is-default{background:linear-gradient(#2a95ff,#0a7cff);color:#fff}
+.sf-popover-buttons button:focus-visible{outline:3px solid #0a84ff80;outline-offset:1px}
+@keyframes sf-popover-in{from{opacity:0;translate:0 -4px}}
+
+/* The guide: one undistracting page on jam.dev, in the spirit of 1Password's Safari onboarding */
+.sf-guide-page{max-width:520px;margin:0 auto;padding:18px 28px 16px;color:#1d1d1f}
+.sf-guide-page header{text-align:center}
+.sf-guide-page header .sf-jam-icon{width:36px;height:36px}
+.sf-guide-page h2{margin:6px 0 4px;font-size:20px;line-height:24px;font-weight:700;letter-spacing:-.3px}
+.sf-guide-page header p{margin:0;color:#6e6e73;font-size:12px;line-height:16px;text-wrap:balance}
+.sf-guide-steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.sf-guide-steps li{display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#fff;box-shadow:0 0 0 .5px #0000001a,0 1px 2px #0000000d}
+.sf-guide-steps li.is-current{box-shadow:0 0 0 1.5px #0a84ff,0 4px 12px #0a84ff1f}
+.sf-guide-steps strong{display:block;font-size:13px;line-height:16px;font-weight:600}
+.sf-guide-steps li div span{display:block;margin-top:2px;color:#6e6e73;font-size:11px;line-height:14px}
+.sf-step-number{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#e8e8ed;color:#1d1d1f;font-size:12px;font-weight:600}
+.sf-guide-steps li.is-current .sf-step-number{background:#0a84ff;color:#fff}
+.sf-guide-steps li.is-done .sf-step-number{background:#34c759;color:#fff}
+.sf-step-number svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sf-step-art{display:flex;align-items:center;gap:6px;padding:6px;border-radius:8px;background:#f2f2f4}
+.sf-step-art.is-toolbar .sf-art-address{width:70px;height:12px;border-radius:4px;background:#e1e0e4}
+.sf-art-extension{display:grid;place-items:center;width:22px;height:20px;border-radius:5px;box-shadow:0 0 0 1.5px #0a84ff}
+.sf-art-extension img{width:10px;height:12px;filter:grayscale(1);opacity:.5}
+.sf-step-art.is-choices{flex-direction:column;align-items:stretch;gap:3px;width:128px}
+.sf-step-art.is-choices i{font-style:normal;font-size:7.5px;line-height:13px;text-align:center;border-radius:3px;background:#fff;color:#3c3c43;box-shadow:0 0 0 .5px #0000001f}
+.sf-step-art.is-choices i.is-highlighted{background:#0a84ff;color:#fff;box-shadow:0 0 0 2px #0a84ff40}
+.sf-guide[data-done="true"] .sf-step-art{opacity:.45}
+.sf-guide-footnote{margin:10px 0 0;color:#86868b;font-size:11px;line-height:14px;text-align:center}
+
+/* Safari Settings › Extensions, opened by Jam with Jam selected */
+.sf-settings{position:absolute;z-index:50;width:600px;border-radius:12px;overflow:hidden;background:#fff;color:#1d1d1f;box-shadow:0 0 0 .5px #0006,0 22px 50px #00000047,0 8px 16px #0000001f;animation:rb-alert-in 160ms cubic-bezier(.2,0,0,1)}
+.sf-settings[hidden]{display:none}
+.sf-settings-titlebar{position:relative;padding:10px 12px 6px;background:#f6f5f7;box-shadow:0 .5px 0 #00000026;text-align:center}
+.sf-settings-titlebar .traffic-lights{position:absolute;left:12px;top:10px;padding:0;gap:8px;pointer-events:auto}
+.sf-settings-titlebar .traffic{width:12px;height:12px;padding:0;border-radius:50%}
+.sf-settings-titlebar strong{display:block;font-size:13px;line-height:16px;font-weight:700}
+.sf-settings-tabs{display:flex;justify-content:center;gap:2px;margin-top:8px}
+.sf-settings-tabs span{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px;padding:4px 4px 3px;border-radius:6px;color:#6e6c72;font-size:9.5px;line-height:11px}
+.sf-settings-tabs i{display:grid;place-items:center;width:20px;height:18px;border-radius:5px;background:#dddbe0}
+.sf-settings-tabs span.is-selected{background:#00000012;color:#0a84ff}
+.sf-settings-tabs span.is-selected i{background:transparent}
+.sf-settings-tabs svg{width:18px;height:18px;fill:#0a84ff}
+.sf-settings-body{display:grid;grid-template-columns:200px 1fr;height:280px}
+.sf-settings-list{padding:8px;background:#f5f5f7;box-shadow:inset -.5px 0 0 #00000026}
+.sf-settings-row{display:flex;align-items:center;gap:7px;height:26px;padding:0 6px;border-radius:6px;font-size:12px}
+.sf-settings-row.is-selected{background:#0a84ff;color:#fff}
+.sf-checkbox-hit{display:grid;place-items:center;position:relative;cursor:default}
+.sf-checkbox-hit input,.sf-detail-toggle input{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);margin:0;opacity:0;cursor:default}
+.sf-checkbox{display:grid;place-items:center;flex:none;width:14px;height:14px;border-radius:4px;background:#fff;box-shadow:0 0 0 .5px #00000040,0 .5px 1px #0000001f}
+.sf-checkbox svg{width:10px;height:10px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.sf-checkbox.is-on{background:#0a84ff;box-shadow:none}.sf-checkbox.is-on svg{opacity:1}
+.sf-settings-row.is-selected .sf-checkbox.is-on{background:#fff}.sf-settings-row.is-selected .sf-checkbox.is-on svg{stroke:#0a84ff}
+.sf-checkbox-hit:has(input:focus-visible) .sf-checkbox{outline:3px solid #ffffffb3;outline-offset:1px}
+.sf-ext-icon{display:block;flex:none;width:16px;height:16px;border-radius:4px;overflow:hidden}
+.sf-ext-icon.is-password{background:linear-gradient(#3e8bf7,#1a5fd1)}
+.sf-ext-icon img{width:100%;height:100%}
+.sf-settings-detail{padding:18px 20px;font-size:11px;line-height:15px;color:#3c3c43d9}
+.sf-detail-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+.sf-detail-head .sf-jam-icon{width:48px;height:48px}
+.sf-detail-head strong{display:block;color:#1d1d1f;font-size:13px;line-height:16px}
+.sf-detail-head span{display:block}
+.sf-detail-toggle{position:relative;display:flex;align-items:center;gap:6px;margin-top:6px;color:#1d1d1f;font-size:12px}
+.sf-settings-detail p{margin:0 0 10px}
+.sf-settings-detail dl{margin:0 0 12px}.sf-settings-detail dt{color:#1d1d1f;font-weight:600;margin-bottom:4px}.sf-settings-detail dd{margin:0 0 4px}.sf-settings-detail dd b{display:block;color:#1d1d1f;font-weight:500}
+.sf-settings-button{display:inline-block;padding:2px 10px;border-radius:5px;background:#fff;color:#1d1d1f;font-size:12px;box-shadow:0 0 0 .5px #0000002e,0 .5px 1px #0000001f}
+
+/* The connect alert shows the row to check, since Safari's pane on its own doesn't say what to do */
+.rb-alert-art[hidden],.rb-alert-note[hidden]{display:none}
+.rb-alert-art{display:flex;justify-content:center;width:100%;margin:-4px 0 14px}
+.rb-alert-art-row{position:relative;display:flex;align-items:center;gap:7px;height:30px;padding:0 12px 0 9px;border-radius:8px;background:#0a84ff;color:#fff;font-size:12px;font-weight:500;box-shadow:0 2px 6px #0a84ff40}
+.rb-alert-art-row img{width:18px;height:18px;border-radius:4px}
+.rb-alert-art-box{width:14px;height:14px;border-radius:4px;background:#fff;box-shadow:0 0 0 3px #ffffff59}
+.rb-alert-art-row .rb-alert-art-cursor{position:absolute;left:16px;top:14px;width:13px;height:19px;border-radius:0}
+.rb-alert-note{margin:10px 0 0;font-size:10px;line-height:13px;color:#3c3c4399;text-wrap:pretty}
+
+/* Safari states in the full screen Log sources menu */
+.rb-source[data-state="permission"] .rb-source-detail{color:#c93400}
+.rb-dock-icon.is-safari{width:56px;height:56px;margin:0}
+
+/* The menu bar extra's status menu */
+.sf-menubar-button{display:grid;place-items:center;height:22px;padding:0 6px;margin:0 -6px;border-radius:4px;background:transparent;cursor:default}
+.sf-menubar-button img{width:13px;height:15px;opacity:.85}
+.sf-menubar-button[aria-expanded="true"]{background:#0000001f}
+.sf-status-menu{min-width:240px;z-index:100}
+.sf-status-row{display:flex;align-items:center;gap:8px;height:26px;padding:0 12px 0 10px;font-size:13px}
+.sf-status-row .rb-app-icon{width:18px;height:18px;border-radius:5px;box-shadow:0 0 0 .5px #0000002e}
+.sf-status-name{flex:1}
+.sf-status-value{display:flex;align-items:center;gap:5px;color:#79777d;font-size:12px}
+.sf-status-value i{width:6px;height:6px;border-radius:50%;background:#aeaeb2}
+.sf-status-value[data-tone="positive"] i{background:#34c759}
+.sf-status-value[data-tone="warning"]{color:#c93400}.sf-status-value[data-tone="warning"] i{background:#ff9500}
+
+@media(prefers-reduced-motion:reduce){.sf-extension.is-pulsing::after{animation:none;opacity:1}.sf-popover,.sf-settings{animation:none}}

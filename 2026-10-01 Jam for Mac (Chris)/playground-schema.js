@@ -40,10 +40,15 @@
         recordingToggle('oneClick','One-click start'),
         select('pickerStart','Start from',()=>R().getSettings().pickerStart,value=>R().updateSettings({pickerStart:value}),[['window','Anywhere on window'],['button','Start button only']]),
         select('browserLogs','Chrome logs',()=>R().getSettings().browserLogs,value=>R().updateSettings({browserLogs:value}),[['connected','Extension connected'],['unavailable','Extension missing']]),
-        select('safariLogs','Safari logs',()=>R().getSafariLogs(),value=>R().setSafariLogs(value),[['connected','Extension connected'],['unavailable','Extension missing']]),
         select('electronLogs','Notion logs',()=>R().getSettings().electronLogs,value=>R().updateSettings({electronLogs:value}),[['restart','Restart button'],['once','Turn on once'],['ask','Ask on Record']]),
         action('reopen-notion','Reopen Notion',()=>R().reopenElectronApp('notion')),
         action('reset-notion','Reset Notion logs',()=>R().resetElectronApps()),
+      ]),
+      section('safari','Safari',[
+        select('browserApp','Browser window',()=>R().getBrowserApp(),value=>R().setBrowserApp(value),[['chrome','Chrome'],['safari','Safari']]),
+        select('safariState','Safari state',()=>R().getSafariState(),value=>R().setSafariState(value),[['off','S4 · Not running'],['disabled','S0 · Not enabled'],['permission','S1 · Needs permission'],['site','S2 · Not allowed on this site'],['connected','S3 · Connected']]),
+        select('safariTab','Safari tab',()=>R().getSafariTab(),value=>R().setSafariTab(value),[['design','Design system (jam.dev)'],['checkout','Checkout (shop.acme.dev)'],['guide','Allow Jam in Safari (guide)']]),
+        action('reset-safari','Start Safari setup',()=>R().resetSafari()),
       ]),
       section('camera','Camera',[
         action('use-camera','Use Mac camera',()=>R().requestCamera()),
