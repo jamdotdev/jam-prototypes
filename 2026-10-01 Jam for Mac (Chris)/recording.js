@@ -15,7 +15,8 @@
   const targetNames={finder:'Finder',browser:'Chrome',notion:'Notion',screen:'Built-in Display'};
   // The browser window plays Chrome or Safari; Safari brings its own extension states.
   const browserApps={chrome:{name:'Chrome',art:'<img class="rb-dock-icon" src="assets/recording/chrome-dock-icon.png" width="70" height="70" alt="">',mark:'assets/recording/chrome.png'},safari:{name:'Safari',art:'<img class="rb-dock-icon is-safari" src="assets/recording/safari.png" width="56" height="56" alt="">',mark:'assets/recording/safari.png'}};
-  let browserApp='chrome',safari=null;
+  let browserApp='chrome',safari=null,chrome=null,statusMenu=null;
+  const browser=()=>browserApp==='safari'?safari:chrome;
   const targetArt={finder:`<span class="rb-dock-icon is-finder">${icon('folder')}</span>`,browser:'<img class="rb-dock-icon" src="assets/recording/chrome-dock-icon.png" width="70" height="70" alt="">',notion:'<span class="rb-dock-icon is-notion">N</span>',screen:`<span class="rb-dock-icon is-display">${icon('display')}</span>`};
   root.innerHTML=`
     <div class="rb-desktop-windows">
@@ -50,7 +51,7 @@
     <div class="rb-screen-picker" aria-hidden="true"></div>
     <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div><button type="button" class="rb-picker-sources" aria-expanded="false" aria-controls="rb-sources-menu" hidden><span class="rb-source-stack"></span><span class="rb-picker-sources-label"></span><span class="rb-sources-caret" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2.75 4 5 6.25 7.25 4"/></svg></span></button><div class="native-menu rb-sources-menu" id="rb-sources-menu" role="menu" aria-label="Log sources" hidden></div></div></div>
     <div class="rb-banner" role="status" hidden><img class="rb-banner-icon" src="assets/welcome/app-icon.png" width="36" height="36" alt=""><div class="rb-banner-text"><strong class="rb-banner-title"></strong><span class="rb-banner-body"></span></div><span class="rb-banner-time">now</span></div>
-    <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-art" aria-hidden="true" hidden></div><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div><p class="rb-alert-note" hidden></p></div></div>
+    <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
     <div class="rb-camera" tabindex="0" role="group" aria-label="Camera bubble. Drag to snap to an edge; plus and minus resize."><div class="rb-camera-preview"><video class="rb-camera-video" autoplay muted playsinline aria-label="Live camera preview" hidden></video><div class="rb-camera-placeholder">${icon('camera')}</div><button class="rb-camera-connect" aria-label="Use Mac camera">${icon('camera')}</button></div><div class="rb-camera-resize-orbit"><button class="rb-camera-resize" aria-label="Resize camera bubble"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path transform="translate(17.5 6.5)" d="M1.50028 1.50028C3.03942 9.41846 3.06782 17.5562 1.584 25.485"/></svg></button></div></div>
     <div class="rb-belt-logs" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span class="rb-source-stack"></span><span>Capturing logs</span></div>
@@ -70,18 +71,35 @@
     <div class="rb-capture-status" role="status" aria-live="polite"></div>
   `;
   const $=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
+  // A browser's setup takes the pointer: its window picker steps aside, and the card comes back when it's done if the pointer is still on the window.
+  function browserGuide(on){
+    root.dataset.browserGuide=String(browser().isGuiding());
+    if(on){hoverTarget=null;hoverHold=false;closeMenu(false);selectionNotch?.close(false);}
+    if(!on&&settings.mode==='window'&&isIdle()){const r=windows.browser;if(pointer.x>=r.x&&pointer.x<=r.x+r.width&&pointer.y>=r.y&&pointer.y<=r.y+r.height)hoverTarget='browser';}
+    syncSelection();emit();
+  }
   safari=JamSafari.create({root,article:$('[data-window="browser"]'),
-    onChange:()=>{syncSelection();emit();},
+    onChange:()=>{syncSelection();emit();statusMenu.refresh();},
     onToast:text=>showBeltToast(text,'done'),
-    // When the guide steps aside with the pointer still on Safari, its card comes back showing the new state.
-    onGuide:on=>{if(on){hoverTarget=null;hoverHold=false;}if(!on&&settings.mode==='window'&&isIdle()){const r=windows.browser;if(pointer.x>=r.x&&pointer.x<=r.x+r.width&&pointer.y>=r.y&&pointer.y<=r.y+r.height)hoverTarget='browser';}syncSelection();emit();},
-    sources:()=>[{name:'Chrome',file:'chrome-app.png',...(settings.browserLogs==='connected'?{status:'Connected',tone:'positive'}:{status:'Extension missing',tone:'none'})},{name:'Safari',file:'safari.png',status:safari.statusText(),tone:{connected:'positive',permission:'warning',site:'warning'}[safari.state()]||'none'}],
+    onGuide:browserGuide,onSetup:browserGuide,
     preset:'connected',
   });
   const hoverWaves=JamWaves.create($('.rb-hover-waves'));
   const belt=$('.rb-belt'),bubble=$('.rb-camera'),region=$('.rb-capture-region');
   const cameraDragOverlay=JamCameraPlaceholders.createOverlay(root);
   const settings={cameraZoom:1,...JamDefaults.get('recording')};
+  chrome=JamChrome.create({root,article:$('[data-window="browser"]'),
+    installed:()=>settings.browserLogs==='connected',
+    onInstall:()=>{updateSettings({browserLogs:'connected'});showBeltToast('Logs enabled for Chrome','done');},
+    onChange:()=>{syncSelection();emit();},
+    onGuide:browserGuide,
+  });
+  statusMenu=JamStatusMenu.create({onAction:startLogsSetup,sources:()=>{
+    const state=safari.state(),chromeOn=settings.browserLogs==='connected';
+    return [{name:'Chrome',file:'chrome-app.png',...(chromeOn?{status:'Connected',tone:'positive'}:{status:'Not installed',tone:'none',action:{id:'chrome',label:'Install Chrome Extension…'}})},
+      {name:'Safari',file:'safari.png',status:safari.statusText(),tone:{connected:'positive',permission:'warning',site:'warning'}[state]||'none',...(state==='disabled'?{action:{id:'safari',label:'Install Safari Extension…'}}:['permission','site'].includes(state)?{action:{id:'safari',label:'Allow Jam in Safari…'}}:{})}];
+  }});
+  root.dataset.browser=browserApp;root.dataset.browserGuide='false';
   IDLE_WIDTH=idleBeltWidth();
   function beltHome(width=IDLE_WIDTH){
     return {x:W/2,y:Math.max(60,H-44),width};
@@ -92,7 +110,7 @@
   }
   function defaultWindows(){
     const left=Math.max(0,(W-1100)/2),top=Math.max(52,(beltHome().y-578)/2);
-    return {finder:fitRect({x:left+58,y:top,width:Math.min(470,W-32),height:376},28),notion:fitRect({x:left+730,y:Math.max(52,top-70),width:Math.min(500,W-48),height:330},28),browser:fitRect({x:left+355,y:top+80,width:Math.min(686,W-48),height:414},28)};
+    return {finder:fitRect({x:left+58,y:top,width:Math.min(470,W-32),height:376},28),notion:fitRect({x:left+730,y:Math.max(52,top-70),width:Math.min(500,W-48),height:330},28),browser:fitRect({x:left+300,y:top+40,width:Math.min(860,W-48),height:560},28)};
   }
   const defaultArea=()=>({x:W/4,y:H/4,width:W/2,height:H/2});
   const windows=defaultWindows();
@@ -100,7 +118,7 @@
   const selectionSizing={area:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},finder:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},browser:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48},notion:{preset:'custom',orientation:'horizontal',rulers:false,marginX:48,marginY:48}};
   // Electron apps record console logs only in debug mode, which they get at launch. `enabled` remembers the user turned logs on.
   const electronApps={notion:{debug:'off',declined:false,enabled:false,timer:0}};
-  let alertTarget=null,alertKind=null,alertReturn=null,bannerTimer=0,toastTimer=0,beltBox=null;
+  let alertTarget=null,alertReturn=null,bannerTimer=0,toastTimer=0,beltBox=null;
   let selectionNotch=null,selectionRulers=null;
   let hoverTarget=null,hoverHold=false;
   let selectedWindow=null,stage='idle',elapsed=0,active=false,raf=0,lastFrame=0,drag=null;
@@ -265,13 +283,14 @@
     if(name!=='browser')return null;
     return browserApp==='safari'?safariWindowLogs():chromeLogs();
   }
-  const chromeLogs=()=>settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'unavailable',label:'Logs unavailable'};
+  // A browser without Jam's extension offers to install it from the logs row, with the detail in a tooltip.
+  const chromeLogs=()=>settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'install',label:'Install Extension for logs',tip:'Add Jam to Chrome to capture console logs and network requests'};
   // Safari can't send logs until its box is checked in Safari's settings and the user allows it on the website.
   function safariWindowLogs(){
     const state=safari.state(),host=safari.host();
     if(state==='connected')return {state:'connected',label:'Logs enabled'};
-    if(state==='disabled')return {state:'connect',label:'Connect Safari',detail:'Turn on Jam’s extension to capture logs'};
-    return state==='site'?{state:'permission',label:`Not allowed on ${host}`,detail:`Allow Jam on ${host} to capture logs`}:{state:'permission',label:'Needs permission',detail:'Allow Jam in Safari to capture logs'};
+    if(state==='disabled')return {state:'install',label:'Install Extension for logs',tip:'Enable the Jam extension in Safari to capture logs'};
+    return state==='site'?{state:'permission',label:'Allow this website for logs',tip:`Allow the Jam extension on ${host} to capture logs`}:{state:'permission',label:'Allow Extension for logs',tip:'Allow the Jam extension in Safari to capture logs'};
   }
   // A full screen can hold several apps sending logs, so the screen card and the recording bar summarise them all.
   const logSources=[['browser','Chrome','chrome-app.png'],['safari','Safari','safari.png'],['notion','Notion','notion.png']];
@@ -280,10 +299,10 @@
   // Full screen only lists what's connected, so a Safari that isn't running drops out entirely.
   const liveSources=()=>logSources.filter(([key])=>key!=='safari'||safari.state()!=='off');
   function sourceLogs(key){
-    if(key==='safari'){const state=safari.state();return state==='connected'?{state:'connected',label:'Logs enabled'}:state==='disabled'?{state:'unavailable',label:'Not connected'}:{state:'permission',label:safari.statusText()};}
+    if(key==='safari'){const state=safari.state();return state==='connected'?{state:'connected',label:'Logs enabled'}:state==='disabled'?{state:'unavailable',label:'Not installed'}:{state:'permission',label:safari.statusText()};}
     // Chrome stays a source while the browser window plays Safari.
     const logs=key==='browser'?chromeLogs():windowLogs(key);
-    return logs.state==='unavailable'?{state:'unavailable',label:'Extension missing'}:logs.state==='restarting'?{...logs,label:'Restarting…'}:logs;
+    return logs.state==='install'?{state:'unavailable',label:'Not installed'}:logs.state==='restarting'?{...logs,label:'Restarting…'}:logs;
   }
   // App icons are cropped to their tile so their corners can be rounder than the stock artwork.
   const appIcon=(file,alt='')=>`<span class="rb-app-icon"><img src="assets/recording/${file}" alt="${alt}"></span>`;
@@ -318,38 +337,40 @@
     if(!browserApps[value])return;
     if(value==='safari'&&safari.state()==='off')safari.setPreset('disabled');
     browserApp=value;const app=browserApps[value];
-    targetNames.browser=app.name;targetArt.browser=app.art;root.dataset.browser=value;
+    targetNames.browser=app.name;targetArt.browser=app.art;root.dataset.browser=value;root.dataset.browserGuide=String(browser().isGuiding());
     const el=$('[data-window="browser"]');el.setAttribute('aria-label',`${app.name} window`);el.querySelector('.rb-selection-app>img').src=app.mark;
     el.querySelector('.rb-window-picker').setAttribute('aria-label',`Record ${app.name} window`);
     $('.rb-record-card').dataset.art='';syncSelection();emit();
   }
+  // Choosing a browser's extension state shows that browser, except a Safari that isn't running.
   function setSafariState(value){
     if(!JamSafari.presets.includes(value))return;
-    safari.setPreset(value);if(value==='off'&&browserApp==='safari')setBrowserApp('chrome');
+    safari.setPreset(value);
+    if(value!=='off')setBrowserApp('safari');else if(browserApp==='safari')setBrowserApp('chrome');
   }
-  function showSafariAlert(){
-    if(!isIdle()||settings.mode!=='window')return;
-    closeMenu(false);selectionNotch?.close(false);alertTarget='browser';alertKind='safari';alertReturn=document.activeElement;hoverHold=true;
-    $('.rb-alert-title').textContent='Turn on Jam in Safari';
-    $('.rb-alert-message').textContent='Safari’s Extensions settings will open with Jam selected. Check the box next to Jam for Safari.';
-    $('.rb-alert-art').innerHTML='<span class="rb-alert-art-row"><span class="rb-alert-art-box"></span><img src="assets/welcome/app-icon.png" alt=""><span>Jam for Safari</span><img class="rb-alert-art-cursor" src="assets/recording/cursor.svg" alt=""></span>';
-    $('.rb-alert-art').hidden=false;
-    $('.rb-alert-note').textContent='If the box won’t stay checked, quit and reopen Safari, then try again.';$('.rb-alert-note').hidden=false;
-    $('.rb-alert-button.is-default').textContent='Open Safari Settings';$('.rb-alert-button:not(.is-default)').textContent='Cancel';
-    placeAlert(windows.browser);
+  function setChromeState(value){
+    if(!['missing','connected'].includes(value))return;
+    updateSettings({browserLogs:value==='connected'?'connected':'unavailable'});setBrowserApp('chrome');
   }
-  // The Safari window's logs row and the menu bar both start whichever step Safari is missing.
+  // The browser window's logs row and the menu bar both start whichever step its extension is missing.
   function safariStep(){
     const state=safari.state();
-    if(state==='disabled')showSafariAlert();else if(state==='permission'||state==='site')safari.openGuide();
+    if(state==='disabled'){if(isIdle())safari.openSetup();}else if(state==='permission'||state==='site')safari.openGuide();
   }
+  function chromeStep(){if(settings.browserLogs!=='connected')chrome.openStore();}
   function logsAction(name){
-    if(name==='browser'&&browserApp==='safari')safariStep();else requestElectronLogs(name);
+    if(name!=='browser')requestElectronLogs(name);else if(browserApp==='safari')safariStep();else chromeStep();
   }
-  function safariAction(){
+  function startLogsSetup(name){
+    if(name!=='chrome'&&name!=='safari')return;
     if(JamPlayground.getSurface()!=='recording')JamPlayground.setSurface('recording');
     if(settings.mode!=='window')setMode('window');
-    resetSelection();setBrowserApp('safari');safariStep();
+    resetSelection();setBrowserApp(name);name==='safari'?safariStep():chromeStep();
+  }
+  // Starts the current browser's setup again, from an extension that isn't installed.
+  function restartBrowserSetup(){
+    if(browserApp==='safari'){safari.reset();return;}
+    chrome.reset();setChromeState('missing');
   }
   function cardTarget(){
     if(!active||!isIdle()||!settings.oneClick)return null;
@@ -405,12 +426,12 @@
     if(openMenu||el?.closest('.rb-record-card,.rb-selection-notch,.rb-sizing-menu')||document.activeElement?.matches?.('.rb-selection-notch input'))return;
     // The alert and a restart in progress both belong to the app being started, so they keep its card.
     if(alertTarget||electronApps[hoverTarget]?.debug==='restarting')return;
-    // Safari's settings and its permission popover sit over the desktop, and while the guide is open the Safari window is Safari's.
-    if(safari.owns(el)){setHover(null);return;}
+    // Safari's setup window, its settings and its popover, and Chrome's add dialog, sit over the desktop.
+    if(safari.owns(el)||chrome.owns(el)||safari.isSetupOpen()){setHover(null);return;}
     if(settings.mode==='screen'){setHover(el?.closest('.rb-belt,.native-menu')?null:'screen');return;}
-    // Safari's tabs and extension button stay clickable over the picker, and still count as the Safari window.
-    const name=el?.closest('.rb-window-picker')?.dataset.picker||(el?.closest('.sf-tabs,.sf-extension')?'browser':null);
-    if(name==='browser'&&safari.isGuiding()){setHover(null);return;}
+    // The browser's tabs and Safari's extension button stay clickable over the picker, and still count as the browser window.
+    const name=el?.closest('.rb-window-picker')?.dataset.picker||(el?.closest('.sf-tabs,.sf-extension,.ch-tabs')?'browser':null);
+    if(name==='browser'&&browser().isGuiding()){setHover(null);return;}
     if(name)setHover(name);else if(!hoverHold)setHover(null);
   }
   function startTarget(target){
@@ -428,11 +449,10 @@
   }
   function showRestartAlert(name){
     if(!electronApps[name]||electronApps[name].debug!=='off'||!isIdle())return;
-    closeMenu(false);selectionNotch?.close(false);alertTarget=name;alertKind='electron';alertReturn=document.activeElement;hoverHold=true;
+    closeMenu(false);selectionNotch?.close(false);alertTarget=name;alertReturn=document.activeElement;hoverHold=true;
     const app=targetNames[name];
     $('.rb-alert-title').textContent=`Restart ${app} to capture console logs?`;
     $('.rb-alert-message').textContent=`Jam needs ${app} running in debug mode to record its console logs. ${app} will close and reopen.`;
-    $('.rb-alert-art').hidden=true;$('.rb-alert-note').hidden=true;
     $('.rb-alert-button.is-default').textContent='Restart';$('.rb-alert-button:not(.is-default)').textContent='Capture without logs';
     placeAlert(windows[name]);
   }
@@ -449,8 +469,7 @@
     return name;
   }
   function answerRestartAlert(choice){
-    const kind=alertKind,name=closeRestartAlert();if(!name)return;
-    if(kind==='safari'){if(choice==='restart'){hoverHold=false;hoverTarget=null;safari.openSettings();}else{syncSelection();alertReturn?.isConnected&&alertReturn.focus({preventScroll:true});}emit();return;}
+    const name=closeRestartAlert();if(!name)return;
     if(choice==='restart')restartElectronApp(name);
     else if(choice==='skip'){electronApps[name].declined=true;startWindowRecording(name);}
     else{syncSelection();alertReturn?.isConnected&&alertReturn.focus({preventScroll:true});}
@@ -660,7 +679,7 @@
       else if(typeof settings[key]==='boolean')settings[key]=Boolean(patch[key]);
       else if(key==='mode'&&['screen','window','area'].includes(patch.mode))settings.mode=patch.mode;
       else if(key==='pickerStart'&&['window','button'].includes(patch[key]))settings[key]=patch[key];
-      else if(key==='browserLogs'&&['connected','unavailable'].includes(patch[key]))settings[key]=patch[key];
+      else if(key==='browserLogs'&&['connected','unavailable'].includes(patch[key])){settings[key]=patch[key];chrome?.refresh();statusMenu?.refresh();}
       else if(key==='electronLogs'&&['restart','once','ask'].includes(patch[key]))settings[key]=patch[key];
       else if(key==='cameraDevice'&&typeof patch[key]==='string'&&patch[key].length<=64)settings[key]=patch[key];
       else if(['placeholderColor','placeholderContrastColor','placeholderContrastHoverColor','placeholderContrastActiveColor','placeholderContrastEdgeColor','placeholderOverlayColor'].includes(key)&&typeof patch[key]==='string'&&patch[key].length<=64&&CSS.supports('color',patch[key])&&!/var\(|currentcolor|inherit|initial|unset/i.test(patch[key]))settings[key]=patch[key];
@@ -968,7 +987,7 @@
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
     getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),alert:alertTarget,apps:Object.fromEntries(Object.entries(electronApps).map(([name,app])=>[name,{debug:app.debug,declined:app.declined,enabled:app.enabled}])),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
-    getBrowserApp:()=>browserApp,setBrowserApp,getSafariState:()=>safari.state(),setSafariState,getSafariTab:()=>safari.tab(),setSafariTab:tab=>safari.setTab(tab),resetSafari:()=>{safari.reset();setBrowserApp('safari');},safariAction,updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
+    getBrowserApp:()=>browserApp,setBrowserApp,getChromeState:()=>settings.browserLogs==='connected'?'connected':'missing',setChromeState,getSafariState:()=>safari.state(),setSafariState,getSafariTab:()=>safari.tab(),setSafariTab:tab=>safari.setTab(tab),getChromeTab:()=>chrome.tab(),setChromeTab:tab=>chrome.setTab(tab),restartBrowserSetup,startLogsSetup,updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
@@ -993,8 +1012,9 @@
   })});
   syncWindows();
   JamDefaults.register('recording',{groups:['recording'],read:()=>({recording:{...settings}}),apply:values=>updateSettings(values.recording),onReset(){clearTimeout(clockTimer);clockStamp=0;fixedAnchor=null;cameraSnap=null;stage='idle';elapsed=0;previewPlaying=false;previewTime=0;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};resetSelection();renderBelt();emit();}});
-  // `?safari=disabled` (or permission, site, connected) opens on the Safari window in that state, for sharing a step.
-  const safariParam=new URLSearchParams(location.search).get('safari');
-  if(JamSafari.presets.includes(safariParam)&&safariParam!=='off'){setMode('window');setBrowserApp('safari');setSafariState(safariParam);}
+  // `?safari=disabled` (or permission, site, connected) and `?chrome=missing` open on that browser in that state, for sharing a step.
+  const params=new URLSearchParams(location.search),safariParam=params.get('safari'),chromeParam=params.get('chrome');
+  if(JamSafari.presets.includes(safariParam)&&safariParam!=='off'){setMode('window');setSafariState(safariParam);}
+  else if(['missing','connected'].includes(chromeParam)){setMode('window');setChromeState(chromeParam);}
   syncSelection();renderBelt();setActive(JamPlayground.getSurface()==='recording');
 })();

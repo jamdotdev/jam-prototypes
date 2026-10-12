@@ -12,7 +12,7 @@
   const presets = ['off', 'disabled', 'permission', 'site', 'connected'];
   const statusText = {
     off: 'Not running',
-    disabled: 'Not connected',
+    disabled: 'Not installed',
     permission: 'Needs permission',
     site: 'Not allowed on this site',
     connected: 'Connected',
@@ -23,8 +23,9 @@
   const strawberry = '<img src="assets/strawberry.svg" alt="">';
   const puzzle = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 2.5a2 2 0 0 1 4 0V4h3.5A1.5 1.5 0 0 1 17 5.5V9h-1.5a2 2 0 1 0 0 4H17v3.5a1.5 1.5 0 0 1-1.5 1.5H12v-1.5a2 2 0 1 0-4 0V18H4.5A1.5 1.5 0 0 1 3 16.5V13h1.5a2 2 0 1 0 0-4H3V5.5A1.5 1.5 0 0 1 4.5 4H8z"/></svg>';
   const check = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4l2.3 2.3 4.7-5.2"/></svg>';
+  const cursor = '<img class="sf-cursor" src="assets/recording/cursor.svg" alt="">';
 
-  function create({ root, article, onChange, onToast, onGuide, sources, preset = 'disabled' }) {
+  function create({ root, article, onChange, onToast, onGuide, onSetup, preset = 'disabled' }) {
     let running = preset !== 'off';
     let enabled = !['off', 'disabled'].includes(preset);
     // 'none', 'all', or the set of hosts allowed one by one
@@ -88,23 +89,33 @@
     root.append(settingsPane);
     const toggles = [...settingsPane.querySelectorAll('.sf-jam-toggle')];
 
-    const menuButton = document.createElement('button');
-    const strawberryItem = document.querySelector('.desktop-menu-right > img[src*="strawberry"]');
-    const statusMenu = document.createElement('div');
-    if (strawberryItem) {
-      menuButton.type = 'button';
-      menuButton.className = 'sf-menubar-button';
-      menuButton.setAttribute('aria-label', 'Jam');
-      menuButton.setAttribute('aria-haspopup', 'menu');
-      menuButton.setAttribute('aria-expanded', 'false');
-      menuButton.innerHTML = strawberry;
-      strawberryItem.replaceWith(menuButton);
-      statusMenu.className = 'native-menu sf-status-menu';
-      statusMenu.setAttribute('role', 'menu');
-      statusMenu.setAttribute('aria-label', 'Jam');
-      statusMenu.hidden = true;
-      document.body.append(statusMenu);
-    }
+    // Jam's own window for the first gate, laid out like onboarding, with a picture of where the box is
+    const setup = document.createElement('section');
+    setup.className = 'sf-setup';
+    setup.setAttribute('role', 'dialog');
+    setup.setAttribute('aria-labelledby', 'sf-setup-title');
+    setup.setAttribute('aria-describedby', 'sf-setup-message');
+    setup.hidden = true;
+    setup.innerHTML = `<div class="sf-setup-grid" aria-hidden="true"></div>
+      <header class="sf-setup-titlebar"><div class="traffic-lights"><button type="button" class="traffic close sf-setup-close" aria-label="Close"></button><span class="traffic minimize"></span><span class="traffic zoom"></span></div></header>
+      <div class="sf-setup-heading"><h2 id="sf-setup-title">Turn on Jam in Safari</h2><p id="sf-setup-message">Safari’s settings open on Extensions. Check the box next to Jam for Safari.</p></div>
+      <div class="sf-setup-viz" aria-hidden="true">
+        <div class="sf-setup-pane">
+          <div class="sf-setup-pane-titlebar"><span class="sf-setup-lights"><i></i><i></i><i></i></span><strong>Extensions</strong></div>
+          <div class="sf-setup-pane-tabs">${['General', 'Tabs', 'AutoFill', 'Passwords', 'Security', 'Websites', 'Extensions', 'Advanced']
+            .map((name) => `<span class="${name === 'Extensions' ? 'is-selected' : ''}"><i>${name === 'Extensions' ? puzzle : ''}</i>${name}</span>`)
+            .join('')}</div>
+          <div class="sf-setup-pane-body">
+            <div class="sf-setup-pane-list">
+              <span class="sf-setup-row"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon is-password"></span>1Password for Safari</span>
+              <span class="sf-setup-row is-selected"><span class="sf-checkbox sf-setup-box">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari${cursor}</span>
+            </div>
+            <div class="sf-setup-pane-detail">${appIcon}<span><strong>Jam for Safari</strong><i></i><i></i><i class="is-short"></i></span></div>
+          </div>
+        </div>
+      </div>
+      <footer class="sf-setup-footer"><p>Box won’t stay checked? Quit and reopen Safari, then try again.</p><div><button type="button" class="sf-setup-button sf-setup-cancel">Not Now</button><button type="button" class="sf-setup-button is-primary sf-setup-open">Open Safari Settings</button></div></footer>`;
+    root.append(setup);
 
     function host() {
       return tabs[tab].host;
@@ -130,7 +141,6 @@
       const extension = toolbar.querySelector('.sf-extension');
       extension.hidden = !enabled;
       extension.classList.toggle('is-waiting', current === 'permission' || current === 'site');
-      extension.classList.toggle('is-pulsing', guiding && current !== 'connected');
       extension.title = current === 'connected' ? 'Jam for Safari' : 'Jam for Safari needs permission on this website';
       const open = guideOpen ? ['design', 'checkout', 'guide'] : ['design', 'checkout'];
       const key = `${open.join()}:${tab}`;
@@ -140,28 +150,43 @@
           .map((name) => `<button type="button" class="sf-tab" role="tab" aria-selected="${name === tab}" data-tab="${name}"><span>${tabs[name].title}</span>${name === 'guide' ? '<i class="sf-tab-close" role="button" aria-label="Close tab"></i>' : ''}</button>`)
           .join('');
       }
-      content.hidden = tab === 'guide';
+      // The page on show is the tab's; Chrome's own pages take over when the window plays Chrome.
+      article.dataset.safariTab = tab;
       guide.hidden = tab !== 'guide';
       if (tab === 'guide') renderGuide(current);
       for (const toggle of toggles) toggle.checked = enabled;
       settingsPane.querySelectorAll('.sf-checkbox-hit .sf-checkbox, .sf-detail-toggle .sf-checkbox').forEach((box) => box.classList.toggle('is-on', enabled));
       if (popoverOpen && current === 'connected') closePopover();
-      if (!statusMenu.hidden) renderStatusMenu();
     }
 
-    // A single-purpose page on jam.dev, opened in Safari whatever the default browser is
+    // A single-purpose page on jam.dev, opened in Safari whatever the default browser is. It's styled after the
+    // marketing site, since it will be built in Framer from the site's components.
     function renderGuide(current) {
       const done = current === 'connected';
+      const step = (number, state) => `<span class="sf-step-number">${state === 'is-done' ? check : number}</span>`;
+      const first = done ? 'is-done' : 'is-current';
+      const second = done ? 'is-done' : '';
       guide.dataset.done = String(done);
       guide.innerHTML = `<div class="sf-guide-page">
-        <header>${appIcon}<h2>${done ? 'You’re all set' : 'Allow Jam in Safari'}</h2><p>${done ? 'Jam now captures console logs and network requests from Safari. Head back to Jam to record.' : 'Two clicks, and Jam can capture console logs and network requests from Safari.'}</p></header>
+        <nav class="sf-guide-nav"><img class="sf-guide-logo" src="assets/auth-logo.svg" alt="Jam"><span class="sf-guide-button">Need help?</span></nav>
+        <header class="sf-guide-hero">
+          ${done ? '<span class="sf-guide-status"><i></i>Logs enabled</span>' : '<span class="sf-guide-eyebrow"><span class="sf-guide-eyebrow-tile"><img src="assets/recording/safari.png" alt=""></span>Jam for Safari</span>'}
+          <h1>${done ? 'You’re all set' : 'Allow Jam in Safari'}</h1>
+          <p>${done ? 'Jam now captures console logs and network requests from Safari. Head back to Jam to record.' : 'Two clicks, and Jam captures console logs and network requests from Safari.'}</p>
+        </header>
         <ol class="sf-guide-steps">
-          <li class="${done ? 'is-done' : 'is-current'}"><span class="sf-step-number">${done ? check : '1'}</span><div><strong>Click the Jam icon in Safari’s toolbar</strong><span>It’s next to the address bar, greyed out for now.</span></div>
-            <span class="sf-step-art is-toolbar" aria-hidden="true"><i class="sf-art-address"></i><i class="sf-art-extension">${strawberry}</i></span></li>
-          <li class="${done ? 'is-done' : ''}"><span class="sf-step-number">${done ? check : '2'}</span><div><strong>Choose “Always Allow on Every Website”</strong><span>Jam only reads a page while you’re recording it.</span></div>
-            <span class="sf-step-art is-choices" aria-hidden="true"><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-highlighted">Always Allow on Every Website</i></span></li>
+          <li class="${first}">
+            ${step(1, first)}
+            <div class="sf-step-art" aria-hidden="true"><span class="sf-art-window"><span class="sf-art-titlebar"><i></i><i></i><i></i></span><span class="sf-art-toolbar"><span class="sf-art-address">jam.dev/safari</span><span class="sf-art-extension">${strawberry}${done ? '' : cursor}</span><span class="sf-art-tool"></span></span><span class="sf-art-page"></span></span></div>
+            <div class="sf-step-copy"><h2>Click Jam in Safari’s toolbar</h2><p>It’s next to the address bar, greyed out for now.</p></div>
+          </li>
+          <li class="${second}">
+            ${step(2, second)}
+            <div class="sf-step-art" aria-hidden="true"><span class="sf-art-popover"><span class="sf-art-popover-head">${appIcon}<b>Allow “Jam for Safari” to access “jam.dev”?</b></span><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-highlighted">Always Allow on Every Website${done ? '' : cursor}</i></span></div>
+            <div class="sf-step-copy"><h2>Choose “Always Allow on Every Website”</h2><p>Jam only reads a page while you’re recording it.</p></div>
+          </li>
         </ol>
-        <p class="sf-guide-footnote">${done ? 'You can close this tab.' : 'Allowing one site at a time? Jam shows “Needs permission” on the others.'}</p>
+        <p class="sf-guide-footnote">${done ? 'You can close this tab.' : 'Rather allow one site at a time? Jam asks again on the sites you haven’t allowed.'}</p>
       </div>`;
     }
 
@@ -211,7 +236,6 @@
     function setGuiding(value) {
       if (guiding === value) return;
       guiding = value;
-      root.dataset.safariGuide = String(guiding);
       render();
       onGuide(guiding);
     }
@@ -231,6 +255,21 @@
       closePopover();
       setGuiding(false);
       changed();
+    }
+
+    function openSetup() {
+      running = true;
+      setup.hidden = false;
+      setup.style.left = `${Math.max(8, (root.clientWidth - setup.offsetWidth) / 2)}px`;
+      setup.style.top = `${Math.max(36, (root.clientHeight - setup.offsetHeight) / 2 - 30)}px`;
+      setup.querySelector('.sf-setup-open').focus({ preventScroll: true });
+      onSetup(true);
+    }
+
+    function closeSetup() {
+      if (setup.hidden) return;
+      setup.hidden = true;
+      onSetup(false);
     }
 
     function openSettings() {
@@ -276,33 +315,9 @@
       tab = 'design';
       closePopover();
       closeSettings();
+      closeSetup();
       setGuiding(false);
       changed();
-    }
-
-    // The Jam menu bar extra, where Safari's status lives when nothing on screen asks for it
-    function renderStatusMenu() {
-      const current = state();
-      const rows = sources().map(({ name, file, status, tone }) => `<div class="sf-status-row" role="presentation"><span class="rb-app-icon"><img src="assets/recording/${file}" alt=""></span><span class="sf-status-name">${name}</span><span class="sf-status-value" data-tone="${tone}"><i></i>${status}</span></div>`);
-      const action = current === 'disabled' ? ['connect', 'Connect Safari…'] : ['permission', 'site'].includes(current) ? ['allow', 'Allow Jam in Safari…'] : null;
-      statusMenu.innerHTML = `<div class="native-menu-label" role="presentation">Log sources</div>${rows.join('')}${action ? `<div class="native-menu-separator" role="separator"></div><button type="button" class="native-menu-item" role="menuitem" tabindex="-1" data-action="${action[0]}">${action[1]}</button>` : ''}`;
-    }
-
-    function openStatusMenu() {
-      renderStatusMenu();
-      statusMenu.hidden = false;
-      menuButton.setAttribute('aria-expanded', 'true');
-      const bar = document.querySelector('.desktop-menubar').getBoundingClientRect();
-      const button = menuButton.getBoundingClientRect();
-      statusMenu.style.top = `${bar.bottom}px`;
-      statusMenu.style.setProperty('--menu-left', `${Math.max(8, Math.min(button.left - 8, innerWidth - statusMenu.offsetWidth - 8))}px`);
-      statusMenu.querySelector('.native-menu-item')?.focus({ preventScroll: true });
-    }
-
-    function closeStatusMenu() {
-      if (statusMenu.hidden) return;
-      statusMenu.hidden = true;
-      menuButton.setAttribute('aria-expanded', 'false');
     }
 
     tabBar.addEventListener('pointerdown', (event) => event.stopPropagation());
@@ -335,36 +350,35 @@
       });
     }
     settingsPane.querySelector('.sf-settings-close').addEventListener('click', closeSettings);
+    setup.querySelector('.sf-setup-close').addEventListener('click', closeSetup);
+    setup.querySelector('.sf-setup-cancel').addEventListener('click', closeSetup);
+    setup.querySelector('.sf-setup-open').addEventListener('click', () => {
+      closeSetup();
+      openSettings();
+    });
+    setup.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        closeSetup();
+      } else if (event.key === 'Tab') {
+        // Focus stays in the window while it's up, as it would in a sheet
+        const buttons = [...setup.querySelectorAll('.sf-setup-button')];
+        const index = buttons.indexOf(document.activeElement);
+        event.preventDefault();
+        buttons[(index + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length].focus();
+      }
+    });
     settingsPane.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
         closeSettings();
       }
     });
-    if (strawberryItem) {
-      menuButton.addEventListener('click', () => (statusMenu.hidden ? openStatusMenu() : closeStatusMenu()));
-      statusMenu.addEventListener('click', (event) => {
-        const item = event.target.closest('[data-action]');
-        if (!item) return;
-        closeStatusMenu();
-        window.JamRecording?.safariAction(item.dataset.action);
-      });
-      statusMenu.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-          closeStatusMenu();
-          menuButton.focus();
-        }
-      });
-      document.addEventListener('pointerdown', (event) => {
-        if (!statusMenu.hidden && !statusMenu.contains(event.target) && !menuButton.contains(event.target)) closeStatusMenu();
-      }, true);
-    }
     document.addEventListener('pointerdown', (event) => {
       if (popoverOpen && !popover.contains(event.target) && !event.target.closest('.sf-extension')) closePopover();
     }, true);
 
     render();
-    root.dataset.safariGuide = 'false';
 
     return {
       state,
@@ -373,11 +387,13 @@
       tab: () => tab,
       setTab,
       setPreset,
+      openSetup,
       openSettings,
       openGuide,
       reset,
       isGuiding: () => guiding,
-      owns: (element) => !!element?.closest?.('.sf-settings, .sf-popover'),
+      isSetupOpen: () => !setup.hidden,
+      owns: (element) => !!element?.closest?.('.sf-settings, .sf-popover, .sf-setup'),
     };
   }
 
