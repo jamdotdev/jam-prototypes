@@ -46,10 +46,11 @@
       // Picking either browser's extension state shows that browser in the browser window.
       section('browser','Browser',[
         select('browserApp','Browser window',()=>R().getBrowserApp(),value=>R().setBrowserApp(value),[['chrome','Chrome'],['safari','Safari']]),
+        select('logsButton','Logs button',()=>R().getLogsButton(),value=>R().setLogsButton(value),[['ghost','Ghost, with sweep'],['blue','Blue']]),
         select('chromeState','Chrome extension',()=>R().getChromeState(),value=>R().setChromeState(value),[['missing','Not installed'],['connected','Connected']]),
         select('chromeTab','Chrome tab',()=>R().getChromeTab(),value=>R().setChromeTab(value),[['design','Design system (jam.dev)'],['store','Chrome Web Store']]),
         select('safariState','Safari extension',()=>R().getSafariState(),value=>R().setSafariState(value),[['off','S4 · Safari not running'],['disabled','S0 · Not installed'],['permission','S1 · Needs permission'],['site','S2 · Not allowed on this site'],['connected','S3 · Connected']]),
-        select('safariTab','Safari tab',()=>R().getSafariTab(),value=>R().setSafariTab(value),[['design','Design system (jam.dev)'],['checkout','Checkout (shop.acme.dev)'],['guide','Allow Jam in Safari (guide)']]),
+        select('safariTab','Safari tab',()=>R().getSafariTab(),value=>R().setSafariTab(value),[['design','Design system (jam.dev)'],['checkout','Checkout (shop.acme.dev)']]),
         action('restart-browser-setup','Start setup again',()=>R().restartBrowserSetup()),
       ]),
       section('camera','Camera',[

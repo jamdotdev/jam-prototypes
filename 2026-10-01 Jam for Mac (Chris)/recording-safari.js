@@ -7,7 +7,6 @@
   const tabs = {
     design: { title: 'Design system', host: 'jam.dev', path: 'jam.dev/design-system' },
     checkout: { title: 'Checkout', host: 'shop.acme.dev', path: 'shop.acme.dev/checkout' },
-    guide: { title: 'Allow Jam in Safari', host: 'jam.dev', path: 'jam.dev/safari' },
   };
   const presets = ['off', 'disabled', 'permission', 'site', 'connected'];
   const statusText = {
@@ -17,24 +16,27 @@
     site: 'Not allowed on this site',
     connected: 'Connected',
   };
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const escapeHTML = (text) => text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const appIcon = '<img class="sf-jam-icon" src="assets/welcome/app-icon.png" alt="">';
   const strawberry = '<img src="assets/strawberry.svg" alt="">';
   const puzzle = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 2.5a2 2 0 0 1 4 0V4h3.5A1.5 1.5 0 0 1 17 5.5V9h-1.5a2 2 0 1 0 0 4H17v3.5a1.5 1.5 0 0 1-1.5 1.5H12v-1.5a2 2 0 1 0-4 0V18H4.5A1.5 1.5 0 0 1 3 16.5V13h1.5a2 2 0 1 0 0-4H3V5.5A1.5 1.5 0 0 1 4.5 4H8z"/></svg>';
   const check = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4l2.3 2.3 4.7-5.2"/></svg>';
   const cursor = '<img class="sf-cursor" src="assets/recording/cursor.svg" alt="">';
+  const spinner = `<span class="rb-spinner" aria-hidden="true">${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<i style="--i:${i}"></i>`).join('')}</span>`;
+  const setupCopy = {
+    1: { title: 'Get logs from Safari', message: 'Two steps in Safari, and Jam ticks each one off as you go.', note: 'Box won’t stay checked? Quit and reopen Safari, then try again.', cancel: 'Not Now' },
+    2: { title: 'Get logs from Safari', message: 'Two steps in Safari, and Jam ticks each one off as you go.', note: 'Rather allow one site at a time? Jam asks again on the sites you haven’t allowed.', cancel: 'Not Now' },
+    done: { title: 'Logs enabled for Safari', message: 'Jam now captures console logs and network requests from Safari.', note: '', cancel: 'Done' },
+  };
 
-  function create({ root, article, onChange, onToast, onGuide, onSetup, preset = 'disabled' }) {
+  function create({ root, article, onChange, onToast, onSetup, preset = 'disabled' }) {
     let running = preset !== 'off';
     let enabled = !['off', 'disabled'].includes(preset);
     // 'none', 'all', or the set of hosts allowed one by one
     let access = preset === 'connected' ? 'all' : 'none';
     let tab = 'design';
-    let guideOpen = false;
-    let guiding = false;
-    let guideTimer = 0;
     let popoverOpen = false;
+    let doneTimer = 0;
 
     // Safari's chrome replaces Chrome's address bar inside the same browser window
     const titlebar = article.querySelector('.rb-window-titlebar');
@@ -51,10 +53,6 @@
     tabBar.setAttribute('role', 'tablist');
     tabBar.setAttribute('aria-label', 'Safari tabs');
     content.before(tabBar);
-    const guide = document.createElement('div');
-    guide.className = 'sf-guide';
-    guide.hidden = true;
-    content.after(guide);
     const popover = document.createElement('div');
     popover.className = 'sf-popover';
     popover.setAttribute('role', 'dialog');
@@ -89,7 +87,8 @@
     root.append(settingsPane);
     const toggles = [...settingsPane.querySelectorAll('.sf-jam-toggle')];
 
-    // Jam's own window for the first gate, laid out like onboarding, with a picture of where the box is
+    // Jam's own window for both gates. It sits beside Safari rather than over it, and ticks each step off as Safari
+    // reports it, so it never sends anyone to a web page.
     const setup = document.createElement('section');
     setup.className = 'sf-setup';
     setup.setAttribute('role', 'dialog');
@@ -98,23 +97,41 @@
     setup.hidden = true;
     setup.innerHTML = `<div class="sf-setup-grid" aria-hidden="true"></div>
       <header class="sf-setup-titlebar"><div class="traffic-lights"><button type="button" class="traffic close sf-setup-close" aria-label="Close"></button><span class="traffic minimize"></span><span class="traffic zoom"></span></div></header>
-      <div class="sf-setup-heading"><h2 id="sf-setup-title">Turn on Jam in Safari</h2><p id="sf-setup-message">Safari’s settings open on Extensions. Check the box next to Jam for Safari.</p></div>
-      <div class="sf-setup-viz" aria-hidden="true">
-        <div class="sf-setup-pane">
-          <div class="sf-setup-pane-titlebar"><span class="sf-setup-lights"><i></i><i></i><i></i></span><strong>Extensions</strong></div>
-          <div class="sf-setup-pane-tabs">${['General', 'Tabs', 'AutoFill', 'Passwords', 'Security', 'Websites', 'Extensions', 'Advanced']
-            .map((name) => `<span class="${name === 'Extensions' ? 'is-selected' : ''}"><i>${name === 'Extensions' ? puzzle : ''}</i>${name}</span>`)
-            .join('')}</div>
-          <div class="sf-setup-pane-body">
-            <div class="sf-setup-pane-list">
-              <span class="sf-setup-row"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon is-password"></span>1Password for Safari</span>
-              <span class="sf-setup-row is-selected"><span class="sf-checkbox sf-setup-box">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari${cursor}</span>
+      <div class="sf-setup-heading"><img class="sf-setup-mark" src="assets/recording/safari.png" alt=""><h2 id="sf-setup-title"></h2><p id="sf-setup-message"></p></div>
+      <ol class="sf-setup-steps">
+        <li class="sf-setup-step" data-step="1">
+          <span class="sf-setup-badge" aria-hidden="true"><b>1</b>${check}</span>
+          <div class="sf-setup-step-body">
+            <div class="sf-setup-step-head"><h3>Turn on Jam in Safari Settings</h3><span class="sf-setup-done">Turned on</span></div>
+            <div class="sf-setup-step-detail">
+              <p>Check the box next to Jam for Safari.</p>
+              <div class="sf-setup-art is-settings" aria-hidden="true">
+                <span class="sf-art-pane"><span class="sf-art-pane-title"><span class="sf-setup-lights"><i></i><i></i><i></i></span>Extensions</span>
+                  <span class="sf-art-row"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon is-password"></span>1Password for Safari</span>
+                  <span class="sf-art-row is-selected"><span class="sf-checkbox sf-art-box">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari</span></span>
+                ${cursor}
+              </div>
+              <button type="button" class="sf-setup-button is-primary sf-setup-open">Open Safari Settings</button>
             </div>
-            <div class="sf-setup-pane-detail">${appIcon}<span><strong>Jam for Safari</strong><i></i><i></i><i class="is-short"></i></span></div>
           </div>
-        </div>
-      </div>
-      <footer class="sf-setup-footer"><p>Box won’t stay checked? Quit and reopen Safari, then try again.</p><div><button type="button" class="sf-setup-button sf-setup-cancel">Not Now</button><button type="button" class="sf-setup-button is-primary sf-setup-open">Open Safari Settings</button></div></footer>`;
+        </li>
+        <li class="sf-setup-step" data-step="2">
+          <span class="sf-setup-badge" aria-hidden="true"><b>2</b>${check}</span>
+          <div class="sf-setup-step-body">
+            <div class="sf-setup-step-head"><h3>Click Jam in Safari’s toolbar</h3><span class="sf-setup-done">Allowed</span></div>
+            <div class="sf-setup-step-detail">
+              <p>Then choose “Always Allow on Every Website”.</p>
+              <div class="sf-setup-art is-toolbar" aria-hidden="true">
+                <span class="sf-art-toolbar"><span class="sf-art-nav"><i></i><i></i></span><span class="sf-art-address">jam.dev</span><span class="sf-art-extension">${strawberry}</span><span class="sf-art-tool"></span></span>
+                <span class="sf-art-popover"><b>Allow “Jam for Safari” to access “jam.dev”?</b><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-default">Always Allow on Every Website</i></span>
+                ${cursor}
+              </div>
+              <span class="sf-setup-waiting" role="status">${spinner}Waiting for Safari…</span>
+            </div>
+          </div>
+        </li>
+      </ol>
+      <footer class="sf-setup-footer"><p class="sf-setup-note"></p><button type="button" class="sf-setup-button sf-setup-cancel"></button></footer>`;
     root.append(setup);
 
     function host() {
@@ -142,52 +159,39 @@
       extension.hidden = !enabled;
       extension.classList.toggle('is-waiting', current === 'permission' || current === 'site');
       extension.title = current === 'connected' ? 'Jam for Safari' : 'Jam for Safari needs permission on this website';
-      const open = guideOpen ? ['design', 'checkout', 'guide'] : ['design', 'checkout'];
-      const key = `${open.join()}:${tab}`;
-      if (tabBar.dataset.key !== key) {
-        tabBar.dataset.key = key;
-        tabBar.innerHTML = open
-          .map((name) => `<button type="button" class="sf-tab" role="tab" aria-selected="${name === tab}" data-tab="${name}"><span>${tabs[name].title}</span>${name === 'guide' ? '<i class="sf-tab-close" role="button" aria-label="Close tab"></i>' : ''}</button>`)
+      if (tabBar.dataset.tab !== tab) {
+        tabBar.dataset.tab = tab;
+        tabBar.innerHTML = Object.keys(tabs)
+          .map((name) => `<button type="button" class="sf-tab" role="tab" aria-selected="${name === tab}" data-tab="${name}"><span>${tabs[name].title}</span></button>`)
           .join('');
       }
-      // The page on show is the tab's; Chrome's own pages take over when the window plays Chrome.
       article.dataset.safariTab = tab;
-      guide.hidden = tab !== 'guide';
-      if (tab === 'guide') renderGuide(current);
+      renderSetup(current);
       for (const toggle of toggles) toggle.checked = enabled;
       settingsPane.querySelectorAll('.sf-checkbox-hit .sf-checkbox, .sf-detail-toggle .sf-checkbox').forEach((box) => box.classList.toggle('is-on', enabled));
       if (popoverOpen && current === 'connected') closePopover();
     }
 
-    // A single-purpose page on jam.dev, opened in Safari whatever the default browser is. It's styled after the
-    // marketing site, since it will be built in Framer from the site's components.
-    function renderGuide(current) {
-      const done = current === 'connected';
-      const step = (number, state) => `<span class="sf-step-number">${state === 'is-done' ? check : number}</span>`;
-      const first = done ? 'is-done' : 'is-current';
-      const second = done ? 'is-done' : '';
-      guide.dataset.done = String(done);
-      guide.innerHTML = `<div class="sf-guide-page">
-        <nav class="sf-guide-nav"><img class="sf-guide-logo" src="assets/auth-logo.svg" alt="Jam"><span class="sf-guide-button">Need help?</span></nav>
-        <header class="sf-guide-hero">
-          ${done ? '<span class="sf-guide-status"><i></i>Logs enabled</span>' : '<span class="sf-guide-eyebrow"><span class="sf-guide-eyebrow-tile"><img src="assets/recording/safari.png" alt=""></span>Jam for Safari</span>'}
-          <h1>${done ? 'You’re all set' : 'Allow Jam in Safari'}</h1>
-          <p>${done ? 'Jam now captures console logs and network requests from Safari. Head back to Jam to record.' : 'Two clicks, and Jam captures console logs and network requests from Safari.'}</p>
-        </header>
-        <ol class="sf-guide-steps">
-          <li class="${first}">
-            ${step(1, first)}
-            <div class="sf-step-art" aria-hidden="true"><span class="sf-art-window"><span class="sf-art-titlebar"><i></i><i></i><i></i></span><span class="sf-art-toolbar"><span class="sf-art-address">jam.dev/safari</span><span class="sf-art-extension">${strawberry}${done ? '' : cursor}</span><span class="sf-art-tool"></span></span><span class="sf-art-page"></span></span></div>
-            <div class="sf-step-copy"><h2>Click Jam in Safari’s toolbar</h2><p>It’s next to the address bar, greyed out for now.</p></div>
-          </li>
-          <li class="${second}">
-            ${step(2, second)}
-            <div class="sf-step-art" aria-hidden="true"><span class="sf-art-popover"><span class="sf-art-popover-head">${appIcon}<b>Allow “Jam for Safari” to access “jam.dev”?</b></span><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-highlighted">Always Allow on Every Website${done ? '' : cursor}</i></span></div>
-            <div class="sf-step-copy"><h2>Choose “Always Allow on Every Website”</h2><p>Jam only reads a page while you’re recording it.</p></div>
-          </li>
-        </ol>
-        <p class="sf-guide-footnote">${done ? 'You can close this tab.' : 'Rather allow one site at a time? Jam asks again on the sites you haven’t allowed.'}</p>
-      </div>`;
+    // The window opens on whichever step is next, and a step Safari undoes (unchecking the box) comes back.
+    function renderSetup(current) {
+      const step = current === 'connected' ? 'done' : enabled ? '2' : '1';
+      if (setup.dataset.step === step) return;
+      setup.dataset.step = step;
+      const copy = setupCopy[step];
+      setup.querySelector('#sf-setup-title').textContent = copy.title;
+      setup.querySelector('#sf-setup-message').textContent = copy.message;
+      setup.querySelector('.sf-setup-note').textContent = copy.note;
+      setup.querySelector('.sf-setup-cancel').textContent = copy.cancel;
+      for (const item of setup.querySelectorAll('.sf-setup-step')) {
+        const done = step === 'done' || item.dataset.step < step;
+        item.dataset.status = done ? 'done' : item.dataset.step === step ? 'current' : 'next';
+        item.setAttribute('aria-current', String(item.dataset.status === 'current' ? 'step' : false));
+      }
+      // Once both are ticked the window steps aside, so the belt can show Safari as connected
+      if (step === 'done' && !setup.hidden) {
+        clearTimeout(doneTimer);
+        doneTimer = setTimeout(closeSetup, 1400);
+      }
     }
 
     function openPopover() {
@@ -223,61 +227,59 @@
       else access = new Set([...(access instanceof Set ? access : []), host()]);
       closePopover();
       changed();
-      if (before !== 'connected' && state() === 'connected') {
-        onToast('Logs enabled for Safari');
-        // The guide steps aside once it's done, so the belt can show Safari as connected
-        if (guiding) {
-          clearTimeout(guideTimer);
-          guideTimer = setTimeout(() => setGuiding(false), reduced.matches ? 0 : 1400);
-        }
-      }
+      if (before !== 'connected' && state() === 'connected') onToast('Logs enabled for Safari');
     }
 
-    function setGuiding(value) {
-      if (guiding === value) return;
-      guiding = value;
-      render();
-      onGuide(guiding);
+    // The browser window in the desktop's own coordinates
+    function windowFrame() {
+      const box = root.getBoundingClientRect();
+      const frame = article.getBoundingClientRect();
+      const scale = box.width / root.offsetWidth || 1;
+      return { x: (frame.left - box.left) / scale, y: (frame.top - box.top) / scale };
     }
 
-    function openGuide() {
-      running = true;
-      guideOpen = true;
-      tab = 'guide';
-      closeSettings();
-      changed();
-      setGuiding(true);
-    }
-
-    function closeGuide() {
-      guideOpen = false;
-      if (tab === 'guide') tab = 'design';
-      closePopover();
-      setGuiding(false);
-      changed();
+    // Beside Safari when there's room, so its toolbar and the Settings pane stay clear; otherwise over the window's
+    // left side, below its toolbar.
+    function placeSetup() {
+      const frame = windowFrame();
+      const width = setup.offsetWidth;
+      const height = setup.offsetHeight;
+      const left = Math.max(8, frame.x - width - 24);
+      const beside = left + width <= frame.x;
+      setup.style.left = `${left}px`;
+      setup.style.top = `${Math.max(36, Math.min(frame.y + (beside ? 0 : 52), root.clientHeight - height - 8))}px`;
     }
 
     function openSetup() {
       running = true;
+      clearTimeout(doneTimer);
+      closePopover();
+      render();
+      const opening = setup.hidden;
       setup.hidden = false;
-      setup.style.left = `${Math.max(8, (root.clientWidth - setup.offsetWidth) / 2)}px`;
-      setup.style.top = `${Math.max(36, (root.clientHeight - setup.offsetHeight) / 2 - 30)}px`;
-      setup.querySelector('.sf-setup-open').focus({ preventScroll: true });
-      onSetup(true);
+      placeSetup();
+      const step = setup.dataset.step;
+      setup.querySelector(step === '1' ? '.sf-setup-open' : '.sf-setup-cancel').focus({ preventScroll: true });
+      if (opening) onSetup(true);
     }
 
     function closeSetup() {
+      clearTimeout(doneTimer);
       if (setup.hidden) return;
       setup.hidden = true;
+      closeSettings();
       onSetup(false);
     }
 
+    // Safari opens its settings on Extensions with Jam selected, clear of Jam's window when that's open
     function openSettings() {
       running = true;
       settingsPane.hidden = false;
-      const rect = root.getBoundingClientRect();
-      settingsPane.style.left = `${Math.max(8, (rect.width - settingsPane.offsetWidth) / 2)}px`;
-      settingsPane.style.top = `${Math.max(36, (rect.height - settingsPane.offsetHeight) / 2 - 40)}px`;
+      const width = settingsPane.offsetWidth;
+      const centered = (root.clientWidth - width) / 2;
+      const left = setup.hidden ? centered : Math.min(Math.max(centered, setup.offsetLeft + setup.offsetWidth + 24), root.clientWidth - width - 8);
+      settingsPane.style.left = `${Math.max(8, left)}px`;
+      settingsPane.style.top = `${Math.max(36, (root.clientHeight - settingsPane.offsetHeight) / 2 - 40)}px`;
       settingsPane.querySelector('.sf-checkbox-hit input').focus({ preventScroll: true });
       changed();
     }
@@ -300,32 +302,24 @@
 
     function setTab(name) {
       if (!tabs[name]) return;
-      if (name === 'guide') guideOpen = true;
       tab = name;
       closePopover();
       changed();
     }
 
     function reset() {
-      clearTimeout(guideTimer);
       running = true;
       enabled = false;
       access = 'none';
-      guideOpen = false;
       tab = 'design';
       closePopover();
       closeSettings();
       closeSetup();
-      setGuiding(false);
       changed();
     }
 
     tabBar.addEventListener('pointerdown', (event) => event.stopPropagation());
     tabBar.addEventListener('click', (event) => {
-      if (event.target.closest('.sf-tab-close')) {
-        closeGuide();
-        return;
-      }
       const button = event.target.closest('.sf-tab');
       if (button) setTab(button.dataset.tab);
     });
@@ -352,17 +346,16 @@
     settingsPane.querySelector('.sf-settings-close').addEventListener('click', closeSettings);
     setup.querySelector('.sf-setup-close').addEventListener('click', closeSetup);
     setup.querySelector('.sf-setup-cancel').addEventListener('click', closeSetup);
-    setup.querySelector('.sf-setup-open').addEventListener('click', () => {
-      closeSetup();
-      openSettings();
-    });
+    setup.querySelector('.sf-setup-open').addEventListener('click', openSettings);
+    // Clicking Safari's window brings it forward over its Settings pane, as macOS would
+    article.addEventListener('pointerdown', closeSettings, true);
     setup.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
         closeSetup();
       } else if (event.key === 'Tab') {
         // Focus stays in the window while it's up, as it would in a sheet
-        const buttons = [...setup.querySelectorAll('.sf-setup-button')];
+        const buttons = [...setup.querySelectorAll('.sf-setup-button')].filter((button) => button.offsetParent);
         const index = buttons.indexOf(document.activeElement);
         event.preventDefault();
         buttons[(index + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length].focus();
@@ -389,9 +382,8 @@
       setPreset,
       openSetup,
       openSettings,
-      openGuide,
       reset,
-      isGuiding: () => guiding,
+      isGuiding: () => !setup.hidden,
       isSetupOpen: () => !setup.hidden,
       owns: (element) => !!element?.closest?.('.sf-settings, .sf-popover, .sf-setup'),
     };

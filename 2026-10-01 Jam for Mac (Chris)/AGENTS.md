@@ -49,8 +49,8 @@ Work happens on a branch and lands through a PR. Commits use conventional prefix
 - **Style varies by file.** The recording files are written densely, with many statements per line; the others are
   conventionally formatted. Match the file you're editing.
 - **Each browser's extension lives in its own file.** `recording-safari.js` owns Safari's extension state (enabled,
-  and which websites it may access), the Safari chrome inside the browser window, the guide tab, the permission
-  popover, Jam's setup window and the Settings › Extensions pane. `recording-chrome.js` owns Chrome's chrome, the
+  and which websites it may access), the Safari chrome inside the browser window, the permission popover, Jam's
+  two-step setup window and the Settings › Extensions pane. `recording-chrome.js` owns Chrome's chrome, the
   Chrome Web Store tab and Chrome's add dialog; whether Chrome's extension is installed is the belt's `browserLogs`
   setting. `recording-status-menu.js` is the menu bar's status menu for both. `recording.js` turns their state into
   the card's logs row and the full screen sources, and while either browser's setup runs, its window takes the

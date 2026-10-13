@@ -77,15 +77,25 @@
 @keyframes rb-logs-sweep{from{background-position:100% 0}to{background-position:0 0}}
 @media(prefers-reduced-motion:reduce){.rb-notch-logs-restart-label{animation:none}}
 
-/* A browser extension's setup step is one quiet line, as wide as the record pill; its detail is in a tooltip. */
-.rb-selection-notch .rb-notch-logs-restart .rb-sf[data-symbol="arrow.down.circle"]{display:none}
+/* A browser extension's setup step is one line, as wide as the record pill, with its detail in a tooltip. The first
+   step comes in two looks on trial: a ghost row with the restart button's sweep, or a blue button. */
+.rb-selection-notch .rb-notch-logs-restart .rb-sf:is([data-symbol="arrow.down.circle"],[data-symbol="puzzlepiece.extension"],[data-symbol="arrow.down.circle.fill"],[data-symbol="arrow.forward.circle.fill"]){display:none}
 .rb-selection-notch:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart .rb-sf[data-symbol="arrow.counterclockwise"]{display:none}
-.rb-selection-notch:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart-label{background:none;-webkit-text-fill-color:currentColor;animation:none}
-.rb-selection-notch[data-logs="install"] .rb-notch-logs-restart .rb-sf[data-symbol="arrow.down.circle"]{display:block;width:14px;height:14px}
 .rb-selection-notch.is-card:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart{min-height:28px;height:28px;padding:0 16px;background:transparent;color:#ffffff8c}
-@media(hover:hover) and (pointer:fine){.rb-selection-notch.is-card:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart:hover{background:#ffffff12;color:#ffffffd9}}
-/* A missing permission keeps the orange status from the Safari states: the extension is there, waiting on the user. */
-.rb-selection-notch[data-logs="permission"] .rb-notch-logs-restart-main::before{content:'';width:6px;height:6px;margin:0 4px;border-radius:50%;background:#ff9f0a;box-shadow:0 0 0 3px #ff9f0a33}
+.rb-selection-notch[data-cta="ghost"][data-logs="install"][data-logs-app="chrome"] .rb-notch-logs-restart .rb-sf[data-symbol="arrow.down.circle"],
+.rb-selection-notch[data-cta="ghost"][data-logs="install"][data-logs-app="safari"] .rb-notch-logs-restart .rb-sf[data-symbol="puzzlepiece.extension"]{display:block;width:14px;height:14px}
+@media(hover:hover) and (pointer:fine){.rb-selection-notch.is-card[data-cta="ghost"][data-logs="install"] .rb-notch-logs-restart:hover{background:#ffffff12;color:#ffffffd9}}
+.rb-selection-notch.is-card[data-cta="blue"][data-logs="install"] .rb-notch-logs-restart{border-radius:12px;background:#0588f04f;color:#70b8ff}
+.rb-selection-notch[data-cta="blue"][data-logs="install"] .rb-notch-logs-restart-main{gap:5px}
+.rb-selection-notch[data-cta="blue"][data-logs="install"][data-logs-app="chrome"] .rb-notch-logs-restart .rb-sf[data-symbol="arrow.down.circle.fill"],
+.rb-selection-notch[data-cta="blue"][data-logs="install"][data-logs-app="safari"] .rb-notch-logs-restart .rb-sf[data-symbol="arrow.forward.circle.fill"]{display:block;width:13px;height:13px}
+@media(hover:hover) and (pointer:fine){.rb-selection-notch.is-card[data-cta="blue"][data-logs="install"] .rb-notch-logs-restart:hover{background:#0588f06b;color:#8ec8ff}}
+.rb-selection-notch:is([data-cta="blue"][data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart-label{background:none;-webkit-text-fill-color:currentColor;animation:none}
+/* Safari's second step reads as a status: the extension is on, and waiting on the user in Safari's toolbar. */
+.rb-selection-notch[data-logs="permission"] .rb-notch-logs-restart,.rb-selection-notch.is-card[data-logs="permission"] .rb-notch-logs-restart{color:#ffca16}
+.rb-selection-notch[data-logs="permission"] .rb-notch-logs-restart-main{gap:7px}
+.rb-selection-notch[data-logs="permission"] .rb-notch-logs-restart-main::before{content:'';flex:none;width:6px;height:6px;margin:2px;border-radius:50%;background:#ffd60a}
+@media(hover:hover) and (pointer:fine){.rb-selection-notch.is-card[data-logs="permission"] .rb-notch-logs-restart:hover{background:#ffffff0d;color:#ffd84a}}
 
 /* A macOS help tag */
 .rb-tooltip{position:absolute;z-index:47;max-width:240px;padding:4px 8px;border-radius:6px;background:#f6f6f6f2;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 0 0 .5px #00000038,0 4px 12px #00000029;color:#000000d9;font-size:11px;line-height:14px;font-weight:400;white-space:normal;pointer-events:none;animation:rb-tooltip-in 120ms ease-out}
