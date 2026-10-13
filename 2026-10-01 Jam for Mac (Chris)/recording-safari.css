@@ -118,8 +118,8 @@
 .sf-setup-step-copy{display:flex;gap:10px;padding:12px 8px 4px}
 .sf-setup-step-copy>div{min-width:0}
 .sf-setup-badge{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;background:#0000000f;color:#00000073;font-size:12px;font-weight:600}
-.sf-setup-badge svg{display:none;width:12px;height:12px;fill:none;stroke:#000000df;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sf-setup-step:is([data-status="current"],[data-status="done"]) .sf-setup-badge{background:#71e3bd;color:#000000df}
+.sf-setup-badge svg{display:none;width:12px;height:12px;fill:none;stroke:#192612;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sf-setup-step:is([data-status="current"],[data-status="done"]) .sf-setup-badge{background:#a7f374;color:#192612}
 .sf-setup-step[data-status="done"] .sf-setup-badge b{display:none}.sf-setup-step[data-status="done"] .sf-setup-badge svg{display:block}
 .sf-setup-step h3{margin:2px 0 0;font-size:13px;line-height:17px;font-weight:600;text-wrap:balance}
 .sf-setup-step p{margin:3px 0 0;font-size:12px;line-height:15px;color:#0000009b;text-wrap:pretty}
@@ -133,8 +133,9 @@
 .sf-setup-note{margin:0;max-width:300px;font-size:11px;line-height:14px;color:#0000009b;text-wrap:pretty}
 .sf-setup-footer div{display:flex;gap:8px;margin-left:auto}
 .sf-setup-button{height:36px;padding:0 16px;border-radius:18px;background:#0000000f;color:#000000df;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:default}
-.sf-setup-button.is-primary{min-width:140px;background:#71e3bd}
-@media(hover:hover) and (pointer:fine){.sf-setup-button:hover{background:#00000017}.sf-setup-button.is-primary:hover{background:#63dcb3}}
+/* Jam's lime accent (lime-9), with its hover step and the dark text that sits on it */
+.sf-setup-button.is-primary{min-width:140px;background:#a7f374;color:#192612}
+@media(hover:hover) and (pointer:fine){.sf-setup-button:hover{background:#00000017}.sf-setup-button.is-primary:hover{background:#9aea5f}}
 .sf-setup-button:focus-visible{outline:3px solid #0a84ff80;outline-offset:1px}
 
 /* The pictures sit on a 280-wide stage centred in each step, so the pointer's path can be written in pixels. */
@@ -194,14 +195,6 @@
 .sf-guide-heading h1{margin:0;color:#1c2024;font-size:34px;line-height:38px;font-weight:500;letter-spacing:-.03em;text-wrap:balance}
 .sf-guide-heading p{max-width:520px;margin:8px auto 0;color:#626461;font-size:14px;line-height:20px;text-wrap:balance}
 .sf-guide-steps{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0 0;padding:0;list-style:none}
-.sf-guide .sf-setup-step:not([data-status="current"]){background:#f8faf7;box-shadow:0 0 0 1px #0b1f000f}
-/* The page's numbers are quiet light grey, leaving the lime button as the one accent */
+/* The page's numbers are quiet light grey */
 .sf-guide .sf-setup-step .sf-setup-badge{width:18px;height:18px;margin-top:1px;background:#eff1ee;color:#818280;font-size:10.5px;font-weight:500}
-.sf-guide .sf-setup-badge svg{width:10px;height:10px;stroke:#818280}
-/* Jam's lime accent (lime-9), with its hover step and the dark text that sits on it */
-.sf-guide-action{display:none;align-items:center;height:28px;margin-top:10px;padding:0 12px;border-radius:9px;background:#a7f374;color:#192612;font-size:12px;line-height:16px;font-weight:600;cursor:default}
-.sf-setup-step[data-step="1"][data-status="current"] .sf-guide-action{display:inline-flex}
-@media(hover:hover) and (pointer:fine){.sf-guide-action:hover{background:#9aea5f}}
-.sf-guide-action:focus-visible{outline:3px solid #0a84ff80;outline-offset:1px}
 .sf-guide-note{margin:16px 0 0;color:#818280;font-size:12px;line-height:16px;text-align:center}
-.sf-guide-note:empty{display:none}
