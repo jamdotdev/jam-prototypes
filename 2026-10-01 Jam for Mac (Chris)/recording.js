@@ -74,17 +74,25 @@
     <div class="rb-capture-status" role="status" aria-live="polite"></div>
   `;
   const $=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
-  // A browser's setup takes the pointer: its window picker steps aside, and the card comes back when it's done if the pointer is still on the window.
+  // Chrome's setup takes the pointer: its window picker steps aside, and the card comes back when it's done if the pointer is still on the window.
   function browserGuide(on){
     root.dataset.browserGuide=String(browser().isGuiding());
     if(on){hoverTarget=null;hoverHold=false;closeMenu(false);selectionNotch?.close(false);}
     if(!on&&settings.mode==='window'&&isIdle()){const r=windows.browser;if(pointer.x>=r.x&&pointer.x<=r.x+r.width&&pointer.y>=r.y&&pointer.y<=r.y+r.height)hoverTarget='browser';}
     syncSelection();emit();
   }
+  // Safari's setup keeps the card on its window, so recording picks up where it left off: the window picker steps aside so
+  // Safari stays clickable, and the card goes back to following the pointer once Safari is connected or left.
+  function safariSetup(on){
+    root.dataset.browserGuide=String(on);
+    if(on){closeMenu(false);selectionNotch?.close(false);if(settings.mode==='window'&&isIdle()&&!selectedWindow){hoverTarget='browser';hoverHold=true;}}
+    else if(settings.mode==='window'&&isIdle()){const r=windows.browser;hoverHold=false;hoverTarget=pointer.x>=r.x&&pointer.x<=r.x+r.width&&pointer.y>=r.y&&pointer.y<=r.y+r.height?'browser':null;}
+    syncSelection();emit();
+  }
   safari=JamSafari.create({root,article:$('[data-window="browser"]'),
-    onChange:()=>{syncSelection();emit();statusMenu.refresh();},
+    onChange:()=>{flipLogsButton();syncSelection();emit();statusMenu.refresh();},
     onToast:text=>showBeltToast(text,'done'),
-    onSetup:browserGuide,
+    onSetup:safariSetup,
     preset:'connected',
   });
   const hoverWaves=JamWaves.create($('.rb-hover-waves'));
@@ -284,24 +292,34 @@
     const app=electronApps[name];
     if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`,detail:settings.electronLogs==='once'?'Logs turn on as it reopens':''}:settings.electronLogs==='once'?{state:'optin',label:'Turn on console logs',detail:`Restarts ${targetNames[name]}`}:{state:'restart',label:'Restart to capture logs'};
     if(name!=='browser')return null;
+    if(flipLogs)return flipLogs;
     return browserApp==='safari'?safariWindowLogs():chromeLogs();
   }
-  // A browser without Jam's extension offers to set it up from the logs row, with the detail in a tooltip. Two looks are on
-  // trial for that first step, a ghost row with the restart button's sweep or a blue button, and each has its own copy
-  // for Safari's second step, where the extension is on but hasn't been allowed on the website yet.
-  const setupLabels={ghost:{chrome:'Install Extension for logs',safari:'Setup Extension for logs',permission:'Enable logs for this site'},blue:{chrome:'Enable Logs for Chrome',safari:'Enable Logs for Safari',permission:'Enable log permissions'}};
-  let logsButton='ghost';
-  const chromeLogs=()=>settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'install',app:'chrome',cta:logsButton,label:setupLabels[logsButton].chrome,tip:'Add Jam to Chrome to capture console logs and network requests'};
+  // A browser without Jam's extension offers to set it up from the logs row, a blue button with the detail in a tooltip.
+  // Safari's second step, where the extension is on but hasn't been allowed on websites yet, turns it yellow.
+  const setupLabels={chrome:'Enable Logs for Chrome',safari:'Connect Logs for Safari',permission:'Grant permission for Safari logs'};
+  const chromeLogs=()=>settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'install',app:'chrome',label:setupLabels.chrome,tip:'Add Jam to Chrome to capture console logs and network requests'};
   // Safari can't send logs until its box is checked in Safari's settings and the user allows it on the website.
   function safariWindowLogs(){
-    const state=safari.state(),host=safari.host(),labels=setupLabels[logsButton];
+    const state=safari.state(),host=safari.host();
     if(state==='connected')return {state:'connected',label:'Logs enabled'};
-    if(state==='disabled')return {state:'install',app:'safari',cta:logsButton,label:labels.safari,tip:'Turn on the Jam extension in Safari to capture logs'};
-    return {state:'permission',app:'safari',cta:logsButton,label:labels.permission,tip:state==='site'?`Allow the Jam extension on ${host} to capture logs`:'Allow the Jam extension in Safari to capture logs'};
+    if(state==='disabled')return {state:'install',app:'safari',label:setupLabels.safari,tip:'Turn on the Jam extension in Safari to capture logs'};
+    return {state:'permission',app:'safari',label:setupLabels.permission,tip:state==='site'?`Allow the Jam extension on ${host} to capture logs`:'Allow the Jam extension in Safari to capture logs'};
   }
-  function setLogsButton(value){
-    if(!setupLabels[value]||value===logsButton)return;
-    logsButton=value;syncSelection();emit();
+  // The card stays up through Safari's setup, so its logs button flips over to each new step rather than swapping. While
+  // it turns away the button keeps showing the step it's leaving.
+  let shownLogs=null,flipLogs=null;
+  function flipLogsButton(){
+    if(!shownLogs||flipLogs||browserApp!=='safari'||cardTarget()!=='browser')return;
+    const next=safariWindowLogs();if(next.state===shownLogs.state&&next.label===shownLogs.label)return;
+    const row=$('.rb-selection-notch .rb-notch-window-controls'),still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    flipLogs=shownLogs;
+    const away=row.animate(still?[{opacity:1},{opacity:0}]:[{transformOrigin:'50% 50%',transform:'perspective(400px) rotateX(0deg)'},{transformOrigin:'50% 50%',transform:'perspective(400px) rotateX(90deg)',opacity:.4}],{duration:still?100:160,easing:'cubic-bezier(.55,0,1,.45)'});
+    away.onfinish=away.oncancel=()=>{
+      flipLogs=null;syncSelection();
+      row.animate(still?[{opacity:0},{opacity:1}]:[{transformOrigin:'50% 50%',transform:'perspective(400px) rotateX(-90deg)',opacity:.4},{transformOrigin:'50% 50%',transform:'perspective(400px) rotateX(0deg)',opacity:1}],{duration:still?160:300,easing:'cubic-bezier(.2,.8,.3,1)'});
+      $('.rb-capture-status').textContent=windowLogs('browser')?.label||'';
+    };
   }
   // A full screen can hold several apps sending logs, so the screen card and the recording bar summarise them all.
   const logSources=[['browser','Chrome','chrome-app.png'],['safari','Safari','safari.png'],['notion','Notion','notion.png']];
@@ -388,6 +406,7 @@
     if(settings.mode==='window')return !selectedWindow&&windows[hoverTarget]?hoverTarget:null;
     return hoverTarget==='screen'?'screen':null;
   }
+  let cardDocked=false,glideTimer=0;
   function syncRecordCard(bounds){
     if(alertTarget&&(settings.mode!=='window'||!isIdle()))closeRestartAlert();
     root.dataset.alert=String(!!alertTarget);
@@ -396,8 +415,9 @@
     $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-hovered',el.dataset.window===target));
     syncWindowOverlays();
     root.dataset.screenHover=String(target==='screen');
+    shownLogs=target==='browser'?windowLogs('browser'):null;
     if(!target){
-      card.hidden=true;
+      card.hidden=true;cardDocked=false;
       selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'&&settings.dimensions||settings.mode==='window'&&!!selectedWindow),dimensions:settings.dimensions,key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rulers:settings.rulersButton,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
       return;
     }
@@ -416,6 +436,10 @@
     // The notch is the panel behind the record pill, so it starts where the controls do.
     const cardWidth=card.offsetWidth,panelTop=controls.offsetTop,total=notch?panelTop+notch.height:card.offsetHeight;
     let x=rect.x+rect.width/2,y=rect.y+rect.height/2-total/2;
+    // While Safari's jam.dev page is up, the card waits at the bottom of the window, clear of the page's loop.
+    const docked=target==='browser'&&browserApp==='safari'&&safari.isDocked();
+    if(docked)y=rect.y+rect.height-total-16;
+    if(docked!==cardDocked){cardDocked=docked;root.classList.add('is-card-gliding');clearTimeout(glideTimer);glideTimer=setTimeout(()=>root.classList.remove('is-card-gliding'),600);}
     // The area keeps its card outside the selection: below it when that clears the belt, otherwise above.
     if(target==='area'){
       const below=rect.y+rect.height+12,above=rect.y-total-12;
@@ -431,13 +455,14 @@
   }
   function trackHover(event){
     if(!active||!isIdle()||!settings.oneClick||settings.mode==='area'||drag)return;
+    if(browserApp==='safari'&&safari.isGuiding())return;
     const el=event.target instanceof Element?event.target:null;
     // The card, its notch, its menus and a size being typed belong to the hovered target, so they keep it.
     if(openMenu||el?.closest('.rb-record-card,.rb-selection-notch,.rb-sizing-menu')||document.activeElement?.matches?.('.rb-selection-notch input'))return;
     // The alert and a restart in progress both belong to the app being started, so they keep its card.
     if(alertTarget||electronApps[hoverTarget]?.debug==='restarting')return;
-    // Safari's setup window, its settings and its popover, and Chrome's add dialog, sit over the desktop.
-    if(safari.owns(el)||chrome.owns(el)||safari.isSetupOpen()){setHover(null);return;}
+    // Safari's settings and its popover, and Chrome's add dialog, sit over the desktop.
+    if(safari.owns(el)||chrome.owns(el)){setHover(null);return;}
     if(settings.mode==='screen'){setHover(el?.closest('.rb-belt,.native-menu')?null:'screen');return;}
     // The browser's tabs and Safari's extension button stay clickable over the picker, and still count as the browser window.
     const name=el?.closest('.rb-window-picker')?.dataset.picker||(el?.closest('.sf-tabs,.sf-extension,.ch-tabs')?'browser':null);
@@ -447,7 +472,7 @@
   function startTarget(target){
     if(!target||!isIdle())return;
     if(target==='area'||target==='screen'){closeMenu(false);hoverTarget=null;setStage('recording');}
-    else startWindowRecording(target);
+    else{startWindowRecording(target);if(target==='browser'&&browserApp==='safari')safari.endSetup();}
   }
   function idleBeltWidth(){return settings.oneClick?435:587;}
   function startWindowRecording(name){
@@ -997,7 +1022,7 @@
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
     getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),alert:alertTarget,apps:Object.fromEntries(Object.entries(electronApps).map(([name,app])=>[name,{debug:app.debug,declined:app.declined,enabled:app.enabled}])),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
-    getBrowserApp:()=>browserApp,setBrowserApp,getLogsButton:()=>logsButton,setLogsButton,getChromeState:()=>settings.browserLogs==='connected'?'connected':'missing',setChromeState,getSafariState:()=>safari.state(),setSafariState,getSafariTab:()=>safari.tab(),setSafariTab:tab=>safari.setTab(tab),getSafariGuide:()=>safari.guide(),setSafariGuide:value=>safari.setGuide(value),getChromeTab:()=>chrome.tab(),setChromeTab:tab=>chrome.setTab(tab),restartBrowserSetup,startLogsSetup,updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
+    getBrowserApp:()=>browserApp,setBrowserApp,getChromeState:()=>settings.browserLogs==='connected'?'connected':'missing',setChromeState,getSafariState:()=>safari.state(),setSafariState,getSafariTab:()=>safari.tab(),setSafariTab:tab=>safari.setTab(tab),getChromeTab:()=>chrome.tab(),setChromeTab:tab=>chrome.setTab(tab),restartBrowserSetup,startLogsSetup,updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
@@ -1022,11 +1047,9 @@
   })});
   syncWindows();
   JamDefaults.register('recording',{groups:['recording'],read:()=>({recording:{...settings}}),apply:values=>updateSettings(values.recording),onReset(){clearTimeout(clockTimer);clockStamp=0;fixedAnchor=null;cameraSnap=null;stage='idle';elapsed=0;previewPlaying=false;previewTime=0;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};resetSelection();renderBelt();emit();}});
-  // `?safari=disabled` (or permission, site, connected) and `?chrome=missing` open on that browser in that state, and
-  // `?cta=blue` picks the blue setup button and `?steps=tab` the jam.dev page for Safari's steps, for sharing a step.
+  // `?safari=disabled` (or permission, site, connected) and `?chrome=missing` open on that browser in that state, for
+  // sharing a step.
   const params=new URLSearchParams(location.search),safariParam=params.get('safari'),chromeParam=params.get('chrome');
-  if(setupLabels[params.get('cta')])logsButton=params.get('cta');
-  safari.setGuide(params.get('steps'));
   if(JamSafari.presets.includes(safariParam)&&safariParam!=='off'){setMode('window');setSafariState(safariParam);}
   else if(['missing','connected'].includes(chromeParam)){setMode('window');setChromeState(chromeParam);}
   syncSelection();renderBelt();setActive(JamPlayground.getSurface()==='recording');

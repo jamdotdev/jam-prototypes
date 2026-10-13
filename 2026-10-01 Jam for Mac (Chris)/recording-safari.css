@@ -12,13 +12,15 @@
 .sf-chevron{width:7px;height:7px;border:solid #8a888e;border-width:0 0 1.6px 1.6px;rotate:45deg;opacity:.45}.sf-chevron.is-back{opacity:1}
 .sf-address{display:flex;flex:1;align-items:center;justify-content:center;height:26px;min-width:0;border-radius:7px;background:#e6e4e8;color:#3c3c43;font-size:12px}
 .sf-address-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sf-extension{position:relative;display:grid;place-items:center;flex:none;width:28px;height:24px;padding:0;border-radius:6px;background:transparent;cursor:default}
+.sf-extension{position:relative;display:grid;place-items:center;flex:none;width:28px;height:24px;margin:0 -6px 0 -2px;padding:0;border-radius:6px;background:transparent;cursor:default}
 .sf-extension[hidden]{display:none}
-.sf-extension img{width:14px;height:16px}
+.sf-extension img{width:16px;height:16px;transition:filter 300ms ease,opacity 300ms ease}
 @media(hover:hover) and (pointer:fine){.sf-extension:hover{background:#0000000d}}
 .sf-extension[aria-expanded="true"]{background:#00000014}
-/* Safari greys an extension's button on sites it can't access yet */
+/* Safari greys an extension's button until the user allows it on the website, and adds it as the box is checked */
 .sf-extension.is-waiting img{filter:grayscale(1);opacity:.45}
+.sf-extension.is-arriving{animation:sf-extension-in 360ms cubic-bezier(.2,.9,.3,1.25)}
+@keyframes sf-extension-in{from{opacity:0;scale:.4}}
 .sf-tools{display:flex;gap:12px;padding-right:2px}.sf-tools i{width:14px;height:14px;border:1.5px solid #8a888e;border-radius:3px;opacity:.8}.sf-tools i+i{border-radius:2px;box-shadow:3px -3px 0 -1.5px #f6f5f7,3px -3px 0 0 #8a888e}
 .sf-tab{position:relative;display:flex;flex:1;align-items:center;justify-content:center;min-width:0;max-width:240px;height:24px;margin-top:3px;padding:0 24px;border-radius:6px;background:transparent;color:#6e6c72;font-size:11px;cursor:default}
 .sf-tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -99,102 +101,71 @@
 .sf-status-value[data-tone="positive"] i{background:#34c759}
 .sf-status-value[data-tone="warning"]{color:#c93400}.sf-status-value[data-tone="warning"] i{background:#ff9500}
 
-@media(prefers-reduced-motion:reduce){.sf-popover,.sf-settings{animation:none}}
+@media(prefers-reduced-motion:reduce){.sf-popover,.sf-settings,.sf-coach,.sf-extension.is-arriving{animation:none}.sf-extension img{transition:none}}
 
-/* Jam's window for both of Safari's steps: the onboarding window's size, with the steps side by side under the heading.
-   The current step is raised; a done step keeps its picture and gains a tick. */
-.sf-setup{position:absolute;z-index:55;width:700px;height:500px;border-radius:16px;overflow:hidden;background:#fff;color:#000000df;box-shadow:0 0 0 .5px #0006,0 18px 27px #0000004d;animation:rb-alert-in 180ms cubic-bezier(.2,0,0,1)}
-.sf-setup[hidden]{display:none}
-.sf-setup-grid{position:absolute;inset:0 0 auto;height:280px;background-image:linear-gradient(#00000009 1px,transparent 1px),linear-gradient(90deg,#00000009 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent);pointer-events:none}
-.sf-setup-titlebar{position:relative;height:30px}
-.sf-setup-titlebar .traffic-lights{pointer-events:auto}
-.sf-setup .traffic{padding:0;cursor:default}
-.sf-setup-heading{position:relative;margin-top:24px;text-align:center}
-.sf-setup-heading h2{margin:0;font-size:22px;line-height:26px;font-weight:700;letter-spacing:0}
-.sf-setup-heading p{margin:4px auto 0;max-width:460px;font-size:13px;line-height:16px;color:#0000009b;text-wrap:balance}
-.sf-setup-steps{position:absolute;left:32px;right:32px;top:126px;bottom:84px;display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0;padding:0;list-style:none}
-.sf-setup-step{display:flex;flex-direction:column;min-width:0;padding:8px;border-radius:16px;background:#00000008;transition:background-color 200ms ease,box-shadow 200ms ease}
-.sf-setup-step[data-status="current"]{background:#fff;box-shadow:0 0 0 .5px #00000024,0 4px 14px #00000014}
-.sf-setup-step-copy{display:flex;gap:10px;padding:12px 8px 4px}
-.sf-setup-step-copy>div{min-width:0}
-.sf-setup-badge{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;background:#0000000f;color:#00000073;font-size:12px;font-weight:600}
-.sf-setup-badge svg{display:none;width:12px;height:12px;fill:none;stroke:#192612;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sf-setup-step:is([data-status="current"],[data-status="done"]) .sf-setup-badge{background:#a7f374;color:#192612}
-.sf-setup-step[data-status="done"] .sf-setup-badge b{display:none}.sf-setup-step[data-status="done"] .sf-setup-badge svg{display:block}
-.sf-setup-step h3{margin:2px 0 0;font-size:13px;line-height:17px;font-weight:600;text-wrap:balance}
-.sf-setup-step p{margin:3px 0 0;font-size:12px;line-height:15px;color:#0000009b;text-wrap:pretty}
-.sf-setup-step[data-status="next"] :is(h3,p){color:#00000061}
-.sf-setup-step[data-status="next"] .sf-setup-art{opacity:.55}
-.sf-setup-status{display:none;align-items:center;gap:6px;margin-top:8px;font-size:12px;line-height:16px;font-weight:510;color:#0000009b}
-.sf-setup-status.is-done{color:#248a3d}
-.sf-setup-status.is-done svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sf-setup-step[data-status="done"] .sf-setup-status.is-done,.sf-setup-step[data-step="2"][data-status="current"] .sf-setup-status.is-waiting{display:flex}
-.sf-setup-footer{position:absolute;left:0;right:0;bottom:0;height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;box-shadow:inset 0 .5px 0 #00000017}
-.sf-setup-note{margin:0;max-width:300px;font-size:11px;line-height:14px;color:#0000009b;text-wrap:pretty}
-.sf-setup-footer div{display:flex;gap:8px;margin-left:auto}
-.sf-setup-button{height:36px;padding:0 16px;border-radius:18px;background:#0000000f;color:#000000df;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:default}
-/* Jam's lime accent (lime-9), with its hover step and the dark text that sits on it */
-.sf-setup-button.is-primary{min-width:140px;background:#a7f374;color:#192612}
-@media(hover:hover) and (pointer:fine){.sf-setup-button:hover{background:#00000017}.sf-setup-button.is-primary:hover{background:#9aea5f}}
-.sf-setup-button:focus-visible{outline:3px solid #0a84ff80;outline-offset:1px}
-
-/* The pictures sit on a 280-wide stage centred in each step, so the pointer's path can be written in pixels. */
-.sf-setup-art{position:relative;flex:none;height:164px;border-radius:10px;overflow:hidden;background:#f5f5f7;box-shadow:inset 0 0 0 .5px #0000000f;color:#1d1d1f;transition:opacity 200ms ease}
-.sf-art-stage{position:absolute;left:50%;top:50%;width:280px;height:96px;translate:-50% -50%}
-.is-toolbar .sf-art-stage{height:134px}
-.sf-art-stage .sf-cursor{position:absolute;left:0;top:0;width:12px;height:18px;transform-origin:0 0;filter:drop-shadow(0 1px 1px #0000004d)}
-/* Step 1: Safari's Extensions settings, with the pointer checking Jam's box */
-.sf-art-pane{position:absolute;left:20px;top:12px;width:240px;padding:0 4px 4px;border-radius:9px;background:#fff;box-shadow:0 0 0 .5px #00000024,0 2px 6px #00000014}
-.sf-art-pane-title{position:relative;display:grid;place-items:center;height:20px;font-size:8.5px;font-weight:700}
-.sf-setup-lights{position:absolute;left:4px;top:7px;display:flex;gap:3px}.sf-setup-lights i{width:6px;height:6px;border-radius:50%;background:#ff5f57}.sf-setup-lights i+i{background:#febc2e}.sf-setup-lights i+i+i{background:#28c840}
-.sf-art-row{display:flex;align-items:center;gap:6px;height:22px;margin-top:2px;padding:0 6px;border-radius:5px;font-size:9.5px}
+/* Jam's alert over Safari's settings, with a small picture of checking Jam's box */
+.sf-coach{z-index:56}
+.sf-coach[hidden]{display:none}
+.sf-coach .sf-coach-message{margin-bottom:12px}
+.sf-coach-button{width:100%}
+.sf-coach-art{position:relative;display:block;width:100%;margin-bottom:16px;padding:6px;border-radius:10px;background:#fff;box-shadow:0 0 0 .5px #00000024,0 1px 3px #00000014;text-align:left}
+.sf-art-row{display:flex;align-items:center;gap:7px;height:24px;padding:0 7px;border-radius:6px;font-size:11px}
 .sf-art-row.is-selected{background:#0a84ff;color:#fff}
-.sf-art-row .sf-checkbox{width:11px;height:11px;border-radius:3px}.sf-art-row .sf-checkbox svg{width:8px;height:8px}
-.sf-art-row .sf-ext-icon{width:11px;height:11px;border-radius:3px}
+.sf-art-row .sf-checkbox{width:12px;height:12px;border-radius:3px}.sf-art-row .sf-checkbox svg{width:9px;height:9px}
+.sf-art-row .sf-ext-icon{width:13px;height:13px;border-radius:3px}
 .sf-art-box{box-shadow:0 0 0 .5px #00000040,0 0 0 2px #ffffff8c}
-.sf-art-box svg{stroke:#0a84ff;opacity:1}
-.is-settings .sf-cursor{translate:36px 71px}
-/* Step 2: Safari's toolbar and the permission popover that Jam's button opens */
-.sf-art-toolbar{position:absolute;left:12px;top:12px;display:flex;align-items:center;gap:8px;width:256px;height:26px;padding:0 8px;border-radius:8px;background:#fff;box-shadow:0 0 0 .5px #00000024,0 2px 6px #00000014}
-.sf-art-nav{display:flex;gap:6px;width:20px}.sf-art-nav i{width:5px;height:5px;border:solid #8a888e;border-width:0 0 1.3px 1.3px;rotate:45deg}.sf-art-nav i+i{rotate:-135deg;opacity:.45}
-.sf-art-address{display:grid;flex:1;place-items:center;height:16px;border-radius:5px;background:#eeeef0;color:#6e6c72;font-size:8.5px}
-.sf-art-extension{display:grid;place-items:center;flex:none;width:22px;height:18px;border-radius:5px;background:#0000000d}
-.sf-art-extension img{width:9px;height:11px}
-.sf-art-tool{flex:none;width:9px;height:9px;border:1.3px solid #8a888e;border-radius:2px;opacity:.8}
-.sf-art-popover{position:absolute;left:108px;top:44px;display:flex;flex-direction:column;gap:3px;width:150px;padding:7px;border-radius:10px;background:#f2f2f4;box-shadow:0 0 0 .5px #00000033,0 6px 14px #0000002e}
-.sf-art-popover::before{content:'';position:absolute;top:-4px;left:119px;width:8px;height:8px;rotate:45deg;background:#f2f2f4;box-shadow:-.5px -.5px 0 #00000026}
-.sf-art-popover b{position:relative;margin-bottom:2px;font-size:8px;line-height:10px;font-weight:600}
-.sf-art-popover i{display:grid;place-items:center;height:13px;border-radius:4px;background:#fff;font-size:7.5px;font-style:normal;font-weight:500;box-shadow:0 0 0 .5px #0000001f,0 .5px 1px #00000026}
-.sf-art-popover i.is-default{background:linear-gradient(#2a95ff,#0a7cff);color:#fff}
-.is-toolbar .sf-cursor{translate:186px 116px}
-.sf-setup-step:not([data-status="current"]) .sf-cursor{display:none}
-/* The current step's picture plays on a loop; the others, and everything under reduced motion, hold the last frame. */
+.sf-art-box svg{stroke:#0a84ff;opacity:0}
+.sf-cursor{position:absolute;left:0;top:0;width:12px;height:18px;transform-origin:0 0;filter:drop-shadow(0 1px 1px #0000004d)}
+.sf-coach-art .sf-cursor{translate:19px 17px}
 @media(prefers-reduced-motion:no-preference){
-  [data-status="current"] .is-settings .sf-cursor{animation:sf-art-box-cursor 4.8s cubic-bezier(.4,0,.2,1) infinite}
-  [data-status="current"] .sf-art-box svg{animation:sf-art-check 4.8s infinite}
-  [data-status="current"] .is-toolbar .sf-cursor{animation:sf-art-allow-cursor 5.6s cubic-bezier(.4,0,.2,1) infinite}
-  [data-status="current"] .sf-art-popover{animation:sf-art-popover 5.6s infinite}
-  [data-status="current"] .sf-art-extension img{animation:sf-art-allowed 5.6s infinite}
+  .sf-coach-art .sf-cursor{animation:sf-coach-cursor 3.2s cubic-bezier(.4,0,.2,1) infinite}
+  .sf-coach-art .sf-art-box svg{animation:sf-coach-check 3.2s infinite}
 }
-@keyframes sf-art-box-cursor{0%{translate:160px 110px;opacity:0}12%{opacity:1}36%{translate:36px 71px;scale:1}40%{scale:.88}44%{scale:1}84%{translate:36px 71px;opacity:1}94%,100%{translate:36px 71px;opacity:0}}
-@keyframes sf-art-check{0%,40%{opacity:0}42%,90%{opacity:1}96%,100%{opacity:0}}
-@keyframes sf-art-allow-cursor{0%{translate:120px 140px;opacity:0}8%{opacity:1}28%{translate:233px 27px;scale:1}31%{scale:.88}34%{scale:1}56%{translate:186px 116px;scale:1}59%{scale:.88}62%{scale:1}86%{translate:186px 116px;opacity:1}94%,100%{translate:186px 116px;opacity:0}}
-@keyframes sf-art-popover{0%,33%{opacity:0;translate:0 -3px}37%,88%{opacity:1;translate:0 0}95%,100%{opacity:0;translate:0 0}}
-@keyframes sf-art-allowed{0%,61%{filter:grayscale(1);opacity:.45}64%,92%{filter:none;opacity:1}98%,100%{filter:grayscale(1);opacity:.45}}
-@media(prefers-reduced-motion:reduce){.sf-setup{animation:none}.sf-setup-step,.sf-setup-art{transition:none}}
+@keyframes sf-coach-cursor{0%{translate:150px 34px;opacity:0}10%{opacity:1}40%{translate:19px 17px;scale:1}45%{scale:.88}50%{scale:1}82%{translate:19px 17px;opacity:1}92%,100%{translate:19px 17px;opacity:0}}
+@keyframes sf-coach-check{0%,45%{opacity:0}47%,90%{opacity:1}96%,100%{opacity:0}}
 
-/* jam.dev/safari: the same two steps on a page of their own, in the marketing site's style. The site sets everything in
-   Onsite; without it, the system font stands in. */
-.sf-guide-page{position:relative;min-height:100%;padding:0 28px 20px;background:#fff;color:#1e201d;font-family:Onsite,Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
-.sf-guide-page::before{content:'';position:absolute;inset:0 0 auto;height:300px;background-image:linear-gradient(#f0f1ef 1px,transparent 1px),linear-gradient(90deg,#f0f1ef 1px,transparent 1px);background-size:27px 27px;background-position:-1px -1px;-webkit-mask-image:linear-gradient(transparent,#000 90px,transparent);mask-image:linear-gradient(transparent,#000 90px,transparent);pointer-events:none}
+/* jam.dev/safari: how to allow Jam from Safari's toolbar, in the marketing site's style. The site sets everything in
+   Onsite; without it, the system font stands in. The text and the loop sit side by side so the record card, which waits
+   at the bottom of the window, covers neither. */
+.sf-guide-page{position:relative;min-height:100%;padding:0 32px 20px;background:#fff;color:#1e201d;font-family:Onsite,Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+.sf-guide-page::before{content:'';position:absolute;inset:0 0 auto;height:320px;background-image:linear-gradient(#f0f1ef 1px,transparent 1px),linear-gradient(90deg,#f0f1ef 1px,transparent 1px);background-size:27px 27px;background-position:-1px -1px;-webkit-mask-image:linear-gradient(transparent,#000 90px,transparent);mask-image:linear-gradient(transparent,#000 90px,transparent);pointer-events:none}
 .sf-guide-page>*{position:relative}
 .sf-guide-nav{display:flex;align-items:center;justify-content:space-between;height:52px}
 .sf-guide-logo{width:52px;height:22px}
 .sf-guide-help{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:9px;background:#2060000a;box-shadow:0 0 0 1px #151f001a;color:#1f201e;font-size:12px;line-height:16px;font-weight:500}
-.sf-guide-heading{margin-top:10px;text-align:center}
+.sf-guide-hero{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:40px;align-items:center;margin-top:28px}
 .sf-guide-heading h1{margin:0;color:#1c2024;font-size:34px;line-height:38px;font-weight:500;letter-spacing:-.03em;text-wrap:balance}
-.sf-guide-heading p{max-width:520px;margin:8px auto 0;color:#626461;font-size:14px;line-height:20px;text-wrap:balance}
-.sf-guide-steps{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0 0;padding:0;list-style:none}
-/* The page's numbers are quiet light grey */
-.sf-guide .sf-setup-step .sf-setup-badge{width:18px;height:18px;margin-top:1px;background:#eff1ee;color:#818280;font-size:10.5px;font-weight:500}
-.sf-guide-note{margin:16px 0 0;color:#818280;font-size:12px;line-height:16px;text-align:center}
+.sf-guide-heading p{max-width:340px;margin:12px 0 0;color:#626461;font-size:15px;line-height:22px;text-wrap:pretty}
+.sf-guide-heading .sf-guide-note{margin-top:16px;color:#818280;font-size:12px;line-height:17px}
+
+/* The loop: the pointer clicks Jam's grey button left of the address, then "Always Allow on Every Website", and the
+   strawberry comes into colour. The stage is fixed in pixels so the pointer's path can be too. */
+.sf-demo{position:relative;width:400px;height:224px;border-radius:16px;background:#f5f5f3;box-shadow:inset 0 0 0 1px #151f000f;overflow:hidden;color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+.sf-demo-toolbar{position:absolute;left:16px;right:16px;top:16px;display:flex;align-items:center;gap:10px;height:34px;padding:0 12px;border-radius:10px;background:#fff;box-shadow:0 0 0 .5px #00000024,0 2px 8px #00000012}
+.sf-demo .sf-setup-lights{display:flex;gap:5px}.sf-setup-lights i{width:8px;height:8px;border-radius:50%;background:#ff5f57}.sf-setup-lights i+i{background:#febc2e}.sf-setup-lights i+i+i{background:#28c840}
+.sf-demo-nav{display:flex;gap:9px;padding:0 4px}.sf-demo-nav i{width:6px;height:6px;border:solid #8a888e;border-width:0 0 1.5px 1.5px;rotate:45deg}.sf-demo-nav i+i{rotate:-135deg;opacity:.45}
+.sf-demo-extension{display:grid;place-items:center;flex:none;width:24px;height:22px;border-radius:6px}
+.sf-demo-extension img{width:15px;height:15px;filter:grayscale(1);opacity:.45}
+.sf-demo-address{display:grid;flex:1;place-items:center;height:22px;border-radius:6px;background:#eeeef0;color:#6e6c72;font-size:10.5px}
+.sf-demo-tool{flex:none;width:11px;height:11px;border:1.5px solid #8a888e;border-radius:3px;opacity:.8}
+.sf-demo-popover{position:absolute;left:98px;top:60px;display:flex;flex-direction:column;gap:5px;width:220px;padding:10px;border-radius:12px;background:#f2f2f4;box-shadow:0 0 0 .5px #00000033,0 8px 20px #0000002e}
+.sf-demo-popover::before{content:'';position:absolute;top:-5px;left:20px;width:10px;height:10px;rotate:45deg;background:#f2f2f4;box-shadow:-.5px -.5px 0 #00000026}
+.sf-demo-popover-head{position:relative;display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.sf-demo-popover-head .sf-jam-icon{width:24px;height:24px;flex:none}
+.sf-demo-popover b{font-size:10px;line-height:13px;font-weight:600}
+.sf-demo-popover i{display:grid;place-items:center;height:20px;border-radius:5px;background:#fff;font-size:9.5px;font-style:normal;font-weight:500;box-shadow:0 0 0 .5px #0000001f,0 .5px 1px #00000026}
+.sf-demo-popover i.is-default{background:linear-gradient(#2a95ff,#0a7cff);color:#fff}
+/* Without motion the loop holds on its key frame: the prompt open, the pointer on the button to choose. */
+.sf-demo .sf-cursor{width:14px;height:21px;translate:206px 162px}
+@media(prefers-reduced-motion:no-preference){
+  .sf-demo .sf-cursor{animation:sf-demo-cursor 6.4s cubic-bezier(.4,0,.2,1) infinite}
+  .sf-demo-extension{animation:sf-demo-pressed 6.4s infinite}
+  .sf-demo-extension img{animation:sf-demo-allowed 6.4s infinite}
+  .sf-demo-popover{animation:sf-demo-popover 6.4s infinite}
+  .sf-demo-popover i.is-default{animation:sf-demo-choose 6.4s infinite}
+}
+@keyframes sf-demo-cursor{0%{translate:320px 200px;opacity:0}7%{opacity:1}25%{translate:120px 31px;scale:1}27%{scale:.86}30%{scale:1}50%{translate:206px 162px;scale:1}52%{scale:.86}55%{scale:1}84%{translate:206px 162px;opacity:1}92%,100%{translate:206px 162px;opacity:0}}
+@keyframes sf-demo-pressed{0%,26%{background:transparent}28%,57%{background:#00000014}59%,100%{background:transparent}}
+@keyframes sf-demo-popover{0%,28%{opacity:0;translate:0 -4px}32%,56%{opacity:1;translate:0 0}60%,100%{opacity:0;translate:0 0}}
+@keyframes sf-demo-choose{0%,51%{filter:none}52%,56%{filter:brightness(.88)}57%,100%{filter:none}}
+@keyframes sf-demo-allowed{0%,58%{filter:grayscale(1);opacity:.45;scale:1}63%{filter:none;opacity:1;scale:1.25}68%,90%{filter:none;opacity:1;scale:1}96%,100%{filter:grayscale(1);opacity:.45;scale:1}}

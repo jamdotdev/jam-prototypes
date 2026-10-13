@@ -10,7 +10,7 @@ const hover=async()=>{await p.mouse.move(point.x-4,point.y-4);await p.mouse.move
 // Choosing Chrome's state shows Chrome, and without the extension the card offers to install it
 assert.equal(await p.evaluate(()=>JamRecording.getBrowserApp()),'chrome');
 await hover();
-assert.equal((await state()).target,'browser');assert.equal(await p.locator('.rb-picker-name').textContent(),'Chrome');assert.equal(await label.textContent(),'Install Extension for logs');
+assert.equal((await state()).target,'browser');assert.equal(await p.locator('.rb-picker-name').textContent(),'Chrome');assert.equal(await label.textContent(),'Enable Logs for Chrome');
 await row.hover();await tooltip.waitFor({state:'visible'});
 assert.equal(await tooltip.textContent(),'Add Jam to Chrome to capture console logs and network requests');
 // Installing opens Jam's listing in a new Chrome Web Store tab, and the window becomes clickable

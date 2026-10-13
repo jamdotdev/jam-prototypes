@@ -46,8 +46,6 @@
       // Picking either browser's extension state shows that browser in the browser window.
       section('browser','Browser',[
         select('browserApp','Browser window',()=>R().getBrowserApp(),value=>R().setBrowserApp(value),[['chrome','Chrome'],['safari','Safari']]),
-        select('logsButton','Logs button',()=>R().getLogsButton(),value=>R().setLogsButton(value),[['ghost','Ghost, with sweep'],['blue','Blue']]),
-        select('safariGuide','Safari steps',()=>R().getSafariGuide(),value=>R().setSafariGuide(value),[['window','Jam window'],['tab','jam.dev page in a Safari tab']]),
         select('chromeState','Chrome extension',()=>R().getChromeState(),value=>R().setChromeState(value),[['missing','Not installed'],['connected','Connected']]),
         select('chromeTab','Chrome tab',()=>R().getChromeTab(),value=>R().setChromeTab(value),[['design','Design system (jam.dev)'],['store','Chrome Web Store']]),
         select('safariState','Safari extension',()=>R().getSafariState(),value=>R().setSafariState(value),[['off','S4 · Safari not running'],['disabled','S0 · Not installed'],['permission','S1 · Needs permission'],['site','S2 · Not allowed on this site'],['connected','S3 · Connected']]),
