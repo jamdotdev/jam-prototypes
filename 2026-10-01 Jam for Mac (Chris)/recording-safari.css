@@ -1,11 +1,13 @@
 /* Safari plays the browser window: Safari's toolbar and tab bar replace Chrome's address bar. */
-.sf-toolbar,.sf-tabs{display:none}
+.sf-toolbar,.sf-tabs,.sf-guide{display:none}
 .recording-scene[data-browser="safari"] .rb-browser .rb-browser-address{display:none}
 .recording-scene[data-browser="safari"] .rb-browser .rb-window-titlebar{gap:12px;background:#f6f5f7;box-shadow:none}
 .recording-scene[data-browser="safari"] .rb-browser .rb-window-drag-icon{order:-1;margin-left:-4px;color:#8a888e}
 .recording-scene[data-browser="safari"] .sf-toolbar{display:flex;flex:1;align-items:center;gap:12px;min-width:0}
 .recording-scene[data-browser="safari"] .sf-tabs{display:flex;height:30px;gap:1px;padding:0 6px 0;background:#e9e7eb;box-shadow:inset 0 .5px 0 #0000001a,inset 0 -.5px 0 #0000001f}
 .recording-scene[data-browser="safari"] .rb-browser-content{height:calc(100% - 73px)}
+.recording-scene[data-browser="safari"] .sf-guide:not([hidden]){display:block;height:calc(100% - 73px);overflow:auto;background:#fff}
+.recording-scene[data-browser="safari"] .rb-browser[data-safari-tab="guide"] .rb-browser-content{display:none}
 .sf-nav{display:flex;gap:14px;padding:0 4px}
 .sf-chevron{width:7px;height:7px;border:solid #8a888e;border-width:0 0 1.6px 1.6px;rotate:45deg;opacity:.45}.sf-chevron.is-back{opacity:1}
 .sf-address{display:flex;flex:1;align-items:center;justify-content:center;height:26px;min-width:0;border-radius:7px;background:#e6e4e8;color:#3c3c43;font-size:12px}
@@ -22,6 +24,9 @@
 .sf-tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sf-tab[aria-selected="true"]{background:#f6f5f7;color:#1d1d1f;box-shadow:0 0 0 .5px #0000001a,0 1px 1px #0000000d}
 @media(hover:hover) and (pointer:fine){.sf-tab[aria-selected="false"]:hover{background:#0000000a}}
+.sf-tab-close{position:absolute;left:6px;top:5px;width:14px;height:14px;border-radius:4px}
+.sf-tab-close::before,.sf-tab-close::after{content:'';position:absolute;left:3px;top:6.25px;width:8px;height:1.5px;border-radius:1px;background:#6e6c72;rotate:45deg}.sf-tab-close::after{rotate:-45deg}
+@media(hover:hover) and (pointer:fine){.sf-tab-close:hover{background:#00000014}}
 
 /* Tabs and the extension button sit above the window picker so they work while picking */
 .sf-tabs,.sf-extension{position:relative;z-index:6}
@@ -176,3 +181,23 @@
 @keyframes sf-art-popover{0%,33%{opacity:0;translate:0 -3px}37%,88%{opacity:1;translate:0 0}95%,100%{opacity:0;translate:0 0}}
 @keyframes sf-art-allowed{0%,61%{filter:grayscale(1);opacity:.45}64%,92%{filter:none;opacity:1}98%,100%{filter:grayscale(1);opacity:.45}}
 @media(prefers-reduced-motion:reduce){.sf-setup{animation:none}.sf-setup-step,.sf-setup-art{transition:none}}
+
+/* jam.dev/safari: the same two steps on a page of their own, in the marketing site's style. The site sets everything in
+   Onsite; without it, the system font stands in. */
+.sf-guide-page{position:relative;min-height:100%;padding:0 28px 20px;background:#fff;color:#1e201d;font-family:Onsite,Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+.sf-guide-page::before{content:'';position:absolute;inset:0 0 auto;height:300px;background-image:linear-gradient(#f0f1ef 1px,transparent 1px),linear-gradient(90deg,#f0f1ef 1px,transparent 1px);background-size:27px 27px;background-position:-1px -1px;-webkit-mask-image:linear-gradient(transparent,#000 90px,transparent);mask-image:linear-gradient(transparent,#000 90px,transparent);pointer-events:none}
+.sf-guide-page>*{position:relative}
+.sf-guide-nav{display:flex;align-items:center;justify-content:space-between;height:52px}
+.sf-guide-logo{width:52px;height:22px}
+.sf-guide-help{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:9px;background:#2060000a;box-shadow:0 0 0 1px #151f001a;color:#1f201e;font-size:12px;line-height:16px;font-weight:500}
+.sf-guide-heading{margin-top:10px;text-align:center}
+.sf-guide-heading h1{margin:0;color:#1c2024;font-size:34px;line-height:38px;font-weight:500;letter-spacing:-.03em;text-wrap:balance}
+.sf-guide-heading p{max-width:520px;margin:8px auto 0;color:#626461;font-size:14px;line-height:20px;text-wrap:balance}
+.sf-guide-steps{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0 0;padding:0;list-style:none}
+.sf-guide .sf-setup-step:not([data-status="current"]){background:#f8faf7;box-shadow:0 0 0 1px #0b1f000f}
+.sf-guide-action{display:none;align-items:center;height:28px;margin-top:10px;padding:0 12px;border-radius:9px;background:#71e3bd;color:#000000df;font-size:12px;line-height:16px;font-weight:600;cursor:default}
+.sf-setup-step[data-step="1"][data-status="current"] .sf-guide-action{display:inline-flex}
+@media(hover:hover) and (pointer:fine){.sf-guide-action:hover{background:#63dcb3}}
+.sf-guide-action:focus-visible{outline:3px solid #0a84ff80;outline-offset:1px}
+.sf-guide-note{margin:16px 0 0;color:#818280;font-size:12px;line-height:16px;text-align:center}
+.sf-guide-note:empty{display:none}

@@ -39,21 +39,15 @@ await p.locator('.sf-checkbox-hit').click();
 assert.equal(await safari(),'permission');
 await p.locator('.sf-settings-close').click();assert.ok(await p.locator('.sf-settings').isHidden());
 await hover();assert.equal(await label.textContent(),'Enable logs for this site');
-// The yellow row reopens the window on step 2, with step 1 ticked
-await row.click();assert.ok(await setup.isVisible());assert.equal(await step(),'2');
-assert.equal(await p.locator('.sf-setup-step[data-step="1"]').getAttribute('data-status'),'done');
-// Its button brings Safari forward and closes the window too
-assert.equal(await p.locator('.sf-setup-primary').textContent(),'Open Safari');
-await p.locator('.sf-setup-primary').click();assert.ok(await setup.isHidden());
-// With the window up, clicking Jam in Safari's toolbar asks for the website
-await hover();await row.click();assert.ok(await setup.isVisible());
-await p.locator('.sf-extension').click();assert.ok(await p.locator('.sf-popover').isVisible());
-// Allowing on this website only connects that site (TC7), and the window ticks step 2 off, then steps aside
+// The yellow row opens Safari's own permission prompt, not Jam's window
+const popover=p.locator('.sf-popover');
+await row.click();assert.ok(await setup.isHidden());assert.ok(await popover.isVisible());
+assert.equal(await p.locator('.sf-extension').getAttribute('aria-expanded'),'true');
+assert.match(await popover.textContent(),/access “jam\.dev”/);
+// Allowing on this website only connects that site (TC7)
 await p.locator('[data-allow="site"]').click();
 assert.equal(await safari(),'connected');assert.equal(await p.locator('.rb-belt-toast-label').textContent(),'Logs enabled for Safari');
-assert.equal(await step(),'done');assert.equal(await p.locator('#sf-setup-title').textContent(),'Logs enabled for Safari');
-await setup.waitFor({state:'hidden'});
-await p.waitForFunction(()=>!document.querySelector('.recording-scene[data-browser-guide="true"]'));
+assert.ok(await popover.isHidden());
 // Another site shows the yellow status, whose tooltip names the site
 await p.locator('.sf-tab[data-tab="checkout"]').click();
 assert.equal(await safari(),'site');await hover();
@@ -61,9 +55,9 @@ assert.equal(await label.textContent(),'Enable logs for this site');
 await row.hover();await tooltip.waitFor({state:'visible'});
 assert.equal(await tooltip.textContent(),'Allow the Jam extension on shop.acme.dev to capture logs');
 assert.ok(await p.locator('.rb-capture-notch').isHidden());
-// It reopens the window on its second step
-await row.click();assert.ok(await setup.isVisible());assert.equal(await step(),'2');
-await p.keyboard.press('Escape');assert.ok(await setup.isHidden());
+// It asks for that site
+await row.click();assert.ok(await setup.isHidden());assert.match(await popover.textContent(),/access “shop\.acme\.dev”/);
+await p.keyboard.press('Escape');assert.ok(await popover.isHidden());
 // The blue look has its own copy for both steps
 await p.evaluate(()=>JamRecording.setLogsButton('blue'));await hover();
 assert.equal(await label.textContent(),'Enable log permissions');assert.equal(await p.locator('.rb-selection-notch').getAttribute('data-cta'),'blue');
@@ -71,6 +65,30 @@ await p.evaluate(()=>JamRecording.setSafariState('disabled'));await hover();
 assert.equal(await label.textContent(),'Enable Logs for Safari');
 assert.ok(await row.locator('.rb-sf[data-symbol="arrow.forward.circle.fill"]').isVisible(),'the blue button ends with a forward arrow');
 await p.evaluate(()=>JamRecording.setLogsButton('ghost'));
+// The other option shows the same two steps on a jam.dev page, in a new Safari tab instead of Jam's window
+await p.evaluate(()=>JamRecording.setSafariGuide('tab'));await hover();await row.click();
+const page=p.locator('.sf-guide'),pageStep=()=>page.getAttribute('data-step');
+assert.ok(await setup.isHidden());assert.ok(await page.isVisible());
+assert.equal(await p.evaluate(()=>JamRecording.getSafariTab()),'guide');
+assert.equal(await p.locator('.sf-address-text').textContent(),'jam.dev/safari');
+assert.equal(await pageStep(),'1');assert.equal(await page.locator('h1').textContent(),'Get logs from Safari');
+assert.ok(await p.locator('.rb-window-picker[data-picker="browser"]').isHidden(),'the page stays clickable');
+// Its first step's button opens Safari's settings, and checking the box ticks the step off
+await page.locator('.sf-guide-action').click();assert.ok(await p.locator('.sf-settings').isVisible());
+await p.locator('.sf-checkbox-hit').click();
+assert.equal(await pageStep(),'2');assert.ok(await page.locator('.sf-guide-action').isHidden());
+assert.equal(await page.locator('.sf-setup-step[data-step="1"]').getAttribute('data-status'),'done');
+await p.locator('.sf-settings-close').click();
+// Allowing Jam on every website finishes the page, which stays open while Safari's window goes back to recording
+await p.locator('.sf-extension').click();await p.locator('[data-allow="all"]').click();
+assert.equal(await safari(),'connected');assert.equal(await pageStep(),'done');
+assert.equal(await page.locator('h1').textContent(),'Logs enabled for Safari');
+await p.waitForFunction(()=>!document.querySelector('.recording-scene[data-browser-guide="true"]'));
+assert.ok(await page.isVisible(),'the tab stays open');
+// Closing the tab goes back to the page before it
+await p.locator('.sf-tab-close').click();assert.ok(await page.isHidden());
+assert.equal(await p.locator('.sf-tab').count(),2);
+await p.evaluate(()=>JamRecording.setSafariGuide('window'));
 // Full screen lists Safari only once it's connected on every site, and never with a setup button
 await p.evaluate(()=>{JamRecording.setSafariState('permission');JamRecording.setMode('screen');});
 await p.mouse.move(700,420);await p.mouse.move(720,430);await p.waitForTimeout(80);

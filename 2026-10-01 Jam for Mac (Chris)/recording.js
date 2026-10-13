@@ -363,10 +363,9 @@
     if(!['missing','connected'].includes(value))return;
     updateSettings({browserLogs:value==='connected'?'connected':'unavailable'});setBrowserApp('chrome');
   }
-  // The browser window's logs row and the menu bar both start whichever step its extension is missing. Safari's two steps
-  // share one Jam window, which opens on whichever is next.
+  // The browser window's logs row and the menu bar both start whichever step its extension is missing.
   function safariStep(){
-    if(['disabled','permission','site'].includes(safari.state())&&isIdle())safari.openSetup();
+    if(['disabled','permission','site'].includes(safari.state())&&isIdle())safari.startSetup();
   }
   function chromeStep(){if(settings.browserLogs!=='connected')chrome.openStore();}
   function logsAction(name){
@@ -998,7 +997,7 @@
   new ResizeObserver(()=>{if(active)layout();}).observe(desktop);
   window.JamRecording={
     getSettings:()=>({...settings}),getState:()=>({stage,elapsed,selectedWindow,target:cardTarget(),alert:alertTarget,apps:Object.fromEntries(Object.entries(electronApps).map(([name,app])=>[name,{debug:app.debug,declined:app.declined,enabled:app.enabled}])),area:{...area},bounds:captureBounds(),sizing:{...selectionState()},camera:follower.getState(),cameraAnchor:fixedAnchor,belt:{...pose}}),
-    getBrowserApp:()=>browserApp,setBrowserApp,getLogsButton:()=>logsButton,setLogsButton,getChromeState:()=>settings.browserLogs==='connected'?'connected':'missing',setChromeState,getSafariState:()=>safari.state(),setSafariState,getSafariTab:()=>safari.tab(),setSafariTab:tab=>safari.setTab(tab),getChromeTab:()=>chrome.tab(),setChromeTab:tab=>chrome.setTab(tab),restartBrowserSetup,startLogsSetup,updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
+    getBrowserApp:()=>browserApp,setBrowserApp,getLogsButton:()=>logsButton,setLogsButton,getChromeState:()=>settings.browserLogs==='connected'?'connected':'missing',setChromeState,getSafariState:()=>safari.state(),setSafariState,getSafariTab:()=>safari.tab(),setSafariTab:tab=>safari.setTab(tab),getSafariGuide:()=>safari.guide(),setSafariGuide:value=>safari.setGuide(value),getChromeTab:()=>chrome.tab(),setChromeTab:tab=>chrome.setTab(tab),restartBrowserSetup,startLogsSetup,updateSettings,setMode,setStage,selectWindow,startWindowRecording,resetSelection,resetElectronApps,reopenElectronApp,setActive,layout,requestCamera,getCameraStatus,setElapsed,previewLimit,getCameraState:()=>camera.getState(),
     getPlayerState:()=>({playing:previewPlaying,time:previewTime,duration:duration(),rate:settings.rate,loop:settings.loop,ready:true,status:stage==='idle'?'Ready':stage==='paused'?'Paused':stage==='limit'?'Approaching limit':'Recording',reducedMotion:reduced.matches}),
     play(){if(!transition||previewTime>=duration())restart();else{previewPlaying=true;wake();emit();}},pause(){previewPlaying=false;emit();},restart,
     seek(time){if(!transition){restart();}previewPlaying=false;previewTime=clamp(time,0,duration());renderBelt();emit();},
@@ -1024,9 +1023,10 @@
   syncWindows();
   JamDefaults.register('recording',{groups:['recording'],read:()=>({recording:{...settings}}),apply:values=>updateSettings(values.recording),onReset(){clearTimeout(clockTimer);clockStamp=0;fixedAnchor=null;cameraSnap=null;stage='idle';elapsed=0;previewPlaying=false;previewTime=0;transition=null;pose=beltHome();velocity={x:0,y:0,width:0};resetSelection();renderBelt();emit();}});
   // `?safari=disabled` (or permission, site, connected) and `?chrome=missing` open on that browser in that state, and
-  // `?cta=blue` picks the blue setup button, for sharing a step.
+  // `?cta=blue` picks the blue setup button and `?steps=tab` the jam.dev page for Safari's steps, for sharing a step.
   const params=new URLSearchParams(location.search),safariParam=params.get('safari'),chromeParam=params.get('chrome');
   if(setupLabels[params.get('cta')])logsButton=params.get('cta');
+  safari.setGuide(params.get('steps'));
   if(JamSafari.presets.includes(safariParam)&&safariParam!=='off'){setMode('window');setSafariState(safariParam);}
   else if(['missing','connected'].includes(chromeParam)){setMode('window');setChromeState(chromeParam);}
   syncSelection();renderBelt();setActive(JamPlayground.getSurface()==='recording');
