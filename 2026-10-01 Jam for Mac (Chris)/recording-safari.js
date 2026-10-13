@@ -23,10 +23,11 @@
   const check = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4l2.3 2.3 4.7-5.2"/></svg>';
   const cursor = '<img class="sf-cursor" src="assets/recording/cursor.svg" alt="">';
   const spinner = `<span class="rb-spinner" aria-hidden="true">${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<i style="--i:${i}"></i>`).join('')}</span>`;
+  // The window's one primary button does whatever moves the current step along.
   const setupCopy = {
-    1: { title: 'Get logs from Safari', message: 'Two steps in Safari, and Jam ticks each one off as you go.', note: 'Box won’t stay checked? Quit and reopen Safari, then try again.', cancel: 'Not Now' },
-    2: { title: 'Get logs from Safari', message: 'Two steps in Safari, and Jam ticks each one off as you go.', note: 'Rather allow one site at a time? Jam asks again on the sites you haven’t allowed.', cancel: 'Not Now' },
-    done: { title: 'Logs enabled for Safari', message: 'Jam now captures console logs and network requests from Safari.', note: '', cancel: 'Done' },
+    1: { title: 'Get logs from Safari', message: 'Two steps in Safari, and Jam ticks each one off as you go.', note: 'Box won’t stay checked? Quit and reopen Safari, then try again.', primary: 'Open Safari Settings' },
+    2: { title: 'Get logs from Safari', message: 'Two steps in Safari, and Jam ticks each one off as you go.', note: 'Rather allow one site at a time? Jam asks again on the sites you haven’t allowed.', primary: 'Open Safari' },
+    done: { title: 'Logs enabled for Safari', message: 'Jam now captures console logs and network requests from Safari.', note: '', primary: 'Done' },
   };
 
   function create({ root, article, onChange, onToast, onSetup, preset = 'disabled' }) {
@@ -87,8 +88,8 @@
     root.append(settingsPane);
     const toggles = [...settingsPane.querySelectorAll('.sf-jam-toggle')];
 
-    // Jam's own window for both gates. It sits beside Safari rather than over it, and ticks each step off as Safari
-    // reports it, so it never sends anyone to a web page.
+    // Jam's own window for both gates, as wide as onboarding, with the two steps side by side. It stays clear of Safari's
+    // toolbar and ticks each step off as Safari reports it, so it never sends anyone to a web page.
     const setup = document.createElement('section');
     setup.className = 'sf-setup';
     setup.setAttribute('role', 'dialog');
@@ -97,41 +98,33 @@
     setup.hidden = true;
     setup.innerHTML = `<div class="sf-setup-grid" aria-hidden="true"></div>
       <header class="sf-setup-titlebar"><div class="traffic-lights"><button type="button" class="traffic close sf-setup-close" aria-label="Close"></button><span class="traffic minimize"></span><span class="traffic zoom"></span></div></header>
-      <div class="sf-setup-heading"><img class="sf-setup-mark" src="assets/recording/safari.png" alt=""><h2 id="sf-setup-title"></h2><p id="sf-setup-message"></p></div>
+      <div class="sf-setup-heading"><h2 id="sf-setup-title"></h2><p id="sf-setup-message"></p></div>
       <ol class="sf-setup-steps">
         <li class="sf-setup-step" data-step="1">
-          <span class="sf-setup-badge" aria-hidden="true"><b>1</b>${check}</span>
-          <div class="sf-setup-step-body">
-            <div class="sf-setup-step-head"><h3>Turn on Jam in Safari Settings</h3><span class="sf-setup-done">Turned on</span></div>
-            <div class="sf-setup-step-detail">
-              <p>Check the box next to Jam for Safari.</p>
-              <div class="sf-setup-art is-settings" aria-hidden="true">
-                <span class="sf-art-pane"><span class="sf-art-pane-title"><span class="sf-setup-lights"><i></i><i></i><i></i></span>Extensions</span>
-                  <span class="sf-art-row"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon is-password"></span>1Password for Safari</span>
-                  <span class="sf-art-row is-selected"><span class="sf-checkbox sf-art-box">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari</span></span>
-                ${cursor}
-              </div>
-              <button type="button" class="sf-setup-button is-primary sf-setup-open">Open Safari Settings</button>
-            </div>
+          <div class="sf-setup-art is-settings" aria-hidden="true"><span class="sf-art-stage">
+            <span class="sf-art-pane"><span class="sf-art-pane-title"><span class="sf-setup-lights"><i></i><i></i><i></i></span>Extensions</span>
+              <span class="sf-art-row"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon is-password"></span>1Password for Safari</span>
+              <span class="sf-art-row is-selected"><span class="sf-checkbox sf-art-box">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari</span></span>
+            ${cursor}
+          </span></div>
+          <div class="sf-setup-step-copy">
+            <span class="sf-setup-badge" aria-hidden="true"><b>1</b>${check}</span>
+            <div><h3>Turn on Jam Extension in Safari</h3><p>In Safari’s settings, check the box next to Jam for Safari.</p><span class="sf-setup-status is-done">${check}Turned on</span></div>
           </div>
         </li>
         <li class="sf-setup-step" data-step="2">
-          <span class="sf-setup-badge" aria-hidden="true"><b>2</b>${check}</span>
-          <div class="sf-setup-step-body">
-            <div class="sf-setup-step-head"><h3>Click Jam in Safari’s toolbar</h3><span class="sf-setup-done">Allowed</span></div>
-            <div class="sf-setup-step-detail">
-              <p>Then choose “Always Allow on Every Website”.</p>
-              <div class="sf-setup-art is-toolbar" aria-hidden="true">
-                <span class="sf-art-toolbar"><span class="sf-art-nav"><i></i><i></i></span><span class="sf-art-address">jam.dev</span><span class="sf-art-extension">${strawberry}</span><span class="sf-art-tool"></span></span>
-                <span class="sf-art-popover"><b>Allow “Jam for Safari” to access “jam.dev”?</b><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-default">Always Allow on Every Website</i></span>
-                ${cursor}
-              </div>
-              <span class="sf-setup-waiting" role="status">${spinner}Waiting for Safari…</span>
-            </div>
+          <div class="sf-setup-art is-toolbar" aria-hidden="true"><span class="sf-art-stage">
+            <span class="sf-art-toolbar"><span class="sf-art-nav"><i></i><i></i></span><span class="sf-art-address">jam.dev</span><span class="sf-art-extension">${strawberry}</span><span class="sf-art-tool"></span></span>
+            <span class="sf-art-popover"><b>Allow “Jam for Safari” to access “jam.dev”?</b><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-default">Always Allow on Every Website</i></span>
+            ${cursor}
+          </span></div>
+          <div class="sf-setup-step-copy">
+            <span class="sf-setup-badge" aria-hidden="true"><b>2</b>${check}</span>
+            <div><h3>Click the Jam icon and enable site level logs permissions</h3><p>It’s in Safari’s toolbar. Choose “Always Allow on Every Website”.</p><span class="sf-setup-status is-waiting" role="status">${spinner}Waiting for Safari…</span><span class="sf-setup-status is-done">${check}Allowed</span></div>
           </div>
         </li>
       </ol>
-      <footer class="sf-setup-footer"><p class="sf-setup-note"></p><button type="button" class="sf-setup-button sf-setup-cancel"></button></footer>`;
+      <footer class="sf-setup-footer"><p class="sf-setup-note"></p><div><button type="button" class="sf-setup-button sf-setup-cancel">Not Now</button><button type="button" class="sf-setup-button is-primary sf-setup-primary"></button></div></footer>`;
     root.append(setup);
 
     function host() {
@@ -181,7 +174,8 @@
       setup.querySelector('#sf-setup-title').textContent = copy.title;
       setup.querySelector('#sf-setup-message').textContent = copy.message;
       setup.querySelector('.sf-setup-note').textContent = copy.note;
-      setup.querySelector('.sf-setup-cancel').textContent = copy.cancel;
+      setup.querySelector('.sf-setup-primary').textContent = copy.primary;
+      setup.querySelector('.sf-setup-cancel').hidden = step === 'done';
       for (const item of setup.querySelectorAll('.sf-setup-step')) {
         const done = step === 'done' || item.dataset.step < step;
         item.dataset.status = done ? 'done' : item.dataset.step === step ? 'current' : 'next';
@@ -238,16 +232,25 @@
       return { x: (frame.left - box.left) / scale, y: (frame.top - box.top) / scale };
     }
 
-    // Beside Safari when there's room, so its toolbar and the Settings pane stay clear; otherwise over the window's
-    // left side, below its toolbar.
+    // Beside Safari when there's room; otherwise towards the desktop's left edge, below Safari's toolbar, which leaves
+    // room for the Settings pane on its right.
     function placeSetup() {
       const frame = windowFrame();
       const width = setup.offsetWidth;
       const height = setup.offsetHeight;
-      const left = Math.max(8, frame.x - width - 24);
-      const beside = left + width <= frame.x;
-      setup.style.left = `${left}px`;
+      const beside = frame.x - width - 24 >= 8;
+      setup.style.left = `${beside ? frame.x - width - 24 : Math.min(16, Math.max(8, (root.clientWidth - width) / 2))}px`;
       setup.style.top = `${Math.max(36, Math.min(frame.y + (beside ? 0 : 52), root.clientHeight - height - 8))}px`;
+    }
+
+    // Each step's button does what Jam can: open Safari's settings, bring Safari forward, or close once it's done.
+    function setupAction() {
+      const step = setup.dataset.step;
+      if (step === '1') openSettings();
+      else if (step === '2') {
+        closeSettings();
+        toolbar.querySelector('.sf-extension').focus({ preventScroll: true });
+      } else closeSetup();
     }
 
     function openSetup() {
@@ -258,8 +261,7 @@
       const opening = setup.hidden;
       setup.hidden = false;
       placeSetup();
-      const step = setup.dataset.step;
-      setup.querySelector(step === '1' ? '.sf-setup-open' : '.sf-setup-cancel').focus({ preventScroll: true });
+      setup.querySelector('.sf-setup-primary').focus({ preventScroll: true });
       if (opening) onSetup(true);
     }
 
@@ -346,7 +348,7 @@
     settingsPane.querySelector('.sf-settings-close').addEventListener('click', closeSettings);
     setup.querySelector('.sf-setup-close').addEventListener('click', closeSetup);
     setup.querySelector('.sf-setup-cancel').addEventListener('click', closeSetup);
-    setup.querySelector('.sf-setup-open').addEventListener('click', openSettings);
+    setup.querySelector('.sf-setup-primary').addEventListener('click', setupAction);
     // Clicking Safari's window brings it forward over its Settings pane, as macOS would
     article.addEventListener('pointerdown', closeSettings, true);
     setup.addEventListener('keydown', (event) => {
