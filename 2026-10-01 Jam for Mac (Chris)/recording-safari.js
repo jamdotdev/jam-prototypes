@@ -232,25 +232,23 @@
       return { x: (frame.left - box.left) / scale, y: (frame.top - box.top) / scale };
     }
 
-    // Beside Safari when there's room; otherwise towards the desktop's left edge, below Safari's toolbar, which leaves
-    // room for the Settings pane on its right.
+    // Beside Safari when there's room; otherwise centred below Safari's toolbar, so Jam's button stays in reach.
     function placeSetup() {
       const frame = windowFrame();
       const width = setup.offsetWidth;
       const height = setup.offsetHeight;
       const beside = frame.x - width - 24 >= 8;
-      setup.style.left = `${beside ? frame.x - width - 24 : Math.min(16, Math.max(8, (root.clientWidth - width) / 2))}px`;
+      setup.style.left = `${beside ? frame.x - width - 24 : Math.max(8, (root.clientWidth - width) / 2)}px`;
       setup.style.top = `${Math.max(36, Math.min(frame.y + (beside ? 0 : 52), root.clientHeight - height - 8))}px`;
     }
 
-    // Each step's button does what Jam can: open Safari's settings, bring Safari forward, or close once it's done.
+    // The window steps aside once its button has done what Jam can for the step: open Safari's settings, or bring
+    // Safari forward. The card's logs row reopens it on whichever step is next.
     function setupAction() {
       const step = setup.dataset.step;
+      closeSetup();
       if (step === '1') openSettings();
-      else if (step === '2') {
-        closeSettings();
-        toolbar.querySelector('.sf-extension').focus({ preventScroll: true });
-      } else closeSetup();
+      else if (step === '2') toolbar.querySelector('.sf-extension').focus({ preventScroll: true });
     }
 
     function openSetup() {
@@ -273,14 +271,11 @@
       onSetup(false);
     }
 
-    // Safari opens its settings on Extensions with Jam selected, clear of Jam's window when that's open
+    // Safari opens its settings on Extensions with Jam selected
     function openSettings() {
       running = true;
       settingsPane.hidden = false;
-      const width = settingsPane.offsetWidth;
-      const centered = (root.clientWidth - width) / 2;
-      const left = setup.hidden ? centered : Math.min(Math.max(centered, setup.offsetLeft + setup.offsetWidth + 24), root.clientWidth - width - 8);
-      settingsPane.style.left = `${Math.max(8, left)}px`;
+      settingsPane.style.left = `${Math.max(8, (root.clientWidth - settingsPane.offsetWidth) / 2)}px`;
       settingsPane.style.top = `${Math.max(36, (root.clientHeight - settingsPane.offsetHeight) / 2 - 40)}px`;
       settingsPane.querySelector('.sf-checkbox-hit input').focus({ preventScroll: true });
       changed();

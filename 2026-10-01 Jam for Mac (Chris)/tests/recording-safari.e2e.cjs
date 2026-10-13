@@ -31,20 +31,24 @@ assert.equal(await setup.locator('.sf-setup-button.is-primary').count(),1,'one p
 assert.equal(await p.locator('.sf-setup-primary').textContent(),'Open Safari Settings');
 await p.keyboard.press('Escape');assert.ok(await setup.isHidden(),'Escape closes it');
 await hover();await row.click();assert.ok(await setup.isVisible());
-// Opening Safari's settings keeps the window up beside them
+// Its button opens Safari's settings and closes the window
 await p.locator('.sf-setup-primary').click();
-assert.ok(await setup.isVisible());assert.ok(await p.locator('.sf-settings').isVisible());
-const pane=await p.locator('.sf-settings').boundingBox();assert.ok(pane.x>=frame.x+frame.width,'Settings opens clear of the window');
-// Checking the box moves Safari to needing permission, not to connected (TC3), and the window ticks step 1 off
+assert.ok(await setup.isHidden());assert.ok(await p.locator('.sf-settings').isVisible());
+// Checking the box moves Safari to needing permission, not to connected (TC3)
 await p.locator('.sf-checkbox-hit').click();
-assert.equal(await safari(),'permission');assert.equal(await step(),'2');
+assert.equal(await safari(),'permission');
+await p.locator('.sf-settings-close').click();assert.ok(await p.locator('.sf-settings').isHidden());
+await hover();assert.equal(await label.textContent(),'Enable logs for this site');
+// The yellow row reopens the window on step 2, with step 1 ticked
+await row.click();assert.ok(await setup.isVisible());assert.equal(await step(),'2');
 assert.equal(await p.locator('.sf-setup-step[data-step="1"]').getAttribute('data-status'),'done');
-// Step 2's button brings Safari forward over its settings
+// Its button brings Safari forward and closes the window too
 assert.equal(await p.locator('.sf-setup-primary').textContent(),'Open Safari');
-await p.locator('.sf-setup-primary').click();assert.ok(await p.locator('.sf-settings').isHidden());
-// Clicking Jam in Safari's toolbar asks for the website
+await p.locator('.sf-setup-primary').click();assert.ok(await setup.isHidden());
+// With the window up, clicking Jam in Safari's toolbar asks for the website
+await hover();await row.click();assert.ok(await setup.isVisible());
 await p.locator('.sf-extension').click();assert.ok(await p.locator('.sf-popover').isVisible());
-// Allowing on this website only connects that site (TC7), and the window finishes then steps aside
+// Allowing on this website only connects that site (TC7), and the window ticks step 2 off, then steps aside
 await p.locator('[data-allow="site"]').click();
 assert.equal(await safari(),'connected');assert.equal(await p.locator('.rb-belt-toast-label').textContent(),'Logs enabled for Safari');
 assert.equal(await step(),'done');assert.equal(await p.locator('#sf-setup-title').textContent(),'Logs enabled for Safari');
