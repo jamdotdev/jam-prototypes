@@ -33,8 +33,8 @@
     done: { title: 'Logs enabled for Safari', message: 'Jam now captures console logs and network requests from Safari.', note: '', primary: 'Done' },
   };
   const pageMessages = {
-    1: 'Two steps in Safari, and this page ticks each one off as you go.',
-    2: 'Two steps in Safari, and this page ticks each one off as you go.',
+    1: 'Connect Jam to the Safari extension and enable permissions',
+    2: 'Connect Jam to the Safari extension and enable permissions',
     done: 'Jam now captures console logs and network requests from Safari. You can close this tab.',
   };
   // Both steps, as Jam's window and the jam.dev page show them. The page has no footer, so its first step carries the
