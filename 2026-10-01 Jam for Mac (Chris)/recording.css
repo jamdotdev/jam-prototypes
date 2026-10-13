@@ -281,11 +281,8 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 @keyframes rb-belt-logs-in{from{opacity:0;translate:0 10px}}
 @media(prefers-reduced-motion:reduce){.rb-sources-menu,.rb-belt-logs{animation:none}.rb-sources-caret svg{transition:none}}
 
-/* Safari's setup keeps the card on its window. The tint lifts to an outline so Safari reads normally, the app label goes
-   with it, and while Safari's jam.dev page is up the card waits at the bottom of the window, gliding there and back. */
-.rb-hover-frame{transition:background-color 200ms ease}
-.recording-scene[data-browser="safari"][data-browser-guide="true"] .rb-hover-frame{background-color:transparent}
-.rb-record-card .rb-picker-app{transition:opacity 200ms ease}
-.recording-scene[data-browser="safari"][data-browser-guide="true"] .rb-record-card .rb-picker-app{opacity:0;pointer-events:none}
-.recording-scene.is-card-gliding :is(.rb-record-card,.rb-selection-notch.is-card){transition:top 480ms cubic-bezier(.2,.8,.2,1),left 480ms cubic-bezier(.2,.8,.2,1)}
-@media(prefers-reduced-motion:reduce){.rb-hover-frame,.rb-record-card .rb-picker-app{transition:none}.recording-scene.is-card-gliding :is(.rb-record-card,.rb-selection-notch.is-card){transition:none}}
+/* While Safari's setup tab is up, the card, its notch and the tint fade away so the page reads on its own, and fade back
+   once Safari is connected or the tab is left. */
+.recording-scene :is(.rb-record-card,.rb-selection-notch.is-card,.rb-hover-frame){transition:opacity 200ms ease,visibility 0s}
+.recording-scene.is-card-away :is(.rb-record-card,.rb-selection-notch.is-card,.rb-hover-frame){opacity:0;visibility:hidden;pointer-events:none;transition:opacity 200ms ease,visibility 0s 200ms}
+@media(prefers-reduced-motion:reduce){.recording-scene :is(.rb-record-card,.rb-selection-notch.is-card,.rb-hover-frame),.recording-scene.is-card-away :is(.rb-record-card,.rb-selection-notch.is-card,.rb-hover-frame){transition:none}}

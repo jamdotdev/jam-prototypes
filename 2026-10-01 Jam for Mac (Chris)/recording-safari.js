@@ -7,7 +7,7 @@
   const tabs = {
     design: { title: 'Design system', host: 'jam.dev', path: 'jam.dev/design-system' },
     checkout: { title: 'Checkout', host: 'shop.acme.dev', path: 'shop.acme.dev/checkout' },
-    guide: { title: 'Get logs from Safari', host: 'jam.dev', path: 'jam.dev/safari' },
+    guide: { title: 'Connecting Jam to Safari', host: 'jam.dev', path: 'jam.dev/safari' },
   };
   const presets = ['off', 'disabled', 'permission', 'site', 'connected'];
   const statusText = {
@@ -31,12 +31,15 @@
     // 'none', 'all', or the set of hosts allowed one by one
     let access = preset === 'connected' ? 'all' : 'none';
     let tab = 'design';
+    // The tab Safari goes back to when the jam.dev page closes
+    let lastTab = 'design';
     let guideOpen = false;
     let popoverOpen = false;
     // Jam's setup is under way, from the logs button until Safari is connected or the user walks away from it. The record
     // card stays on Safari's window throughout, so recording picks up where it left off.
     let active = false;
     let doneTimer = 0;
+    let closeTimer = 0;
 
     // Safari's chrome replaces Chrome's address bar inside the same browser window. Extensions sit left of the address.
     const titlebar = article.querySelector('.rb-window-titlebar');
@@ -54,44 +57,25 @@
     tabBar.setAttribute('role', 'tablist');
     tabBar.setAttribute('aria-label', 'Safari tabs');
     content.before(tabBar);
-    // jam.dev/safari, which Jam opens in a new Safari tab for the second gate, laid out like jam.dev/download's cards. A
-    // web page can't see the extension, so it only shows how: a loop of clicking Jam's toolbar button and allowing it
-    // everywhere, and beside it where to turn the extension on for anyone without the button.
+    // jam.dev/safari, which Jam opens in a new Safari tab for the second gate, laid out like jam.dev/download: a centred
+    // heading over one card. A web page can't see the extension, so it only shows how, with a loop of clicking Jam's
+    // toolbar button and allowing it on every website.
     const guidePage = document.createElement('div');
     guidePage.className = 'sf-guide';
     guidePage.hidden = true;
     guidePage.innerHTML = `<div class="sf-guide-page">
-        <nav class="sf-guide-nav">
-          <img class="sf-guide-logo" src="assets/auth-logo.svg" alt="Jam">
-          <span class="sf-guide-links" aria-hidden="true"><span class="is-current">Home</span><span>Integrations</span><span>Pricing</span></span>
-          <span class="sf-guide-account" aria-hidden="true"><span class="sf-guide-login">Login</span><span class="sf-guide-start">Get started</span></span>
-        </nav>
         <header class="sf-guide-heading">
-          <h1>Get logs from Safari</h1>
-          <p>Allow Jam in Safari to capture its console logs and network requests.</p>
+          <h1>Connecting Jam to Safari</h1>
+          <p>Allow Jam on every website so it can capture console logs and network requests.</p>
         </header>
-        <div class="sf-guide-cards">
-          <section class="sf-guide-card">
-            <img class="sf-guide-platform" src="assets/recording/safari.png" alt="">
-            <div class="sf-guide-art sf-demo" aria-hidden="true">
-              <span class="sf-art-window"><span class="sf-art-toolbar"><span class="sf-art-nav"><i></i><i></i></span><span class="sf-demo-extension">${strawberry}</span><span class="sf-art-address">jam.dev/safari</span></span></span>
-              <span class="sf-demo-popover"><span class="sf-demo-popover-head">${appIcon}<b>Allow “Jam for Safari” to access “jam.dev”?</b></span><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-default">Always Allow on Every Website</i></span>
-              ${cursor}
-            </div>
-            <h2>Allow Jam on every website</h2>
-            <p>Click the Jam icon left of the address bar, then choose “Always Allow on Every Website”.</p>
-          </section>
-          <section class="sf-guide-card">
-            <img class="sf-guide-platform" src="assets/recording/safari.png" alt="">
-            <div class="sf-guide-art" aria-hidden="true">
-              <span class="sf-art-window"><span class="sf-art-titlebar">Extensions</span>
-                <span class="sf-art-row"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon is-password"></span>1Password for Safari</span>
-                <span class="sf-art-row is-selected"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari</span></span>
-            </div>
-            <h2>Don’t see the Jam icon?</h2>
-            <p>Choose Safari › Settings…, click Extensions, then check the box next to Jam for Safari.</p>
-          </section>
-        </div>
+        <section class="sf-guide-card">
+          <div class="sf-guide-art sf-demo" aria-hidden="true"><span class="sf-demo-stage">
+            <span class="sf-art-window"><span class="sf-art-toolbar"><span class="sf-art-nav"><i></i><i></i></span><span class="sf-demo-extension">${strawberry}</span><span class="sf-art-address">jam.dev/safari</span></span></span>
+            <span class="sf-demo-popover"><span class="sf-demo-popover-head">${appIcon}<b>Allow “Jam for Safari” to access “jam.dev”?</b></span><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-default">Always Allow on Every Website</i></span>
+            ${cursor}
+          </span></div>
+          <p class="sf-guide-caption"><b>Click the Jam icon</b> and choose Always Allow on Every Website</p>
+        </section>
       </div>`;
     content.after(guidePage);
     const popover = document.createElement('div');
@@ -128,8 +112,9 @@
     root.append(settingsPane);
     const toggles = [...settingsPane.querySelectorAll('.sf-jam-toggle')];
 
-    // Jam's alert over Safari's settings, showing the one thing to do there. It sits over the detail pane, so the list
-    // with Jam's box stays in reach, and goes once the box is checked.
+    // Jam's alert, centred on the screen while Safari's settings are open, with a picture of the one thing to do there.
+    // The picture fades at its edges so it reads as an illustration rather than the box itself. It goes once the box is
+    // checked.
     const coach = document.createElement('div');
     coach.className = 'sf-coach';
     coach.setAttribute('role', 'dialog');
@@ -137,9 +122,9 @@
     coach.setAttribute('aria-describedby', 'sf-coach-message');
     coach.hidden = true;
     coach.innerHTML = `<img class="sf-coach-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt="">
-      <h2 class="sf-coach-title" id="sf-coach-title">Turn on Jam in Safari</h2>
-      <p class="sf-coach-message" id="sf-coach-message">Check the box next to Jam for Safari in the list of extensions.</p>
-      <span class="sf-coach-art" aria-hidden="true"><span class="sf-art-row is-selected"><span class="sf-checkbox sf-art-box">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari</span>${cursor}</span>
+      <h2 class="sf-coach-title" id="sf-coach-title">Enable the Jam Safari Extension</h2>
+      <p class="sf-coach-message" id="sf-coach-message">In Safari’s Extensions settings, check the box next to Jam for Safari.</p>
+      <span class="sf-coach-art" aria-hidden="true"><span class="sf-art-row"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon is-password"></span>1Password for Safari</span><span class="sf-art-row is-selected"><span class="sf-checkbox sf-art-box">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari</span>${cursor}</span>
       <button type="button" class="sf-coach-button">OK</button>`;
     root.append(coach);
 
@@ -185,8 +170,15 @@
       for (const toggle of toggles) toggle.checked = enabled;
       settingsPane.querySelectorAll('.sf-checkbox-hit .sf-checkbox, .sf-detail-toggle .sf-checkbox').forEach((box) => box.classList.toggle('is-on', enabled));
       if (popoverOpen && current === 'connected') closePopover();
-      // Once Safari is connected the card holds a moment on its new state, then goes back to following the pointer
-      if (active && current === 'connected' && !doneTimer) {
+      // Once Jam is allowed, the extension closes its own setup tab a moment later
+      if (current === 'connected' && guideOpen && !closeTimer) {
+        closeTimer = setTimeout(() => {
+          closeTimer = 0;
+          closeGuide();
+        }, 900);
+      }
+      // The card comes back on Safari's new state and holds there a moment, then goes back to following the pointer
+      if (active && current === 'connected' && tab !== 'guide' && !doneTimer) {
         doneTimer = setTimeout(() => {
           doneTimer = 0;
           setActive(false);
@@ -265,14 +257,17 @@
       closePopover();
       closeSettings();
       guideOpen = true;
+      if (tab !== 'guide') lastTab = tab;
       tab = 'guide';
       guidePage.scrollTop = 0;
       changed();
     }
 
     function closeGuide() {
+      clearTimeout(closeTimer);
+      closeTimer = 0;
       guideOpen = false;
-      if (tab === 'guide') tab = 'design';
+      if (tab === 'guide') tab = lastTab;
       closePopover();
       changed();
       if (state() !== 'connected') setActive(false);
@@ -301,12 +296,12 @@
       if (!enabled) setActive(false);
     }
 
+    // macOS centres an app's alert on the screen, whichever window it's about
     function openCoach() {
       if (enabled) return;
       coach.hidden = false;
-      const left = settingsPane.offsetLeft + 200 + (400 - coach.offsetWidth) / 2;
-      coach.style.left = `${left}px`;
-      coach.style.top = `${settingsPane.offsetTop + 80}px`;
+      coach.style.left = `${(root.clientWidth - coach.offsetWidth) / 2}px`;
+      coach.style.top = `${(root.clientHeight - coach.offsetHeight) / 2}px`;
       coach.querySelector('.sf-coach-button').focus({ preventScroll: true });
     }
 
@@ -327,7 +322,10 @@
 
     function setTab(name) {
       if (!tabs[name]) return;
-      if (name === 'guide') guideOpen = true;
+      if (name === 'guide' && !guideOpen) {
+        guideOpen = true;
+        lastTab = tab;
+      }
       tab = name;
       closePopover();
       changed();
@@ -337,6 +335,8 @@
       running = true;
       enabled = false;
       access = 'none';
+      clearTimeout(closeTimer);
+      closeTimer = 0;
       guideOpen = false;
       tab = 'design';
       closePopover();
@@ -411,8 +411,8 @@
       reset,
       isGuiding: () => active,
       endSetup: () => setActive(false),
-      // The page plays its loop in the middle of the window, so the card waits at the bottom while it's up.
-      isDocked: () => active && tab === 'guide',
+      // The card and its tint step away while the setup tab is up, so the page reads on its own
+      isAway: () => active && tab === 'guide',
       owns: (element) => !!element?.closest?.('.sf-settings, .sf-popover, .sf-coach'),
     };
   }

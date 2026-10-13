@@ -293,6 +293,7 @@
     if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`,detail:settings.electronLogs==='once'?'Logs turn on as it reopens':''}:settings.electronLogs==='once'?{state:'optin',label:'Turn on console logs',detail:`Restarts ${targetNames[name]}`}:{state:'restart',label:'Restart to capture logs'};
     if(name!=='browser')return null;
     if(flipLogs)return flipLogs;
+    if(awayLogs)return awayLogs;
     return browserApp==='safari'?safariWindowLogs():chromeLogs();
   }
   // A browser without Jam's extension offers to set it up from the logs row, a blue button with the detail in a tooltip.
@@ -307,10 +308,11 @@
     return {state:'permission',app:'safari',label:setupLabels.permission,tip:state==='site'?`Allow the Jam extension on ${host} to capture logs`:'Allow the Jam extension in Safari to capture logs'};
   }
   // The card stays up through Safari's setup, so its logs button flips over to each new step rather than swapping. While
-  // it turns away the button keeps showing the step it's leaving.
-  let shownLogs=null,flipLogs=null;
+  // it turns away the button keeps showing the step it's leaving. While the card is away for Safari's setup tab it keeps
+  // the step it left on, and flips once it's back.
+  let shownLogs=null,flipLogs=null,awayLogs=null,cardAway=false,returnTimer=0;
   function flipLogsButton(){
-    if(!shownLogs||flipLogs||browserApp!=='safari'||cardTarget()!=='browser')return;
+    if(!shownLogs||flipLogs||cardAway||browserApp!=='safari'||cardTarget()!=='browser')return;
     const next=safariWindowLogs();if(next.state===shownLogs.state&&next.label===shownLogs.label)return;
     const row=$('.rb-selection-notch .rb-notch-window-controls'),still=matchMedia('(prefers-reduced-motion: reduce)').matches;
     flipLogs=shownLogs;
@@ -406,7 +408,6 @@
     if(settings.mode==='window')return !selectedWindow&&windows[hoverTarget]?hoverTarget:null;
     return hoverTarget==='screen'?'screen':null;
   }
-  let cardDocked=false,glideTimer=0;
   function syncRecordCard(bounds){
     if(alertTarget&&(settings.mode!=='window'||!isIdle()))closeRestartAlert();
     root.dataset.alert=String(!!alertTarget);
@@ -415,9 +416,16 @@
     $$('.rb-mock-window').forEach(el=>el.classList.toggle('is-hovered',el.dataset.window===target));
     syncWindowOverlays();
     root.dataset.screenHover=String(target==='screen');
+    // While Safari's setup tab is up, the card and the tint step away so the page reads on its own, and come back once
+    // Safari is connected or the tab is left.
+    const away=target==='browser'&&browserApp==='safari'&&safari.isAway();
+    if(away!==cardAway){
+      cardAway=away;root.classList.toggle('is-card-away',away);clearTimeout(returnTimer);
+      if(away)awayLogs=shownLogs;else returnTimer=setTimeout(()=>{awayLogs=null;flipLogsButton();if(!flipLogs)syncSelection();},240);
+    }
     shownLogs=target==='browser'?windowLogs('browser'):null;
     if(!target){
-      card.hidden=true;cardDocked=false;
+      card.hidden=true;
       selectionNotch?.render({enabled:active&&isIdle()&&!settings.oneClick&&(settings.mode==='area'&&settings.dimensions||settings.mode==='window'&&!!selectedWindow),dimensions:settings.dimensions,key:settings.mode==='area'?'area':selectedWindow,mode:settings.mode,logs:windowLogs(selectedWindow),rulers:settings.rulersButton,rect:bounds,sizing:selectionState(),bounds:selectionBounds(),minimum:selectionMinimum()});
       return;
     }
@@ -436,10 +444,6 @@
     // The notch is the panel behind the record pill, so it starts where the controls do.
     const cardWidth=card.offsetWidth,panelTop=controls.offsetTop,total=notch?panelTop+notch.height:card.offsetHeight;
     let x=rect.x+rect.width/2,y=rect.y+rect.height/2-total/2;
-    // While Safari's jam.dev page is up, the card waits at the bottom of the window, clear of the page's loop.
-    const docked=target==='browser'&&browserApp==='safari'&&safari.isDocked();
-    if(docked)y=rect.y+rect.height-total-12;
-    if(docked!==cardDocked){cardDocked=docked;root.classList.add('is-card-gliding');clearTimeout(glideTimer);glideTimer=setTimeout(()=>root.classList.remove('is-card-gliding'),600);}
     // The area keeps its card outside the selection: below it when that clears the belt, otherwise above.
     if(target==='area'){
       const below=rect.y+rect.height+12,above=rect.y-total-12;

@@ -103,76 +103,68 @@
 
 @media(prefers-reduced-motion:reduce){.sf-popover,.sf-settings,.sf-coach,.sf-extension.is-arriving{animation:none}.sf-extension img{transition:none}}
 
-/* Jam's alert over Safari's settings, with a small picture of checking Jam's box */
+/* Jam's alert, with a picture of checking Jam's box. The picture runs edge to edge and fades out on every side, so it
+   reads as an illustration of the step rather than a box to click. */
 .sf-coach{z-index:56}
 .sf-coach[hidden]{display:none}
-.sf-coach .sf-coach-message{margin-bottom:12px}
+.sf-coach .sf-coach-message{margin-bottom:6px}
 .sf-coach-button{width:100%}
-.sf-coach-art{position:relative;display:block;width:100%;margin-bottom:16px;padding:6px;border-radius:10px;background:#fff;box-shadow:0 0 0 .5px #00000024,0 1px 3px #00000014;text-align:left}
-.sf-art-row{display:flex;align-items:center;gap:7px;height:24px;padding:0 7px;border-radius:6px;font-size:11px}
+.sf-coach-art{position:relative;display:block;align-self:stretch;height:108px;margin:0 -16px 10px;overflow:hidden;background:#fff;text-align:left;pointer-events:none;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent),linear-gradient(90deg,transparent,#000 14%,#000 70%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent),linear-gradient(90deg,transparent,#000 14%,#000 70%,transparent);mask-composite:intersect}
+.sf-art-row{display:flex;align-items:center;gap:7px;height:24px;padding:0 7px;border-radius:6px;font-size:11px;white-space:nowrap}
 .sf-art-row.is-selected{background:#0a84ff;color:#fff}
 .sf-art-row .sf-checkbox{width:12px;height:12px;border-radius:3px}.sf-art-row .sf-checkbox svg{width:9px;height:9px}
 .sf-art-row .sf-ext-icon{width:13px;height:13px;border-radius:3px}
+.sf-coach-art .sf-art-row{position:absolute;left:30px;width:280px;height:36px;gap:10px;padding:0 11px;border-radius:9px;font-size:15px}
+.sf-coach-art .sf-art-row:first-child{top:-2px}
+.sf-coach-art .sf-art-row.is-selected{top:36px}
+.sf-coach-art .sf-checkbox{width:18px;height:18px;border-radius:5px}.sf-coach-art .sf-checkbox svg{width:13px;height:13px}
+.sf-coach-art .sf-ext-icon{width:22px;height:22px;border-radius:5px}
+.sf-coach-art .sf-art-row.is-selected .sf-checkbox{background:#fff}
 .sf-art-box{box-shadow:0 0 0 .5px #00000040,0 0 0 2px #ffffff8c}
 .sf-art-box svg{stroke:#0a84ff;opacity:0}
 .sf-cursor{position:absolute;left:0;top:0;width:12px;height:18px;transform-origin:0 0;filter:drop-shadow(0 1px 1px #0000004d)}
-.sf-coach-art .sf-cursor{translate:19px 17px}
+.sf-coach-art .sf-cursor{width:20px;height:30px;translate:49px 53px}
 @media(prefers-reduced-motion:no-preference){
   .sf-coach-art .sf-cursor{animation:sf-coach-cursor 3.2s cubic-bezier(.4,0,.2,1) infinite}
   .sf-coach-art .sf-art-box svg{animation:sf-coach-check 3.2s infinite}
 }
-@keyframes sf-coach-cursor{0%{translate:150px 34px;opacity:0}10%{opacity:1}40%{translate:19px 17px;scale:1}45%{scale:.88}50%{scale:1}82%{translate:19px 17px;opacity:1}92%,100%{translate:19px 17px;opacity:0}}
+@keyframes sf-coach-cursor{0%{translate:220px 100px;opacity:0}10%{opacity:1}40%{translate:49px 53px;scale:1}45%{scale:.88}50%{scale:1}82%{translate:49px 53px;opacity:1}92%,100%{translate:49px 53px;opacity:0}}
 @keyframes sf-coach-check{0%,45%{opacity:0}47%,90%{opacity:1}96%,100%{opacity:0}}
 
-/* jam.dev/safari, on jam.dev/download's layout: the site's nav, a centred heading, and two cards sharing one bordered
-   container, each with a muted platform logo, a picture and a title with a line of text. The site sets everything in
-   Onsite; without it, the system font stands in. It's sized so the record card, waiting at the bottom of the window,
-   covers neither card. */
-.sf-guide-page{position:relative;min-height:100%;padding:0 28px 24px;background:#fff;color:#1e201d;font-family:Onsite,Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
-.sf-guide-page::before{content:'';position:absolute;inset:0 0 auto;height:260px;background-image:linear-gradient(#f0f1ef 1px,transparent 1px),linear-gradient(90deg,#f0f1ef 1px,transparent 1px);background-size:27px 27px;background-position:-1px -1px;-webkit-mask-image:linear-gradient(transparent,#000 70px,transparent);mask-image:linear-gradient(transparent,#000 70px,transparent);pointer-events:none}
-.sf-guide-page>*{position:relative}
-.sf-guide-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:46px}
-.sf-guide-logo{width:46px;height:20px}
-.sf-guide-links{display:flex;gap:2px;padding:3px;border-radius:12px;background:#f8faf7;box-shadow:inset 0 0 0 1px #0b1f001a;font-size:11px;line-height:14px;font-weight:500;color:#3e4037}
-.sf-guide-links span{padding:4px 9px;border-radius:9px}
-.sf-guide-links .is-current{background:#fff;box-shadow:0 0 0 .5px #00000024;color:#1e201d}
-.sf-guide-account{display:flex;justify-content:flex-end;gap:6px;font-size:11px;line-height:14px;font-weight:500}
-.sf-guide-account span{padding:5px 10px;border-radius:8px}
-.sf-guide-login{background:#fff;box-shadow:inset 0 0 0 1px #0b1f001a}
-.sf-guide-start{background:#a7f374;color:#192612}
-.sf-guide-heading{margin-top:6px;text-align:center}
-.sf-guide-heading h1{margin:0;color:#1c2024;font-size:30px;line-height:34px;font-weight:500;letter-spacing:-.03em;text-wrap:balance}
-.sf-guide-heading p{max-width:520px;margin:6px auto 0;color:#626461;font-size:13px;line-height:18px;text-wrap:balance}
-.sf-guide-cards{display:grid;grid-template-columns:1fr 1fr;margin-top:14px;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px #0b1f001a}
-.sf-guide-card{position:relative;min-width:0;padding:12px 16px 14px;background:#f6f7f5}
-.sf-guide-card+.sf-guide-card{box-shadow:inset 1px 0 #0b1f001a}
-.sf-guide-platform{position:absolute;left:14px;top:12px;z-index:1;width:22px;height:22px;filter:grayscale(1);opacity:.3}
-.sf-guide-card h2{margin:8px 0 0;color:#202020;font-size:14px;line-height:18px;font-weight:500;letter-spacing:-.01em}
-.sf-guide-card p{margin:2px 0 0;color:#646461;font-size:12px;line-height:15px;text-wrap:pretty}
+/* jam.dev/safari, on jam.dev/download's layout: a centred heading over one card. The card frames a picture panel, with a
+   faint grid rising from its foot, over a caption that leads in bold. The site sets everything in Onsite; without it,
+   the system font stands in. */
+.sf-guide-page{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;min-height:100%;padding:24px 28px 40px;background:#fff;color:#1f201e;font-family:Onsite,Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+.sf-guide-heading{text-align:center}
+.sf-guide-heading h1{margin:0;font-size:26px;line-height:32px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.sf-guide-heading p{max-width:560px;margin:6px auto 0;color:#6b6c69;font-size:14px;line-height:20px;text-wrap:balance}
+.sf-guide-card{width:min(100%,460px);padding:8px;border-radius:18px;background:#fff;box-shadow:inset 0 0 0 1px #0b1f0017}
+.sf-guide-caption{margin:16px 10px 10px;color:#6b6c69;font-size:14px;line-height:20px;text-wrap:pretty}
+.sf-guide-caption b{color:#1f201e;font-weight:500}
 
-/* The pictures: a corner of Safari's window that fades out to the right and below, as the site's download art does */
-.sf-guide-art{position:relative;height:160px;margin:0 -16px;overflow:hidden;color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
-.sf-art-window{position:absolute;left:52px;top:18px;width:380px;height:142px;border-radius:14px;background:#fcfdfc;box-shadow:0 0 0 1px #081f0021;-webkit-mask-image:linear-gradient(90deg,#000 70%,transparent),linear-gradient(#000 45%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,#000 70%,transparent),linear-gradient(#000 45%,transparent);mask-composite:intersect}
+/* The picture: a corner of Safari's window that fades out to the right and below, with Safari's prompt over it. It's
+   laid out at 1x and scaled up as a whole. */
+.sf-guide-art{position:relative;height:246px;border-radius:11px;overflow:hidden;background:#f8f9f7;box-shadow:inset 0 0 0 1px #0b1f000f;color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+.sf-guide-art::before{content:'';position:absolute;inset:0;background-image:linear-gradient(#0b1f000d 1px,transparent 1px),linear-gradient(90deg,#0b1f000d 1px,transparent 1px);background-size:16px 16px;-webkit-mask-image:linear-gradient(transparent 35%,#000);mask-image:linear-gradient(transparent 35%,#000)}
+.sf-demo-stage{position:absolute;left:0;top:0;width:376px;height:210px;transform-origin:0 0;scale:1.18}
+.sf-art-window{position:absolute;left:44px;top:32px;width:360px;height:190px;border-radius:14px;background:#fcfdfc;box-shadow:0 0 0 1px #081f0021;-webkit-mask-image:linear-gradient(90deg,#000 60%,transparent),linear-gradient(#000 45%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,#000 60%,transparent),linear-gradient(#000 45%,transparent);mask-composite:intersect}
 .sf-art-toolbar{display:flex;align-items:center;gap:10px;height:32px;padding:0 12px;border-radius:14px 14px 0 0;background:#eff1ee;box-shadow:0 1px #081f0014}
 .sf-art-nav{display:flex;gap:9px;padding:0 2px}.sf-art-nav i{width:6px;height:6px;border:solid #8a888e;border-width:0 0 1.5px 1.5px;rotate:45deg}.sf-art-nav i+i{rotate:-135deg;opacity:.45}
 .sf-demo-extension{display:grid;place-items:center;flex:none;width:24px;height:22px;border-radius:6px}
 .sf-demo-extension img{width:15px;height:15px;filter:grayscale(1);opacity:.45}
 .sf-art-address{display:flex;flex:1;align-items:center;height:22px;padding-left:10px;border-radius:11px;background:#fcfdfc;color:#6e6c72;font-size:10.5px}
-.sf-art-titlebar{display:grid;place-items:center;height:30px;border-radius:14px 14px 0 0;background:#eff1ee;box-shadow:0 1px #081f0014;font-size:11px;font-weight:700}
-.sf-art-window .sf-art-row{margin:6px 8px 0;height:24px;font-size:11px}
-.sf-art-window .sf-art-row+.sf-art-row{margin-top:2px}
-.sf-art-window .sf-checkbox.is-on svg{stroke:#fff}
-.sf-art-window .sf-art-row.is-selected .sf-checkbox{background:#fff}.sf-art-window .sf-art-row.is-selected .sf-checkbox svg{stroke:#0a84ff}
-/* Safari's prompt overlaps the window like the site's extension popup, its arrow on Jam's button */
-.sf-demo-popover{position:absolute;left:82px;top:56px;display:flex;flex-direction:column;gap:4px;width:200px;padding:8px;border-radius:12px;background:#fff;box-shadow:0 0 .5px #00000045,0 4px 3px #00000017,0 2px 2px #00000017,0 10px 24px #0000001a}
+
+/* Safari's prompt hangs from Jam's button */
+.sf-demo-popover{position:absolute;left:74px;top:72px;display:flex;flex-direction:column;gap:4px;width:200px;padding:8px;border-radius:12px;background:#fff;box-shadow:0 0 .5px #00000045,0 4px 3px #00000017,0 2px 2px #00000017,0 10px 24px #0000001a}
 .sf-demo-popover::before{content:'';position:absolute;top:-5px;left:24px;width:10px;height:10px;rotate:45deg;background:#fff;box-shadow:-.5px -.5px 0 #00000026}
 .sf-demo-popover-head{position:relative;display:flex;gap:7px;align-items:center;margin-bottom:2px}
 .sf-demo-popover-head .sf-jam-icon{width:22px;height:22px;flex:none}
 .sf-demo-popover b{font-size:9.5px;line-height:12px;font-weight:600}
 .sf-demo-popover i{display:grid;place-items:center;height:17px;border-radius:5px;background:#f2f2f4;font-size:9px;font-style:normal;font-weight:500}
 .sf-demo-popover i.is-default{background:linear-gradient(#2a95ff,#0a7cff);color:#fff}
-/* Without motion the loop holds on its key frame: the prompt open, the pointer on the button to choose. */
-.sf-demo .sf-cursor{width:13px;height:20px;translate:180px 141px}
+/* The loop: the cursor clicks Jam's grey button, Safari's prompt drops, the cursor allows Jam everywhere, and the button
+   turns to full colour. Reduced motion keeps the frame with the prompt open. */
+.sf-demo .sf-cursor{width:14px;height:21px;translate:172px 156px}
 @media(prefers-reduced-motion:no-preference){
   .sf-demo .sf-cursor{animation:sf-demo-cursor 6.4s cubic-bezier(.4,0,.2,1) infinite}
   .sf-demo-extension{animation:sf-demo-pressed 6.4s infinite}
@@ -180,7 +172,7 @@
   .sf-demo-popover{animation:sf-demo-popover 6.4s infinite}
   .sf-demo-popover i.is-default{animation:sf-demo-choose 6.4s infinite}
 }
-@keyframes sf-demo-cursor{0%{translate:330px 150px;opacity:0}7%{opacity:1}25%{translate:109px 32px;scale:1}27%{scale:.86}30%{scale:1}50%{translate:180px 141px;scale:1}52%{scale:.86}55%{scale:1}84%{translate:180px 141px;opacity:1}92%,100%{translate:180px 141px;opacity:0}}
+@keyframes sf-demo-cursor{0%{translate:360px 200px;opacity:0}7%{opacity:1}25%{translate:101px 46px;scale:1}27%{scale:.86}30%{scale:1}50%{translate:172px 156px;scale:1}52%{scale:.86}55%{scale:1}84%{translate:172px 156px;opacity:1}92%,100%{translate:172px 156px;opacity:0}}
 @keyframes sf-demo-pressed{0%,26%{background:transparent}28%,57%{background:#00000014}59%,100%{background:transparent}}
 @keyframes sf-demo-popover{0%,28%{opacity:0;translate:0 -4px}32%,56%{opacity:1;translate:0 0}60%,100%{opacity:0;translate:0 0}}
 @keyframes sf-demo-choose{0%,51%{filter:none}52%,56%{filter:brightness(.88)}57%,100%{filter:none}}

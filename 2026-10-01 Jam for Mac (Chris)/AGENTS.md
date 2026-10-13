@@ -49,14 +49,15 @@ Work happens on a branch and lands through a PR. Commits use conventional prefix
 - **Style varies by file.** The recording files are written densely, with many statements per line; the others are
   conventionally formatted. Match the file you're editing.
 - **Each browser's extension lives in its own file.** `recording-safari.js` owns Safari's extension state (enabled,
-  and which websites it may access), the Safari chrome inside the browser window, the permission popover, the Settings ›
-  Extensions pane with Jam's alert over it, and the jam.dev/safari page with its looping demo. While its setup runs it
-  reports itself as guiding, and `recording.js` keeps the card on Safari's window instead of hiding it, docking it to
-  the window's bottom while the page is up and flipping its logs button as each step completes. `recording-chrome.js` owns Chrome's chrome, the
-  Chrome Web Store tab and Chrome's add dialog; whether Chrome's extension is installed is the belt's `browserLogs`
-  setting. `recording-status-menu.js` is the menu bar's status menu for both. `recording.js` turns their state into
-  the card's logs row and the full screen sources, and while either browser's setup runs, its window takes the
-  pointer from the window picker. Chrome's setup hides the card; Safari's keeps it.
+  and which websites it may access), the Safari chrome inside the browser window, the permission popover, the Settings
+  › Extensions pane, Jam's alert, and the jam.dev/safari page with its looping demo, which the extension closes once
+  Jam is allowed. While its setup runs it reports itself as guiding, and `recording.js` keeps the card on Safari's
+  window instead of hiding it, fading it and its tint away while the page is up and flipping its logs button as each
+  step completes. `recording-chrome.js` owns Chrome's chrome, the Chrome Web Store tab and Chrome's add dialog;
+  whether Chrome's extension is installed is the belt's `browserLogs` setting. `recording-status-menu.js` is the menu
+  bar's status menu for both. `recording.js` turns their state into the card's logs row and the full screen sources,
+  and while either browser's setup runs, its window takes the pointer from the window picker. Chrome's setup hides the
+  card; Safari's keeps it.
 - **Respect reduced motion.** Every animated surface checks `prefers-reduced-motion` and jumps to end states.
 
 ## Tests

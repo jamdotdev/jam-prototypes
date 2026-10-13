@@ -5,7 +5,7 @@ await p.emulateMedia({reducedMotion:'reduce'});
 await p.evaluate(()=>{JamRecording.updateSettings({camera:false,oneClick:true,pickerStart:'window',browserLogs:'connected'});JamRecording.setMode('window');JamRecording.setSafariState('disabled');});
 const state=()=>p.evaluate(()=>JamRecording.getState()),safari=()=>p.evaluate(()=>JamRecording.getSafariState());
 const row=p.locator('.rb-selection-notch .rb-notch-logs-restart'),label=row.locator('.rb-notch-logs-restart-label'),browser=p.locator('[data-window="browser"]'),tooltip=p.locator('.rb-tooltip');
-const settings=p.locator('.sf-settings'),coach=p.locator('.sf-coach'),extension=p.locator('.sf-extension'),popover=p.locator('.sf-popover'),page=p.locator('.sf-guide');
+const settings=p.locator('.sf-settings'),coach=p.locator('.sf-coach'),extension=p.locator('.sf-extension'),popover=p.locator('.sf-popover'),page=p.locator('.sf-guide'),card=p.locator('.rb-record-card'),tint=p.locator('.rb-hover-frame');
 const bb=await browser.boundingBox(),point={x:bb.x+bb.width-60,y:bb.y+bb.height-40};
 const hover=async()=>{await p.mouse.move(point.x-4,point.y-4);await p.mouse.move(point.x,point.y);await p.waitForTimeout(80);};
 const settingUp=()=>p.evaluate(()=>document.querySelector('.recording-scene').dataset.browserGuide==='true');
@@ -24,16 +24,19 @@ assert.ok(await extension.isHidden(),'Safari has no Jam button until the box is 
 await row.hover();await tooltip.waitFor({state:'visible'});
 assert.equal(await tooltip.textContent(),'Turn on the Jam extension in Safari to capture logs');
 assert.equal(await row.getAttribute('aria-describedby'),'rb-logs-tooltip');
-// Connecting opens Safari's settings with Jam's alert over them, and the card stays on Safari's window
+// Connecting opens Safari's settings with Jam's alert in the middle of the screen, and the card and its tint stay on Safari's window
 await row.click();
 assert.ok(await settings.isVisible());assert.ok(await coach.isVisible());assert.ok(await tooltip.isHidden());
-assert.equal(await coach.locator('h2').textContent(),'Turn on Jam in Safari');
+assert.equal(await coach.locator('h2').textContent(),'Enable the Jam Safari Extension');
 assert.equal((await state()).target,'browser','the card stays up through the setup');assert.ok(await settingUp());
+assert.ok(await card.isVisible());assert.ok(await tint.isVisible());
+assert.equal(await tint.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(255, 59, 48, 0.4)','Safari’s window keeps its tint');
 assert.ok(await p.locator('.rb-window-picker[data-picker="browser"]').isHidden(),'Safari stays clickable');
-const notchBox=await p.locator('.rb-selection-notch').boundingBox(),settingsBox=await settings.boundingBox(),coachBox=await coach.boundingBox(),jamBox=await p.locator('.sf-checkbox-hit').boundingBox();
+const notchBox=await p.locator('.rb-selection-notch').boundingBox(),settingsBox=await settings.boundingBox(),coachBox=await coach.boundingBox(),jamBox=await p.locator('.sf-checkbox-hit').boundingBox(),screen=await p.locator('.recording-scene').boundingBox();
 assert.ok(!overlaps(settingsBox,notchBox),'Safari’s settings leave the card in view');
 assert.ok(!overlaps(coachBox,jamBox),'the alert leaves Jam’s box in reach');
-assert.ok(coachBox.x>=settingsBox.x&&coachBox.x+coachBox.width<=settingsBox.x+settingsBox.width,'the alert sits over Safari’s settings');
+// macOS centres an app's alert on the screen rather than over the window it's about
+assert.ok(Math.abs(coachBox.x+coachBox.width/2-(screen.x+screen.width/2))<2&&Math.abs(coachBox.y+coachBox.height/2-(screen.y+screen.height/2))<2,'the alert sits in the middle of the screen');
 // It stays on Safari's window wherever the pointer goes
 await p.mouse.move(120,820);await p.mouse.move(124,824);await p.waitForTimeout(80);
 assert.equal((await state()).target,'browser');
@@ -48,36 +51,38 @@ assert.equal(await p.locator('.rb-capture-status').textContent(),'Grant permissi
 assert.equal((await state()).target,'browser');
 // Closing the settings once the box is checked keeps the setup going
 await p.locator('.sf-settings-close').click();assert.ok(await settings.isHidden());assert.ok(await settingUp());
-// Granting permission opens jam.dev/safari in a new tab, and the card waits at the bottom of the window, clear of the page
+// Granting permission opens jam.dev/safari in a new tab, and the card and its tint step away while it's up
 await row.click();
 assert.ok(await page.isVisible());assert.equal(await p.evaluate(()=>JamRecording.getSafariTab()),'guide');
 assert.equal(await p.locator('.sf-address-text').textContent(),'jam.dev/safari');
-assert.equal(await page.locator('h1').textContent(),'Get logs from Safari');
+assert.equal(await page.locator('h1').textContent(),'Connecting Jam to Safari');
 assert.equal(await page.locator('button').count(),0,'the page only explains');
-await p.waitForTimeout(600);
-const docked=await p.locator('.rb-selection-notch').boundingBox(),demo=await page.locator('.sf-demo').boundingBox();
-assert.ok(docked.y+docked.height>bb.y+bb.height-40,'the card sits at the bottom of the window');
-assert.ok(!overlaps(docked,demo),'the card leaves the page’s loop in view');
-// Allowing Jam on every website from its toolbar button connects Safari, and the card goes back to following the pointer
+assert.equal(await page.locator('.sf-guide-card').count(),1,'one card, showing the permission');
+assert.equal(await page.locator('.sf-checkbox').count(),0,'the page leaves out the extension’s box');
+assert.ok(await card.isHidden());assert.ok(await tint.isHidden());assert.ok(await settingUp());
+assert.equal((await state()).target,'browser','the card comes back to Safari');
+// Allowing Jam on every website from its toolbar button connects Safari. The extension closes its tab, and the card comes back on its new state.
 await extension.click();assert.ok(await popover.isVisible());assert.match(await popover.textContent(),/access “jam\.dev”/);
 await p.locator('[data-allow="all"]').click();
 assert.equal(await safari(),'connected');assert.equal(await p.locator('.rb-belt-toast-label').textContent(),'Logs enabled for Safari');
 assert.doesNotMatch(await extension.getAttribute('class'),/is-waiting/);
+await page.waitFor({state:'hidden'});
+assert.equal(await p.evaluate(()=>JamRecording.getSafariTab()),'design');assert.equal(await p.locator('.sf-tab').count(),2);
+assert.ok(await card.isVisible());assert.ok(await tint.isVisible());
 await p.waitForFunction(()=>document.querySelector('.rb-selection-notch .rb-notch-logs-label').textContent==='Logs enabled'&&!document.querySelector('.rb-selection-notch .rb-notch-logs').hidden);
 await p.waitForFunction(()=>document.querySelector('.recording-scene').dataset.browserGuide==='false');
-assert.ok(await page.isVisible(),'the tab stays open');
-// Closing the tab goes back to the page before it
-await p.locator('.sf-tab-close').click();assert.ok(await page.isHidden());
-assert.equal(await p.locator('.sf-tab').count(),2);
 // Closing Safari's settings with the box unchecked leaves the setup
 await p.evaluate(()=>JamRecording.setSafariState('disabled'));await hover();await row.click();
 assert.ok(await settingUp());await p.locator('.sf-settings-close').click();
 assert.ok(!(await settingUp()));
-// So does closing the page before allowing Jam
-await p.evaluate(()=>JamRecording.setSafariState('permission'));await hover();
+// So does closing the page before allowing Jam, which goes back to the tab before it and brings the card back
+await p.evaluate(()=>{JamRecording.setSafariState('permission');JamRecording.setSafariTab('checkout');});await hover();
 assert.equal(await label.textContent(),'Grant permission for Safari logs');
-await row.click();assert.ok(await settingUp());await p.locator('.sf-tab-close').click();
+await row.click();assert.ok(await settingUp());assert.ok(await card.isHidden());await p.locator('.sf-tab-close').click();
 assert.ok(!(await settingUp()));assert.ok(await page.isHidden());
+assert.equal(await p.evaluate(()=>JamRecording.getSafariTab()),'checkout');
+await hover();assert.ok(await card.isVisible());assert.equal(await label.textContent(),'Grant permission for Safari logs');
+await p.evaluate(()=>JamRecording.setSafariTab('design'));
 // A site Jam isn't allowed on yet (TC7) names it in the tooltip
 await p.evaluate(()=>JamRecording.setSafariState('site'));await hover();
 assert.equal(await safari(),'site');assert.equal(await label.textContent(),'Grant permission for Safari logs');
