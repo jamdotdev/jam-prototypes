@@ -54,24 +54,43 @@
     tabBar.setAttribute('role', 'tablist');
     tabBar.setAttribute('aria-label', 'Safari tabs');
     content.before(tabBar);
-    // jam.dev/safari, which Jam opens in a new Safari tab for the second gate. A web page can't see the extension, so it
-    // only shows how: a loop of clicking Jam's toolbar button and allowing it everywhere.
+    // jam.dev/safari, which Jam opens in a new Safari tab for the second gate, laid out like jam.dev/download's cards. A
+    // web page can't see the extension, so it only shows how: a loop of clicking Jam's toolbar button and allowing it
+    // everywhere, and beside it where to turn the extension on for anyone without the button.
     const guidePage = document.createElement('div');
     guidePage.className = 'sf-guide';
     guidePage.hidden = true;
     guidePage.innerHTML = `<div class="sf-guide-page">
-        <nav class="sf-guide-nav"><img class="sf-guide-logo" src="assets/auth-logo.svg" alt="Jam"><span class="sf-guide-help">Need help?</span></nav>
-        <div class="sf-guide-hero">
-          <header class="sf-guide-heading">
-            <h1>Get logs from Safari</h1>
-            <p>Click the Jam icon in Safari’s toolbar, then choose “Always Allow on Every Website”.</p>
-            <p class="sf-guide-note">Don’t see the icon? Choose Safari › Settings…, click Extensions, then check the box next to Jam for Safari.</p>
-          </header>
-          <div class="sf-demo" aria-hidden="true">
-            <span class="sf-demo-toolbar"><span class="sf-setup-lights"><i></i><i></i><i></i></span><span class="sf-demo-nav"><i></i><i></i></span><span class="sf-demo-extension">${strawberry}</span><span class="sf-demo-address">jam.dev/safari</span><span class="sf-demo-tool"></span></span>
-            <span class="sf-demo-popover"><span class="sf-demo-popover-head">${appIcon}<b>Allow “Jam for Safari” to access “jam.dev”?</b></span><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-default">Always Allow on Every Website</i></span>
-            ${cursor}
-          </div>
+        <nav class="sf-guide-nav">
+          <img class="sf-guide-logo" src="assets/auth-logo.svg" alt="Jam">
+          <span class="sf-guide-links" aria-hidden="true"><span class="is-current">Home</span><span>Integrations</span><span>Pricing</span></span>
+          <span class="sf-guide-account" aria-hidden="true"><span class="sf-guide-login">Login</span><span class="sf-guide-start">Get started</span></span>
+        </nav>
+        <header class="sf-guide-heading">
+          <h1>Get logs from Safari</h1>
+          <p>Allow Jam in Safari to capture its console logs and network requests.</p>
+        </header>
+        <div class="sf-guide-cards">
+          <section class="sf-guide-card">
+            <img class="sf-guide-platform" src="assets/recording/safari.png" alt="">
+            <div class="sf-guide-art sf-demo" aria-hidden="true">
+              <span class="sf-art-window"><span class="sf-art-toolbar"><span class="sf-art-nav"><i></i><i></i></span><span class="sf-demo-extension">${strawberry}</span><span class="sf-art-address">jam.dev/safari</span></span></span>
+              <span class="sf-demo-popover"><span class="sf-demo-popover-head">${appIcon}<b>Allow “Jam for Safari” to access “jam.dev”?</b></span><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-default">Always Allow on Every Website</i></span>
+              ${cursor}
+            </div>
+            <h2>Allow Jam on every website</h2>
+            <p>Click the Jam icon left of the address bar, then choose “Always Allow on Every Website”.</p>
+          </section>
+          <section class="sf-guide-card">
+            <img class="sf-guide-platform" src="assets/recording/safari.png" alt="">
+            <div class="sf-guide-art" aria-hidden="true">
+              <span class="sf-art-window"><span class="sf-art-titlebar">Extensions</span>
+                <span class="sf-art-row"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon is-password"></span>1Password for Safari</span>
+                <span class="sf-art-row is-selected"><span class="sf-checkbox is-on">${check}</span><span class="sf-ext-icon">${appIcon}</span>Jam for Safari</span></span>
+            </div>
+            <h2>Don’t see the Jam icon?</h2>
+            <p>Choose Safari › Settings…, click Extensions, then check the box next to Jam for Safari.</p>
+          </section>
         </div>
       </div>`;
     content.after(guidePage);

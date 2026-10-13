@@ -438,7 +438,7 @@
     let x=rect.x+rect.width/2,y=rect.y+rect.height/2-total/2;
     // While Safari's jam.dev page is up, the card waits at the bottom of the window, clear of the page's loop.
     const docked=target==='browser'&&browserApp==='safari'&&safari.isDocked();
-    if(docked)y=rect.y+rect.height-total-16;
+    if(docked)y=rect.y+rect.height-total-12;
     if(docked!==cardDocked){cardDocked=docked;root.classList.add('is-card-gliding');clearTimeout(glideTimer);glideTimer=setTimeout(()=>root.classList.remove('is-card-gliding'),600);}
     // The area keeps its card outside the selection: below it when that clears the belt, otherwise above.
     if(target==='area'){
