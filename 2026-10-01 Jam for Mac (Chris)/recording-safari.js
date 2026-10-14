@@ -7,7 +7,8 @@
   const tabs = {
     design: { title: 'Design system', host: 'jam.dev', path: 'jam.dev/design-system' },
     checkout: { title: 'Checkout', host: 'shop.acme.dev', path: 'shop.acme.dev/checkout' },
-    guide: { title: 'Connecting Jam to Safari', host: 'jam.dev', path: 'jam.dev/safari' },
+    guide: { title: 'Finish Safari log capture setup', host: 'jam.dev', path: 'jam.dev/safari' },
+    docs: { title: JamDocs.title, host: 'jam.dev', path: JamDocs.path },
   };
   const presets = ['off', 'disabled', 'permission', 'site', 'connected'];
   const statusText = {
@@ -34,6 +35,7 @@
     // The tab Safari goes back to when the jam.dev page closes
     let lastTab = 'design';
     let guideOpen = false;
+    let docsOpen = false;
     let popoverOpen = false;
     // Jam's setup is under way, from the logs button until Safari is connected or the user walks away from it. The record
     // card stays on Safari's window throughout, so recording picks up where it left off.
@@ -65,19 +67,22 @@
     guidePage.hidden = true;
     guidePage.innerHTML = `<div class="sf-guide-page">
         <header class="sf-guide-heading">
-          <h1>Connecting Jam to Safari</h1>
+          <h1>Finish Safari log capture setup</h1>
           <p>Allow Jam on every website so it can capture console logs and network requests.</p>
         </header>
         <section class="sf-guide-card">
-          <div class="sf-guide-art sf-demo" aria-hidden="true"><span class="sf-demo-stage">
+          <div class="sf-guide-art sf-demo" aria-hidden="true">
             <span class="sf-art-window"><span class="sf-art-toolbar"><span class="sf-art-nav"><i></i><i></i></span><span class="sf-demo-extension">${strawberry}</span><span class="sf-art-address">jam.dev/safari</span></span></span>
             <span class="sf-demo-popover"><span class="sf-demo-popover-head">${appIcon}<b>Allow “Jam for Safari” to access “jam.dev”?</b></span><i>Allow for One Day</i><i>Always Allow on This Website</i><i class="is-default">Always Allow on Every Website</i></span>
             ${cursor}
-          </span></div>
+          </div>
           <p class="sf-guide-caption"><b>Click the Jam icon</b> and choose Always Allow on Every Website</p>
         </section>
       </div>`;
     content.after(guidePage);
+    const docsPage = JamDocs.page();
+    docsPage.classList.add('sf-docs');
+    guidePage.after(docsPage);
     const popover = document.createElement('div');
     popover.className = 'sf-popover';
     popover.setAttribute('role', 'dialog');
@@ -157,16 +162,17 @@
       extension.hidden = !enabled;
       extension.classList.toggle('is-waiting', current === 'permission' || current === 'site');
       extension.title = current === 'connected' ? 'Jam for Safari' : 'Jam for Safari needs permission on this website';
-      const open = guideOpen ? ['design', 'checkout', 'guide'] : ['design', 'checkout'];
+      const open = ['design', 'checkout', ...(guideOpen ? ['guide'] : []), ...(docsOpen ? ['docs'] : [])];
       const key = `${open.join()}:${tab}`;
       if (tabBar.dataset.key !== key) {
         tabBar.dataset.key = key;
         tabBar.innerHTML = open
-          .map((name) => `<button type="button" class="sf-tab" role="tab" aria-selected="${name === tab}" data-tab="${name}"><span>${tabs[name].title}</span>${name === 'guide' ? '<i class="sf-tab-close" role="button" aria-label="Close tab"></i>' : ''}</button>`)
+          .map((name) => `<button type="button" class="sf-tab" role="tab" aria-selected="${name === tab}" data-tab="${name}"><span>${tabs[name].title}</span>${['guide', 'docs'].includes(name) ? '<i class="sf-tab-close" role="button" aria-label="Close tab"></i>' : ''}</button>`)
           .join('');
       }
       article.dataset.safariTab = tab;
       guidePage.hidden = tab !== 'guide';
+      docsPage.hidden = tab !== 'docs';
       for (const toggle of toggles) toggle.checked = enabled;
       settingsPane.querySelectorAll('.sf-checkbox-hit .sf-checkbox, .sf-detail-toggle .sf-checkbox').forEach((box) => box.classList.toggle('is-on', enabled));
       if (popoverOpen && current === 'connected') closePopover();
@@ -257,7 +263,7 @@
       closePopover();
       closeSettings();
       guideOpen = true;
-      if (tab !== 'guide') lastTab = tab;
+      if (!['guide', 'docs'].includes(tab)) lastTab = tab;
       tab = 'guide';
       guidePage.scrollTop = 0;
       changed();
@@ -271,6 +277,21 @@
       closePopover();
       changed();
       if (state() !== 'connected') setActive(false);
+    }
+
+    function openDocs() {
+      closePopover();
+      docsOpen = true;
+      if (!['guide', 'docs'].includes(tab)) lastTab = tab;
+      tab = 'docs';
+      docsPage.scrollTop = 0;
+      changed();
+    }
+
+    function closeDocs() {
+      docsOpen = false;
+      if (tab === 'docs') tab = lastTab;
+      changed();
     }
 
     // Safari opens its settings on Extensions with Jam selected, to the left of its window so the record card stays in
@@ -326,6 +347,7 @@
         guideOpen = true;
         lastTab = tab;
       }
+      if (name === 'docs') docsOpen = true;
       tab = name;
       closePopover();
       changed();
@@ -338,6 +360,7 @@
       clearTimeout(closeTimer);
       closeTimer = 0;
       guideOpen = false;
+      docsOpen = false;
       tab = 'design';
       closePopover();
       closeSettings();
@@ -348,7 +371,8 @@
     tabBar.addEventListener('pointerdown', (event) => event.stopPropagation());
     tabBar.addEventListener('click', (event) => {
       if (event.target.closest('.sf-tab-close')) {
-        closeGuide();
+        if (event.target.closest('.sf-tab').dataset.tab === 'docs') closeDocs();
+        else closeGuide();
         return;
       }
       const button = event.target.closest('.sf-tab');
@@ -408,6 +432,7 @@
       setPreset,
       startSetup,
       openSettings,
+      openDocs,
       reset,
       isGuiding: () => active,
       endSetup: () => setActive(false),

@@ -39,7 +39,7 @@
 .rb-selection-notch[data-logs="connected"] .rb-notch-logs{color:#8be36b}.rb-selection-notch[data-logs="connected"] .rb-notch-logs .rb-sf{opacity:1}
 
 /* On the record card the notch is the panel behind the record pill: sizing under the pill, then the logs status under a divider. */
-.rb-selection-notch.is-card{flex-direction:column;gap:0;padding:52px 8px 8px;border-radius:24px}
+.rb-selection-notch.is-card{flex-direction:column;gap:0;padding:52px 8px 8px;border-radius:calc(18px + 8px) calc(18px + 8px) calc(12px + 8px) calc(12px + 8px)}
 .rb-selection-notch.is-card .rb-notch-backplate{pointer-events:auto}
 .rb-selection-notch.is-card .rb-notch-sizing{order:1}
 .rb-selection-notch.is-card .rb-notch-window-controls{order:2;justify-content:center;width:100%;margin-top:17px}
@@ -50,7 +50,7 @@
 .rb-selection-notch.is-card button,.rb-selection-notch.is-card .rb-notch-field input{font-size:13px;font-weight:510}
 .rb-selection-notch.is-card .rb-notch-ratio{min-width:32px;padding:0 8px}
 .rb-selection-notch.is-card .rb-notch-field input{width:calc(var(--digits,3) * 1ch + 18px);min-width:0;padding:0 8px}
-.rb-selection-notch.is-card .rb-notch-logs{padding:0 16px;font-size:13px;font-weight:510}
+.rb-selection-notch.is-card .rb-notch-logs{height:28px;padding:0 16px;font-size:13px;font-weight:510}
 .rb-selection-notch.is-card .rb-notch-logs .rb-sf{width:6px;height:6px;margin:2px}
 .rb-selection-notch.is-card[data-logs="connected"] .rb-notch-logs{color:#89ff9fcc}
 .rb-selection-notch.is-card[data-logs="connected"] .rb-notch-logs .rb-sf{color:#53b365}
@@ -63,13 +63,13 @@
 .rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart-label{animation-duration:1.2s}
 .rb-selection-notch .rb-notch-logs-restart[aria-disabled="true"]{cursor:default;background:transparent}
 .rb-selection-notch[data-logs="restarting"] .rb-notch-logs-restart .rb-sf,.rb-selection-notch:not([data-logs="restarting"]) .rb-notch-logs-restart .rb-spinner{display:none}
-.rb-notch-logs-restart-detail{font-size:11px;line-height:13px;font-weight:400;color:#ffffff73}
-.rb-notch-logs-restart-detail:empty,.rb-selection-notch:not(.is-card) .rb-notch-logs-restart-detail,.rb-selection-notch .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:none}
-/* On the card the row is a button as wide as the record pill, with any detail under its label. */
-.rb-selection-notch.is-card .rb-notch-logs-restart{flex:1 1 auto;flex-direction:column;height:auto;min-height:32px;padding:6px 14px;border-radius:16px;background:#ffffff12;font-size:13px;font-weight:510}
+.rb-selection-notch .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:none}
+/* On the card the row is a one-line button as wide as the record pill, with any detail in a tooltip. Every state of the
+   row, button or label, is 28px tall, so the card keeps its height as Jam steps through them. */
+.rb-selection-notch.is-card .rb-notch-logs-restart{flex:1 1 auto;height:28px;padding:0 14px;border-radius:12px;background:#ffffff12;font-size:13px;font-weight:510}
 .rb-selection-notch.is-card[data-logs="restarting"] .rb-notch-logs-restart{background:#ffffff0a}
 @media(hover:hover) and (pointer:fine){.rb-selection-notch.is-card .rb-notch-logs-restart:not([aria-disabled="true"]):hover{background:#ffffff1f}}
-/* Turning logs on is optional, so the opt-in is calm, with its cost underneath rather than a sweep. */
+/* Turning logs on is optional, so the opt-in is calm, with its cost in the tooltip rather than a sweep. */
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart{color:#ffffffd9}
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart .rb-sf[data-symbol="arrow.counterclockwise"]{display:none}
 .rb-selection-notch[data-logs="optin"] .rb-notch-logs-restart .rb-sf[data-symbol="terminal"]{display:block;width:15px;height:15px;opacity:.75}
@@ -81,7 +81,7 @@
    that ends in a forward arrow. Safari's second step turns it yellow, since the extension is on and waiting on the user. */
 .rb-selection-notch .rb-notch-logs-restart .rb-sf:is([data-symbol="arrow.down.circle.fill"],[data-symbol="arrow.forward.circle.fill"]){display:none}
 .rb-selection-notch:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart .rb-sf[data-symbol="arrow.counterclockwise"]{display:none}
-.rb-selection-notch.is-card:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart{min-height:28px;height:28px;padding:0 16px;border-radius:12px;background:#0588f04f;color:#70b8ff}
+.rb-selection-notch.is-card:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart{padding:0 16px;background:#0588f04f;color:#70b8ff}
 .rb-selection-notch:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart-main{gap:5px}
 .rb-selection-notch:is([data-logs="install"],[data-logs="permission"]) .rb-notch-logs-restart .rb-sf[data-symbol="arrow.forward.circle.fill"]{display:block;width:13px;height:13px}
 .rb-selection-notch[data-logs="install"][data-logs-app="chrome"] .rb-notch-logs-restart .rb-sf[data-symbol="arrow.forward.circle.fill"]{display:none}

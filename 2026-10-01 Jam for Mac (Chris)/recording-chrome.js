@@ -10,12 +10,14 @@
   const tabs = {
     design: { title: 'Design system', url: 'jam.dev/design-system', icon: strawberry },
     store: { title: 'Jam - Chrome Web Store', url: 'chromewebstore.google.com/detail/jam', icon: storeIcon },
+    docs: { title: JamDocs.title, url: JamDocs.path, icon: strawberry },
   };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 
   function create({ root, article, installed, onInstall, onChange, onGuide }) {
     let tab = 'design';
     let storeOpen = false;
+    let docsOpen = false;
     let dialogOpen = false;
     let guiding = false;
     let guideTimer = 0;
@@ -37,6 +39,9 @@
     store.className = 'ch-store';
     store.hidden = true;
     content.after(store);
+    const docs = JamDocs.page();
+    docs.classList.add('ch-docs');
+    store.after(docs);
     const dialog = document.createElement('div');
     dialog.className = 'ch-dialog';
     dialog.setAttribute('role', 'dialog');
@@ -52,15 +57,16 @@
       article.dataset.chromeTab = tab;
       toolbar.querySelector('.ch-url').textContent = tabs[tab].url;
       toolbar.querySelector('.ch-pinned').hidden = !added;
-      const open = storeOpen ? ['design', 'store'] : ['design'];
+      const open = ['design', ...(storeOpen ? ['store'] : []), ...(docsOpen ? ['docs'] : [])];
       const key = `${open.join()}:${tab}`;
       if (strip.dataset.key !== key) {
         strip.dataset.key = key;
         strip.innerHTML = `${open
-          .map((name) => `<button type="button" class="ch-tab" role="tab" aria-selected="${name === tab}" data-tab="${name}"><span class="ch-tab-icon">${tabs[name].icon}</span><span class="ch-tab-title">${tabs[name].title}</span>${name === 'store' ? '<i class="ch-tab-close" role="button" aria-label="Close tab"></i>' : ''}</button>`)
+          .map((name) => `<button type="button" class="ch-tab" role="tab" aria-selected="${name === tab}" data-tab="${name}"><span class="ch-tab-icon">${tabs[name].icon}</span><span class="ch-tab-title">${tabs[name].title}</span>${name === 'design' ? '' : '<i class="ch-tab-close" role="button" aria-label="Close tab"></i>'}</button>`)
           .join('')}<span class="ch-new-tab" aria-hidden="true"></span>`;
       }
       store.hidden = tab !== 'store';
+      docs.hidden = tab !== 'docs';
       if (tab === 'store') renderStore(added);
     }
 
@@ -120,15 +126,30 @@
 
     function closeStore() {
       storeOpen = false;
-      tab = 'design';
+      if (tab === 'store') tab = 'design';
       closeDialog();
       setGuiding(false);
+      changed();
+    }
+
+    function openDocs() {
+      docsOpen = true;
+      tab = 'docs';
+      closeDialog();
+      docs.scrollTop = 0;
+      changed();
+    }
+
+    function closeDocs() {
+      docsOpen = false;
+      if (tab === 'docs') tab = 'design';
       changed();
     }
 
     function setTab(name) {
       if (!tabs[name]) return;
       if (name === 'store') storeOpen = true;
+      if (name === 'docs') docsOpen = true;
       tab = name;
       closeDialog();
       changed();
@@ -137,6 +158,7 @@
     function reset() {
       clearTimeout(guideTimer);
       storeOpen = false;
+      docsOpen = false;
       tab = 'design';
       closeDialog();
       setGuiding(false);
@@ -146,7 +168,8 @@
     strip.addEventListener('pointerdown', (event) => event.stopPropagation());
     strip.addEventListener('click', (event) => {
       if (event.target.closest('.ch-tab-close')) {
-        closeStore();
+        if (event.target.closest('.ch-tab').dataset.tab === 'docs') closeDocs();
+        else closeStore();
         return;
       }
       const button = event.target.closest('.ch-tab');
@@ -175,6 +198,7 @@
       tab: () => tab,
       setTab,
       openStore,
+      openDocs,
       reset,
       isGuiding: () => guiding,
       owns: (element) => !!element?.closest?.('.ch-dialog'),

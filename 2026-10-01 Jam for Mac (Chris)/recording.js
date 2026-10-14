@@ -8,9 +8,9 @@
   let W=desktop.clientWidth,H=desktop.clientHeight;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-  const symbols={close:'xmark',restart:'arrow.counterclockwise',pause:'pause.fill',play:'play.fill',stop:'stop.fill',record:'record.circle',window:'macwindow',area:'rectangle.dashed',display:'display',camera:'video.fill',cameraOff:'video.slash.fill',microphone:'mic.fill',microphoneOff:'mic.slash.fill',resize:'arrow.up.left.and.arrow.down.right',change:'arrow.2.squarepath',logs:'terminal',folder:'folder.fill',clock:'clock',document:'doc',download:'arrow.down.circle',cloud:'icloud',sidebar:'sidebar.left',minus:'minus',zoom:'arrow.up.backward.and.arrow.down.forward',follow:'cursorarrow.motionlines',mirror:'arrow.left.arrow.right',rulers:'lines.measurement.horizontal.aligned.bottom',aspect:'aspectratio',horizontal:'rectangle',vertical:'rectangle.portrait',status:'circle.fill',extension:'puzzlepiece.extension',downloadFill:'arrow.down.circle.fill',forwardFill:'arrow.forward.circle.fill'};
+  const symbols={close:'xmark',restart:'arrow.counterclockwise',pause:'pause.fill',play:'play.fill',stop:'stop.fill',record:'record.circle',window:'macwindow',area:'rectangle.dashed',display:'display',camera:'video.fill',cameraOff:'video.slash.fill',microphone:'mic.fill',microphoneOff:'mic.slash.fill',resize:'arrow.up.left.and.arrow.down.right',change:'arrow.2.squarepath',logs:'terminal',folder:'folder.fill',clock:'clock',document:'doc',download:'arrow.down.circle',cloud:'icloud',sidebar:'sidebar.left',minus:'minus',zoom:'arrow.up.backward.and.arrow.down.forward',follow:'cursorarrow.motionlines',mirror:'arrow.left.arrow.right',rulers:'lines.measurement.horizontal.aligned.bottom',aspect:'aspectratio',horizontal:'rectangle',vertical:'rectangle.portrait',status:'circle.fill',extension:'puzzlepiece.extension',downloadFill:'arrow.down.circle.fill',forwardFill:'arrow.forward.circle.fill',external:'arrow.up.forward'};
   // Symbols AppKit couldn't export here are drawn as SVG stand-ins.
-  const vectorSymbols=new Set(['puzzlepiece.extension','arrow.down.circle.fill','arrow.forward.circle.fill']);
+  const vectorSymbols=new Set(['puzzlepiece.extension','arrow.down.circle.fill','arrow.forward.circle.fill','arrow.up.forward']);
   const symbolURL=symbol=>`assets/recording/sf/${symbol}.${vectorSymbols.has(symbol)?'svg':'png'}`;
   const icon=name=>`<span class="rb-sf" data-symbol="${symbols[name]}" style="--sf-image:url('${symbolURL(symbols[name])}')" aria-hidden="true"></span>`;
   const lights='<div class="traffic-lights" aria-hidden="true"><span class="traffic close">'+icon('close')+'</span><span class="traffic minimize">'+icon('minus')+'</span><span class="traffic zoom">'+icon('zoom')+'</span></div>';
@@ -52,7 +52,7 @@
     <div class="rb-hover-frame" aria-hidden="true" hidden><canvas class="rb-hover-waves"></canvas></div>
     <div class="rb-capture-notch" role="status" hidden><span class="rb-dot-serpent" aria-hidden="true">${[0,1,2,5,4,3,6,7,8].map(order=>`<i style="--order:${order}"></i>`).join('')}</span><span>Capturing logs</span></div>
     <div class="rb-screen-picker" aria-hidden="true"></div>
-    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div><button type="button" class="rb-picker-sources" aria-expanded="false" aria-controls="rb-sources-menu" hidden><span class="rb-source-stack"></span><span class="rb-picker-sources-label"></span><span class="rb-sources-caret" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2.75 4 5 6.25 7.25 4"/></svg></span></button><div class="native-menu rb-sources-menu" id="rb-sources-menu" role="menu" aria-label="Log sources" hidden></div></div></div>
+    <div class="rb-record-card" hidden><div class="rb-picker-app"><span class="rb-card-art"></span><strong class="rb-picker-name"></strong></div><div class="rb-picker-controls"><button type="button" class="rb-picker-start"><span class="rb-picker-start-label">Record window</span></button><div class="rb-picker-notch" hidden><span class="rb-picker-logs"><span class="rb-picker-logs-label"></span></span></div><button type="button" class="rb-picker-sources" aria-expanded="false" aria-controls="rb-sources-menu" hidden><span class="rb-source-stack"></span><span class="rb-picker-sources-label"></span>${icon('external')}<span class="rb-sources-caret" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2.75 4 5 6.25 7.25 4"/></svg></span></button><div class="native-menu rb-sources-menu" id="rb-sources-menu" role="menu" aria-label="Log sources" hidden></div></div></div>
     <div class="rb-banner" role="status" hidden><img class="rb-banner-icon" src="assets/welcome/app-icon.png" width="36" height="36" alt=""><div class="rb-banner-text"><strong class="rb-banner-title"></strong><span class="rb-banner-body"></span></div><span class="rb-banner-time">now</span></div>
     <div class="rb-alert-layer" hidden><div class="rb-alert" role="alertdialog" aria-modal="true" aria-labelledby="rb-alert-title" aria-describedby="rb-alert-message"><img class="rb-alert-icon" src="assets/welcome/app-icon.png" width="64" height="64" alt=""><h2 class="rb-alert-title" id="rb-alert-title"></h2><p class="rb-alert-message" id="rb-alert-message"></p><div class="rb-alert-buttons"><button type="button" class="rb-alert-button is-default" data-choice="restart">Restart</button><button type="button" class="rb-alert-button" data-choice="skip">Capture without logs</button></div></div></div>
     <div class="rb-camera-slots" aria-hidden="true">${['nw','n','ne','w','e','sw','s','se'].map(name=>`<i class="rb-camera-slot" data-slot="${name}">${JamCameraPlaceholders.borderMarkup()}</i>`).join('')}</div>
@@ -290,7 +290,7 @@
   }
   function windowLogs(name){
     const app=electronApps[name];
-    if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`,detail:settings.electronLogs==='once'?'Logs turn on as it reopens':''}:settings.electronLogs==='once'?{state:'optin',label:'Turn on console logs',detail:`Restarts ${targetNames[name]}`}:{state:'restart',label:'Restart to capture logs'};
+    if(app)return app.debug==='on'?{state:'connected',label:'Logs enabled'}:app.debug==='restarting'?{state:'restarting',label:`Restarting ${targetNames[name]}…`,tip:settings.electronLogs==='once'?'Logs turn on as it reopens':''}:settings.electronLogs==='once'?{state:'optin',label:'Turn on console logs',tip:`Restarts ${targetNames[name]}`}:{state:'restart',label:'Restart to capture logs'};
     if(name!=='browser')return null;
     if(flipLogs)return flipLogs;
     if(awayLogs)return awayLogs;
@@ -298,7 +298,7 @@
   }
   // A browser without Jam's extension offers to set it up from the logs row, a blue button with the detail in a tooltip.
   // Safari's second step, where the extension is on but hasn't been allowed on websites yet, turns it yellow.
-  const setupLabels={chrome:'Enable Logs for Chrome',safari:'Connect Logs for Safari',permission:'Grant permission for Safari logs'};
+  const setupLabels={chrome:'Enable Logs for Chrome',safari:'Connect Logs for Safari',permission:'Extension needs permission'};
   const chromeLogs=()=>settings.browserLogs==='connected'?{state:'connected',label:'Logs enabled'}:{state:'install',app:'chrome',label:setupLabels.chrome,tip:'Add Jam to Chrome to capture console logs and network requests'};
   // Safari can't send logs until its box is checked in Safari's settings and the user allows it on the website.
   function safariWindowLogs(){
@@ -325,8 +325,7 @@
   }
   // A full screen can hold several apps sending logs, so the screen card and the recording bar summarise them all.
   const logSources=[['browser','Chrome','chrome-app.png'],['safari','Safari','safari.png'],['notion','Notion','notion.png']];
-  // Muted sources stay connected but are left out of the recording.
-  let sourcesOpen=false;const mutedSources=new Set();
+  let sourcesOpen=false;
   // Full screen only lists what's connected, so a Safari that isn't running drops out entirely.
   const liveSources=()=>logSources.filter(([key])=>key!=='safari'||safari.state()!=='off');
   function sourceLogs(key){
@@ -342,28 +341,36 @@
     if(stack.dataset.key!==key){stack.dataset.key=key;stack.innerHTML=list.map(([,name,file])=>appIcon(file,name)).join('');}
   }
   function syncLogSources(target){
-    const connected=liveSources().filter(([key])=>sourceLogs(key).state==='connected'&&!mutedSources.has(key)),row=$('.rb-picker-sources'),menu=$('.rb-sources-menu'),screen=target==='screen';
-    if(!screen)sourcesOpen=false;
+    const connected=liveSources().filter(([key])=>sourceLogs(key).state==='connected'),row=$('.rb-picker-sources'),menu=$('.rb-sources-menu'),screen=target==='screen';
+    if(!screen||!connected.length)sourcesOpen=false;
     row.hidden=!screen;menu.hidden=!sourcesOpen;
     if(screen){
       syncSourceStack(row.querySelector('.rb-source-stack'),connected);
-      row.dataset.connected=String(connected.length>0);row.setAttribute('aria-expanded',String(sourcesOpen));
-      // The label matches the window card's; the icons say which apps, and the accessible name lists them.
+      row.dataset.connected=String(connected.length>0);
+      // The label matches the window card's; the icons say which apps, and the accessible name lists them. With nothing
+      // connected, the row is a ghost button to Jam's docs on adding logs instead of a menu.
       const names=connected.map(([,name])=>name);
-      $('.rb-picker-sources-label').textContent=connected.length?'Logs enabled':'No logs';
-      row.setAttribute('aria-label',connected.length?`Logs enabled from ${names.length>1?`${names.slice(0,-1).join(', ')} and ${names.at(-1)}`:names[0]}. Log sources`:'No logs. Log sources');
-      // Rebuilt only when a state changes, so a press on a switch isn't lost to a re-render.
+      $('.rb-picker-sources-label').textContent=connected.length?'Logs enabled':'Logs unavailable';
+      if(connected.length){row.setAttribute('aria-expanded',String(sourcesOpen));row.setAttribute('aria-controls','rb-sources-menu');row.setAttribute('aria-label',`Logs enabled from ${names.length>1?`${names.slice(0,-1).join(', ')} and ${names.at(-1)}`:names[0]}. Log sources`);}
+      else{row.removeAttribute('aria-expanded');row.removeAttribute('aria-controls');row.setAttribute('aria-label','Logs unavailable. Opens Jam’s docs on adding logs');}
+      // Each app with its state. Only an app that needs a restart for logs does anything when chosen.
       const rows=liveSources().map(([key,name,file])=>[key,name,file,sourceLogs(key)]),key=rows.map(([,,,logs])=>logs.state).join();
       if(menu.dataset.key!==key){menu.dataset.key=key;menu.innerHTML='<div class="native-menu-label">Log sources</div>'+rows.map(([key,name,file,logs])=>{
-        const on=logs.state==='restarting'||logs.state==='connected'&&!mutedSources.has(key),disabled=['unavailable','restarting','permission'].includes(logs.state);
-        const detail=['unavailable','permission'].includes(logs.state)?logs.label:logs.state==='restarting'?'Restarting…':['optin','restart'].includes(logs.state)?`Restarts ${name} to turn on`:'';
-        return `<button type="button" class="native-menu-item rb-source" role="menuitemcheckbox" aria-checked="${on}"${disabled?' aria-disabled="true"':''} data-source="${key}" data-state="${logs.state}">${appIcon(file)}<span class="rb-source-text"><span class="rb-source-name">${name}</span>${detail?`<span class="rb-source-detail">${detail}</span>`:''}</span><span class="rb-source-switch" aria-hidden="true"></span></button>`;}).join('');}
-      // Switches flip in place so they animate.
-      for(const item of menu.querySelectorAll('.rb-source')){const logs=sourceLogs(item.dataset.source);item.setAttribute('aria-checked',String(logs.state==='restarting'||logs.state==='connected'&&!mutedSources.has(item.dataset.source)));}
+        const disabled=['unavailable','restarting','permission'].includes(logs.state);
+        const detail=['unavailable','permission'].includes(logs.state)?logs.label:logs.state==='restarting'?'Restarting…':['optin','restart'].includes(logs.state)?'Restart to capture logs':'Logs enabled';
+        return `<button type="button" class="native-menu-item rb-source" role="menuitem"${disabled?' aria-disabled="true"':''} data-source="${key}" data-state="${logs.state}">${appIcon(file)}<span class="rb-source-text"><span class="rb-source-name">${name}</span><span class="rb-source-detail">${detail}</span></span></button>`;}).join('');}
     }
     const pill=$('.rb-belt-logs'),live=active&&settings.mode==='screen'&&!isIdle()&&connected.length>0;
     pill.hidden=!live;belt.classList.toggle('has-logs',live);if(live){syncSourceStack(pill.querySelector('.rb-source-stack'),connected);renderBelt();}
   }
+  // Full screen with no logs links to Jam's docs, which open in a new tab of the browser, brought to the front. The
+  // browser window then takes the pointer from the screen picker, so the page can be read, until the tab is left.
+  function openLogsDocs(){
+    sourcesOpen=false;browser().openDocs();
+    $('[data-window="browser"]').style.zIndex=String(++windowLayer);
+    hoverTarget=null;syncSelection();emit();
+  }
+  const readingDocs=()=>settings.mode==='screen'&&browser().tab()==='docs'&&pointer.x>=windows.browser.x&&pointer.x<=windows.browser.x+windows.browser.width&&pointer.y>=windows.browser.y&&pointer.y<=windows.browser.y+windows.browser.height;
   function setBrowserApp(value){
     if(!browserApps[value])return;
     if(value==='safari'&&safari.state()==='off')safari.setPreset('disabled');
@@ -441,6 +448,8 @@
     if(target==='screen')$('.rb-record-card .rb-picker-logs-label').textContent=`${Math.round(W)} × ${Math.round(H)}`;
     const notch=sizing?selectionNotch?.render({enabled:true,card:true,changeWindow:false,dimensions:settings.dimensions,key:`card:${target}`,mode:target==='area'?'area':'window',logs:target==='area'?null:windowLogs(target),rulers:settings.rulersButton,rect,sizing:selectionState(target),bounds:selectionBounds(target!=='area'),minimum:selectionMinimum(target!=='area')}):selectionNotch?.render({enabled:false,key:null});
     const controls=$('.rb-record-card .rb-picker-controls');controls.style.width=`${Math.max(CARD_WIDTH,notch?.width||0)}px`;
+    // With no row under the pill, the card's own panel rings it instead of the notch
+    card.classList.toggle('has-notch',!!notch);
     // The notch is the panel behind the record pill, so it starts where the controls do.
     const cardWidth=card.offsetWidth,panelTop=controls.offsetTop,total=notch?panelTop+notch.height:card.offsetHeight;
     let x=rect.x+rect.width/2,y=rect.y+rect.height/2-total/2;
@@ -467,7 +476,7 @@
     if(alertTarget||electronApps[hoverTarget]?.debug==='restarting')return;
     // Safari's settings and its popover, and Chrome's add dialog, sit over the desktop.
     if(safari.owns(el)||chrome.owns(el)){setHover(null);return;}
-    if(settings.mode==='screen'){setHover(el?.closest('.rb-belt,.native-menu')?null:'screen');return;}
+    if(settings.mode==='screen'){setHover(el?.closest('.rb-belt,.native-menu')||readingDocs()?null:'screen');return;}
     // The browser's tabs and Safari's extension button stay clickable over the picker, and still count as the browser window.
     const name=el?.closest('.rb-window-picker')?.dataset.picker||(el?.closest('.sf-tabs,.sf-extension,.ch-tabs')?'browser':null);
     if(name==='browser'&&browser().isGuiding()){setHover(null);return;}
@@ -919,13 +928,12 @@
     el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();startWindowRecording(el.dataset.picker);}});
   });
   $('.rb-screen-picker').addEventListener('click',()=>{if(sourcesOpen){sourcesOpen=false;syncSelection();}else if(settings.pickerStart==='window')startTarget('screen');});
-  $('.rb-picker-sources').addEventListener('click',()=>{sourcesOpen=!sourcesOpen;syncSelection();});
+  $('.rb-picker-sources').addEventListener('click',()=>{if($('.rb-picker-sources').dataset.connected==='false'){openLogsDocs();return;}sourcesOpen=!sourcesOpen;syncSelection();});
   $('.rb-sources-menu').addEventListener('click',e=>{
     e.stopPropagation();const item=e.target.closest('.rb-source');if(!item||item.getAttribute('aria-disabled')==='true'||!isIdle())return;
     const name=item.dataset.source,state=sourceLogs(name).state;
-    // Notion has to restart into debug mode before it can send logs; everything else just switches in or out.
-    if(['optin','restart'].includes(state)){mutedSources.delete(name);restartElectronApp(name,{background:true,toast:true});}
-    else if(state==='connected'){if(mutedSources.has(name))mutedSources.delete(name);else mutedSources.add(name);syncSelection();emit();}
+    // Notion has to restart into debug mode before it can send logs
+    if(['optin','restart'].includes(state))restartElectronApp(name,{background:true,toast:true});
   });
   $('.rb-record-card').addEventListener('click',e=>{if(sourcesOpen&&!e.target.closest('.rb-picker-controls')){sourcesOpen=false;syncSelection();return;}if(e.target.closest('.rb-picker-start')||settings.pickerStart==='window'&&!e.target.closest('.rb-picker-controls'))startTarget(cardTarget());});
   $('.rb-banner').addEventListener('click',hideBanner);

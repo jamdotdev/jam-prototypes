@@ -11,7 +11,7 @@ const nb=await notionWindow.boundingBox(),point={x:nb.x+nb.width-40,y:nb.y+nb.he
 const hoverNotion=async()=>{await p.mouse.move(point.x,point.y);await p.clock.runFor(100);};
 // The logs button restarts Notion straight away, with no dialog
 await hoverNotion();
-assert.equal(await row.locator('.rb-notch-logs-restart-label').textContent(),'Restart to capture logs');assert.equal(await row.locator('.rb-notch-logs-restart-detail').textContent(),'');
+assert.equal(await row.locator('.rb-notch-logs-restart-label').textContent(),'Restart to capture logs');assert.equal(await p.locator('.rb-tooltip').textContent(),'');
 assert.ok(await toast.isHidden());
 await row.click();await p.clock.runFor(100);
 let st=await state();assert.equal(st.alert,null,'no dialog');assert.equal(st.apps.notion.debug,'restarting');assert.equal(await start.getAttribute('aria-disabled'),'true');

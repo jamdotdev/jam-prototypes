@@ -45,9 +45,9 @@ await p.locator('.sf-checkbox-hit').click();
 assert.equal(await safari(),'permission');assert.ok(await coach.isHidden());
 assert.ok(await extension.isVisible());assert.match(await extension.getAttribute('class'),/is-waiting/);
 assert.ok((await extension.boundingBox()).x<(await p.locator('.sf-address').boundingBox()).x,'Jam’s button sits left of the address');
-await labelBecomes('Grant permission for Safari logs');
+await labelBecomes('Extension needs permission');
 assert.equal(await p.locator('.rb-selection-notch').getAttribute('data-logs'),'permission');
-assert.equal(await p.locator('.rb-capture-status').textContent(),'Grant permission for Safari logs');
+assert.equal(await p.locator('.rb-capture-status').textContent(),'Extension needs permission');
 assert.equal((await state()).target,'browser');
 // Closing the settings once the box is checked keeps the setup going
 await p.locator('.sf-settings-close').click();assert.ok(await settings.isHidden());assert.ok(await settingUp());
@@ -55,7 +55,7 @@ await p.locator('.sf-settings-close').click();assert.ok(await settings.isHidden(
 await row.click();
 assert.ok(await page.isVisible());assert.equal(await p.evaluate(()=>JamRecording.getSafariTab()),'guide');
 assert.equal(await p.locator('.sf-address-text').textContent(),'jam.dev/safari');
-assert.equal(await page.locator('h1').textContent(),'Connecting Jam to Safari');
+assert.equal(await page.locator('h1').textContent(),'Finish Safari log capture setup');
 assert.equal(await page.locator('button').count(),0,'the page only explains');
 assert.equal(await page.locator('.sf-guide-card').count(),1,'one card, showing the permission');
 assert.equal(await page.locator('.sf-checkbox').count(),0,'the page leaves out the extension’s box');
@@ -77,15 +77,15 @@ assert.ok(await settingUp());await p.locator('.sf-settings-close').click();
 assert.ok(!(await settingUp()));
 // So does closing the page before allowing Jam, which goes back to the tab before it and brings the card back
 await p.evaluate(()=>{JamRecording.setSafariState('permission');JamRecording.setSafariTab('checkout');});await hover();
-assert.equal(await label.textContent(),'Grant permission for Safari logs');
+assert.equal(await label.textContent(),'Extension needs permission');
 await row.click();assert.ok(await settingUp());assert.ok(await card.isHidden());await p.locator('.sf-tab-close').click();
 assert.ok(!(await settingUp()));assert.ok(await page.isHidden());
 assert.equal(await p.evaluate(()=>JamRecording.getSafariTab()),'checkout');
-await hover();assert.ok(await card.isVisible());assert.equal(await label.textContent(),'Grant permission for Safari logs');
+await hover();assert.ok(await card.isVisible());assert.equal(await label.textContent(),'Extension needs permission');
 await p.evaluate(()=>JamRecording.setSafariTab('design'));
 // A site Jam isn't allowed on yet (TC7) names it in the tooltip
 await p.evaluate(()=>JamRecording.setSafariState('site'));await hover();
-assert.equal(await safari(),'site');assert.equal(await label.textContent(),'Grant permission for Safari logs');
+assert.equal(await safari(),'site');assert.equal(await label.textContent(),'Extension needs permission');
 await row.hover();await tooltip.waitFor({state:'visible'});
 assert.equal(await tooltip.textContent(),'Allow the Jam extension on jam.dev to capture logs');
 // Recording from the card during the setup leaves it
@@ -98,10 +98,22 @@ await p.mouse.move(700,420);await p.mouse.move(720,430);await p.waitForTimeout(8
 await p.locator('.rb-picker-sources').click();
 const item=p.locator('.rb-source[data-source="safari"]');
 assert.equal(await item.getAttribute('aria-disabled'),'true');assert.equal(await item.locator('.rb-source-detail').textContent(),'Needs permission');
+assert.equal(await p.locator('.rb-source[data-source="browser"] .rb-source-detail').textContent(),'Logs enabled');
 assert.equal(await p.locator('.rb-picker-sources').getAttribute('aria-label'),'Logs enabled from Chrome. Log sources');
 await p.evaluate(()=>JamRecording.setSafariState('off'));
 assert.equal(await p.locator('.rb-source[data-source="safari"]').count(),0,'a Safari that is not running is not listed');
 assert.equal(await p.evaluate(()=>JamRecording.getBrowserApp()),'chrome','the browser window plays Chrome while Safari is not running');
+// With nothing sending logs, the row links to Jam's docs, which open in a new Safari tab and close back to the tab before
+await p.locator('.rb-picker-sources').click();
+await p.evaluate(()=>{JamRecording.setChromeState('missing');JamRecording.setSafariState('permission');JamRecording.setSafariTab('checkout');});
+await p.mouse.move(700,420);await p.mouse.move(724,434);await p.waitForTimeout(80);
+assert.equal(await p.locator('.rb-picker-sources-label').textContent(),'Logs unavailable');
+await p.locator('.rb-picker-sources').click();
+assert.equal(await p.evaluate(()=>JamRecording.getSafariTab()),'docs');assert.ok(await p.locator('.sf-docs').isVisible());
+assert.equal(await p.locator('.sf-address-text').textContent(),'jam.dev/docs/capture-logs');
+await p.locator('.sf-tab[data-tab="docs"] .sf-tab-close').click();
+assert.equal(await p.evaluate(()=>JamRecording.getSafariTab()),'checkout');assert.ok(await p.locator('.sf-docs').isHidden());
+await p.evaluate(()=>{JamRecording.updateSettings({browserLogs:'connected'});JamRecording.setSafariTab('design');});
 // The menu bar status offers the missing step, and runs the same setup
 await p.evaluate(()=>JamRecording.setSafariState('disabled'));
 await p.locator('.sf-menubar-button').click();

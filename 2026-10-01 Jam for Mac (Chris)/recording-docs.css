@@ -1,0 +1,17 @@
+/* Jam's docs page on adding logs, as a wireframe. Each browser shows it in place of the page when its docs tab is up. */
+.jd-docs{display:none;overflow:auto;background:#fff;color:#1f201e;font-family:Onsite,Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+.jd-bar-top{display:flex;align-items:center;gap:8px;height:44px;padding:0 20px;box-shadow:inset 0 -1px #0b1f0012}
+.jd-logo{width:40px;height:18px}
+.jd-product{color:#6b6c69;font-size:13px;font-weight:500}
+.jd-search{width:180px;height:24px;margin-left:auto;border-radius:8px;background:#f3f4f2;box-shadow:inset 0 0 0 1px #0b1f000f}
+.jd-body{display:grid;grid-template-columns:150px minmax(0,1fr);gap:32px;padding:24px 20px 32px}
+.jd-nav{display:flex;flex-direction:column;gap:12px;padding-top:4px}
+.jd-nav-current{margin:-4px -8px;padding:4px 8px;border-radius:6px;background:#a7f37433;color:#2e5b10;font-size:12px;font-weight:500}
+.jd-bar{display:block;height:8px;border-radius:4px;background:#eceeea}
+.jd-article{max-width:460px}
+.jd-eyebrow{color:#6b6c69;font-size:11px;font-weight:500}
+.jd-article h1{margin:4px 0 12px;font-size:22px;line-height:28px;font-weight:600;letter-spacing:-.02em}
+.jd-lines{display:flex;flex-direction:column;gap:8px;margin:0}
+.jd-section{margin-top:22px}
+.jd-section h2{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:15px;line-height:20px;font-weight:600}
+.jd-section h2 img{width:20px;height:20px;border-radius:5px}

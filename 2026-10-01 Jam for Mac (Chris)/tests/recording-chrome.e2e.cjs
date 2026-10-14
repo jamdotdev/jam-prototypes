@@ -33,12 +33,32 @@ await hover();assert.equal(await p.locator('.rb-selection-notch .rb-notch-logs-l
 // Each browser shows its own pages: Safari's guide tab doesn't blank Chrome's window
 await p.evaluate(()=>{JamRecording.setSafariState('permission');JamRecording.setSafariTab('guide');JamRecording.setBrowserApp('chrome');JamRecording.setChromeTab('design');});
 assert.ok(await p.locator('.rb-browser-content').isVisible());assert.ok(await p.locator('.sf-guide').isHidden());
-// Full screen lists Chrome as not installed, without a switch to turn on
-await p.evaluate(()=>{JamRecording.setChromeState('missing');JamRecording.setMode('screen');});
+// Full screen lists each app with its state, and no switches
+await p.evaluate(()=>{JamRecording.setSafariState('connected');JamRecording.setChromeState('missing');JamRecording.setMode('screen');});
 await p.mouse.move(700,420);await p.mouse.move(720,430);await p.waitForTimeout(80);
 await p.locator('.rb-picker-sources').click();
 const item=p.locator('.rb-source[data-source="browser"]');
 assert.equal(await item.getAttribute('aria-disabled'),'true');assert.equal(await item.locator('.rb-source-detail').textContent(),'Not installed');
+assert.equal(await p.locator('.rb-source[data-source="safari"] .rb-source-detail').textContent(),'Logs enabled');
+assert.equal(await p.locator('.rb-sources-menu [role="menuitemcheckbox"]').count(),0,'nothing in the menu switches on or off');
+await p.locator('.rb-picker-sources').click();assert.ok(await p.locator('.rb-sources-menu').isHidden());
+// With nothing sending logs, the row is a ghost button to Jam's docs, which open in a new Chrome tab
+await p.evaluate(()=>{JamRecording.setSafariState('permission');JamRecording.setBrowserApp('chrome');});
+await p.mouse.move(700,420);await p.mouse.move(724,434);await p.waitForTimeout(80);
+const sources=p.locator('.rb-picker-sources');
+assert.equal(await p.locator('.rb-picker-sources-label').textContent(),'Logs unavailable');
+assert.equal(await sources.getAttribute('aria-expanded'),null,'it opens no menu');
+await sources.click();
+assert.equal(await p.evaluate(()=>JamRecording.getChromeTab()),'docs');assert.ok(await p.locator('.ch-docs').isVisible());
+assert.equal(await p.locator('.ch-docs h1').textContent(),'Add logs to your recordings');
+// The browser takes the pointer while the docs are up, so the page reads without the screen's tint
+const browserBox=await p.locator('[data-window="browser"]').boundingBox();
+await p.mouse.move(browserBox.x+200,browserBox.y+300);await p.mouse.move(browserBox.x+204,browserBox.y+304);await p.waitForTimeout(80);
+assert.ok(await p.locator('.rb-record-card').isHidden());assert.ok(await p.locator('.rb-screen-picker').isHidden());
+await p.mouse.move(40,860);await p.mouse.move(44,856);await p.waitForTimeout(80);
+assert.ok(await p.locator('.rb-record-card').isVisible(),'the screen card comes back off the browser');
+await p.locator('.ch-tab[data-tab="docs"] .ch-tab-close').click({force:true});
+assert.equal(await p.evaluate(()=>JamRecording.getChromeTab()),'design');
 // The menu bar status offers each browser's missing step
 await p.locator('.sf-menubar-button').click();
 assert.deepEqual(await p.locator('.sf-status-menu [data-action]').allTextContents(),['Install Chrome Extension…','Allow Jam in Safari…']);
