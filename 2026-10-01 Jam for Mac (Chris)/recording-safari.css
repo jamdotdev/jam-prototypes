@@ -161,7 +161,7 @@
    the size it shows so the system font keeps its own spacing. */
 .sf-guide-art{position:relative;height:246px;border-radius:11px;overflow:hidden;background:#f8f9f7;box-shadow:inset 0 0 0 1px #0b1f000f;color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
 .sf-guide-art::before{content:'';position:absolute;inset:0;background-image:linear-gradient(#0b1f000d 1px,transparent 1px),linear-gradient(90deg,#0b1f000d 1px,transparent 1px);background-size:16px 16px;-webkit-mask-image:linear-gradient(transparent 35%,#000);mask-image:linear-gradient(transparent 35%,#000)}
-.sf-art-window{position:absolute;left:52px;top:38px;width:425px;height:224px;border-radius:16px;background:#fcfdfc;box-shadow:0 0 0 1px #081f0021;-webkit-mask-image:linear-gradient(90deg,#000 60%,transparent),linear-gradient(#000 45%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,#000 60%,transparent),linear-gradient(#000 45%,transparent);mask-composite:intersect}
+.sf-art-window{position:absolute;left:52px;top:38px;width:425px;height:224px;border-radius:16px;background:#fcfdfc;box-shadow:0 0 0 .5px #081f0029,0 1px 2px #081f000d,0 6px 16px #081f000f;-webkit-mask-image:linear-gradient(90deg,#000 60%,transparent),linear-gradient(#000 45%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,#000 60%,transparent),linear-gradient(#000 45%,transparent);mask-composite:intersect;-webkit-mask-size:calc(100% + 48px) calc(100% + 48px);mask-size:calc(100% + 48px) calc(100% + 48px);-webkit-mask-position:-24px -24px;mask-position:-24px -24px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;mask-clip:no-clip}
 .sf-art-toolbar{display:flex;align-items:center;gap:12px;height:38px;padding:0 14px;border-radius:16px 16px 0 0;background:#eff1ee;box-shadow:0 1px #081f0014}
 .sf-art-nav{display:flex;gap:10px;padding:0 2px}.sf-art-nav i{width:7px;height:7px;border:solid #8a888e;border-width:0 0 1.5px 1.5px;rotate:45deg}.sf-art-nav i+i{rotate:-135deg;opacity:.45}
 .sf-demo-extension{display:grid;place-items:center;flex:none;width:28px;height:26px;border-radius:7px}
@@ -179,7 +179,7 @@
 /* The loop: the cursor glides to Jam's grey button and clicks it, Safari's prompt springs open from its arrow, the
    cursor glides down and allows Jam everywhere, the prompt drops away, and the button pops into full colour. Moves
    ease in and out, arrivals ease out, exits ease in. Reduced motion keeps the frame with the prompt open. */
-.sf-demo .sf-cursor{width:16px;height:24px;translate:206px 187px}
+.sf-demo .sf-cursor{width:22px;height:34px;translate:206px 187px}
 @media(prefers-reduced-motion:no-preference){
   .sf-demo .sf-cursor{animation:sf-demo-cursor 5.6s infinite}
   .sf-demo-extension{animation:sf-demo-pressed 5.6s infinite}
