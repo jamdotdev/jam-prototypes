@@ -4,12 +4,14 @@
   function create(root,{icon,onSize,onRatio,onOrientation,onPreset,onChangeWindow,onOpen,onClose,onToggleRulers=()=>{},onRestartLogs=()=>{}}){
     const notch=document.createElement('div');
     notch.className='rb-selection-notch';notch.role='group';notch.hidden=true;
-    notch.innerHTML=`<div class="rb-notch-backplate" aria-hidden="true"></div><div class="rb-notch-window-controls"><button type="button" class="rb-notch-change" aria-label="Change window" title="Change window">${icon('change')}<span class="rb-notch-change-label">Change window</span></button><i class="rb-notch-separator rb-notch-change-separator"></i><span class="rb-notch-logs" title="No logs">${icon('status')}<span class="rb-notch-logs-label">No logs</span></span><button type="button" class="rb-notch-logs-restart" hidden><span class="rb-notch-logs-restart-main">${icon('restart')}${icon('logs')}<span class="rb-spinner" aria-hidden="true">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--i:${i}"></i>`).join('')}</span><span class="rb-notch-logs-restart-label"></span></span><span class="rb-notch-logs-restart-detail"></span></button><i class="rb-notch-separator"></i></div><div class="rb-notch-sizing"><button type="button" class="rb-notch-ratio" title="Change ratio" aria-label="Aspect ratio" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-ratio-menu">${icon('aspect')}<span></span></button><label class="rb-notch-field"><span class="sr-only">Capture width</span><input class="rb-notch-width" aria-label="Capture width" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><span class="rb-notch-times" aria-hidden="true">×</span><label class="rb-notch-field"><span class="sr-only">Capture height</span><input class="rb-notch-height" aria-label="Capture height" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><button type="button" class="rb-notch-resize" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-resize-menu">Resize</button><i class="rb-notch-separator rb-notch-rulers-separator" aria-hidden="true"></i><button type="button" class="rb-notch-rulers" title="Display rulers" aria-label="Display rulers" aria-pressed="false">${icon('rulers')}</button></div>`;
+    notch.innerHTML=`<div class="rb-notch-backplate" aria-hidden="true"></div><div class="rb-notch-window-controls"><button type="button" class="rb-notch-change" aria-label="Change window" title="Change window">${icon('change')}<span class="rb-notch-change-label">Change window</span></button><i class="rb-notch-separator rb-notch-change-separator"></i><span class="rb-notch-logs" title="No logs">${icon('status')}<span class="rb-notch-logs-label">No logs</span></span><button type="button" class="rb-notch-logs-restart" hidden><span class="rb-notch-logs-restart-main">${icon('restart')}${icon('logs')}<span class="rb-spinner" aria-hidden="true">${[0,1,2,3,4,5,6,7].map(i=>`<i style="--i:${i}"></i>`).join('')}</span><span class="rb-notch-logs-restart-label"></span>${icon('downloadFill')}${icon('forwardFill')}</span></button><i class="rb-notch-separator"></i></div><div class="rb-notch-sizing"><button type="button" class="rb-notch-ratio" title="Change ratio" aria-label="Aspect ratio" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-ratio-menu">${icon('aspect')}<span></span></button><label class="rb-notch-field"><span class="sr-only">Capture width</span><input class="rb-notch-width" aria-label="Capture width" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><span class="rb-notch-times" aria-hidden="true">×</span><label class="rb-notch-field"><span class="sr-only">Capture height</span><input class="rb-notch-height" aria-label="Capture height" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"></label><button type="button" class="rb-notch-resize" aria-haspopup="menu" aria-expanded="false" aria-controls="rb-resize-menu">Resize</button><i class="rb-notch-separator rb-notch-rulers-separator" aria-hidden="true"></i><button type="button" class="rb-notch-rulers" title="Display rulers" aria-label="Display rulers" aria-pressed="false">${icon('rulers')}</button></div>`;
     const ratioMenu=document.createElement('div'),resizeMenu=document.createElement('div');
     for(const [menu,id,label] of [[ratioMenu,'rb-ratio-menu','Aspect ratio'],[resizeMenu,'rb-resize-menu','Resize presets']]){
       menu.id=id;menu.className='native-menu rb-sizing-menu';menu.role='menu';menu.tabIndex=-1;menu.setAttribute('aria-label',label);menu.hidden=true;root.append(menu);
     }
-    root.append(notch);
+    // A logs step's detail waits in a tooltip, as a macOS help tag does.
+    const tooltip=document.createElement('div');tooltip.className='rb-tooltip';tooltip.id='rb-logs-tooltip';tooltip.role='tooltip';tooltip.hidden=true;
+    root.append(notch,tooltip);
     const $=selector=>notch.querySelector(selector),ratioButton=$('.rb-notch-ratio'),resizeButton=$('.rb-notch-resize');
     let context=null,currentMenu=null,trigger=null,contextKey=null,typeBuffer='',typeTimer=0;
     const naturalWidths=new Map(),moving=[...notch.children],animations=new Map();
@@ -106,7 +108,21 @@
     ratioButton.addEventListener('click',()=>show(ratioMenu,ratioButton));resizeButton.addEventListener('click',()=>show(resizeMenu,resizeButton));
     $('.rb-notch-change').addEventListener('click',onChangeWindow);
     $('.rb-notch-rulers').addEventListener('click',onToggleRulers);
-    $('.rb-notch-logs-restart').addEventListener('click',()=>{if($('.rb-notch-logs-restart').getAttribute('aria-disabled')!=='true')onRestartLogs();});
+    $('.rb-notch-logs-restart').addEventListener('click',()=>{hideTooltip();if($('.rb-notch-logs-restart').getAttribute('aria-disabled')!=='true')onRestartLogs();});
+    let tooltipTimer=0;
+    function hideTooltip(){clearTimeout(tooltipTimer);tooltip.hidden=true;}
+    function showTooltip(){
+      const button=$('.rb-notch-logs-restart');if(!tooltip.textContent||button.hidden)return;
+      tooltip.hidden=false;
+      const rr=root.getBoundingClientRect(),br=button.getBoundingClientRect(),scale=rr.width/root.clientWidth;
+      const x=(br.left+br.width/2-rr.left)/scale-tooltip.offsetWidth/2,below=(br.bottom-rr.top)/scale+6;
+      tooltip.style.left=`${clamp(x,8,root.clientWidth-tooltip.offsetWidth-8)}px`;
+      tooltip.style.top=`${below+tooltip.offsetHeight<=root.clientHeight-8?below:(br.top-rr.top)/scale-tooltip.offsetHeight-6}px`;
+    }
+    $('.rb-notch-logs-restart').addEventListener('pointerenter',()=>{clearTimeout(tooltipTimer);tooltipTimer=setTimeout(showTooltip,500);});
+    $('.rb-notch-logs-restart').addEventListener('pointerleave',hideTooltip);
+    $('.rb-notch-logs-restart').addEventListener('focus',()=>{if(!pointerInput)showTooltip();});
+    $('.rb-notch-logs-restart').addEventListener('blur',hideTooltip);
     for(const axis of ['width','height']){
       const input=$(`.rb-notch-${axis}`);
       const restore=()=>{input.value=String(Math.round(context.rect[axis]));input.removeAttribute('aria-invalid');};
@@ -146,7 +162,7 @@
       notch.classList.toggle('is-instant',instant);
       context=next;
       if(!continuous||!next.enabled){close(false);stopMotion();layout=null;}
-      contextKey=next.key;notch.hidden=!next.enabled;if(!next.enabled)return;
+      contextKey=next.key;notch.hidden=!next.enabled;if(!next.enabled){hideTooltip();return;}
       const windowMode=next.mode==='window',locked=next.sizing.preset!=='custom';
       notch.classList.toggle('is-window',windowMode);notch.classList.toggle('is-ratio-locked',locked);
       $('.rb-notch-rulers').hidden=windowMode||!next.rulers;$('.rb-notch-rulers-separator').hidden=windowMode||!next.rulers;
@@ -161,11 +177,14 @@
       const available=Math.max(0,width-16),fitWidth=Math.min(available,next.rect.width);
       const logs=next.logs||{state:'none',label:'No logs'},changeWindow=next.changeWindow!==false;
       $('.rb-notch-change').hidden=!changeWindow;$('.rb-notch-change-separator').hidden=!changeWindow;
-      notch.dataset.logs=logs.state;$('.rb-notch-logs-label').textContent=logs.label;$('.rb-notch-logs').title=logs.label;
-      // An app that needs a restart for logs offers it from the same row, and it waits there while restarting.
-      const restart=['restart','optin','restarting'].includes(logs.state),restartButton=$('.rb-notch-logs-restart');
+      notch.dataset.logs=logs.state;notch.dataset.logsApp=logs.app||'';$('.rb-notch-logs-label').textContent=logs.label;$('.rb-notch-logs').title=logs.label;
+      // An app that needs a step before logs (a restart, or a browser extension's setup) offers it from the same row, and it waits there while restarting.
+      const restart=['restart','optin','restarting','install','permission'].includes(logs.state),restartButton=$('.rb-notch-logs-restart');
       $('.rb-notch-logs').hidden=restart;restartButton.hidden=!restart;
-      $('.rb-notch-logs-restart-label').textContent=logs.label;$('.rb-notch-logs-restart-detail').textContent=logs.detail||'';
+      $('.rb-notch-logs-restart-label').textContent=logs.label;
+      if(tooltip.textContent!==(logs.tip||''))tooltip.textContent=logs.tip||'';
+      if(!restart||!logs.tip)hideTooltip();
+      if(logs.tip)restartButton.setAttribute('aria-describedby',tooltip.id);else restartButton.removeAttribute('aria-describedby');
       restartButton.setAttribute('aria-disabled',String(logs.state==='restarting'));
       notch.classList.toggle('is-card',!!next.card);
       const digits=next.card?`:${$('.rb-notch-width').value.length}:${$('.rb-notch-height').value.length}`:'';

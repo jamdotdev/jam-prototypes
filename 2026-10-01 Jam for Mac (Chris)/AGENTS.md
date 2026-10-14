@@ -48,6 +48,17 @@ Work happens on a branch and lands through a PR. Commits use conventional prefix
   rejects keys it doesn't have.
 - **Style varies by file.** The recording files are written densely, with many statements per line; the others are
   conventionally formatted. Match the file you're editing.
+- **Each browser's extension lives in its own file.** `recording-safari.js` owns Safari's extension state (enabled,
+  and which websites it may access), the Safari chrome inside the browser window, the permission popover, the Settings
+  › Extensions pane, Jam's alert, and the jam.dev/safari page with its looping demo, which the extension closes once
+  Jam is allowed. While its setup runs it reports itself as guiding, and `recording.js` keeps the card on Safari's
+  window instead of hiding it, fading it and its tint away while the page is up and flipping its logs button as each
+  step completes. `recording-chrome.js` owns Chrome's chrome, the Chrome Web Store tab and Chrome's add dialog;
+  whether Chrome's extension is installed is the belt's `browserLogs` setting. `recording-status-menu.js` is the menu
+  bar's status menu for both. `recording.js` turns their state into the card's logs row and the full screen sources,
+  and while either browser's setup runs, its window takes the pointer from the window picker. Chrome's setup hides the
+  card; Safari's keeps it. `recording-docs.js` builds the wireframe of Jam's docs page on adding logs, which full screen
+  opens in whichever browser plays the window when nothing sends logs; each browser shows it in a tab of its own.
 - **Respect reduced motion.** Every animated surface checks `prefers-reduced-motion` and jumps to end states.
 
 ## Tests

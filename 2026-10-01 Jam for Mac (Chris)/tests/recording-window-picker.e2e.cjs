@@ -19,7 +19,7 @@ assert.equal((await start.textContent()).trim(),'Record window');
 const pill=await start.boundingBox(),panel=await notch.boundingBox(),size=await notch.locator('.rb-notch-sizing').boundingBox(),logs=await notch.locator('.rb-notch-logs').boundingBox();
 assert.ok(Math.abs(pill.x-panel.x-8)<1&&Math.abs(pill.y-panel.y-8)<1&&Math.abs(pill.width-(panel.width-16))<1,'pill is inset in the panel');
 assert.ok(size.y>=pill.y+pill.height&&logs.y>=size.y+size.height,'logs status sits below sizing');
-await p.evaluate(()=>JamRecording.updateSettings({browserLogs:'unavailable'}));assert.equal(await notch.locator('.rb-notch-logs-label').textContent(),'Logs unavailable');
+await p.evaluate(()=>JamRecording.updateSettings({browserLogs:'unavailable'}));assert.equal(await notch.locator('.rb-notch-logs-restart-label').textContent(),'Enable Logs for Chrome');
 // resizing from the notch keeps the card on that window and does not start recording
 await notch.locator('.rb-notch-resize').click();const item=p.locator('#rb-resize-menu .native-menu-item:not([disabled])').first();const label=(await item.textContent()).trim();await item.click();await p.waitForTimeout(100);
 let st=await state();assert.equal(st.stage,'idle');assert.equal(st.target,'browser','card stays after a resize');

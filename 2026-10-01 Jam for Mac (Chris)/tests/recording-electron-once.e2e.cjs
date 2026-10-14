@@ -10,7 +10,7 @@ const hoverNotion=async()=>{await p.mouse.move(point.x,point.y);await p.waitForT
 await hoverNotion();
 assert.equal((await state()).target,'notion');
 assert.equal(await row.locator('.rb-notch-logs-restart-label').textContent(),'Turn on console logs');
-assert.equal(await row.locator('.rb-notch-logs-restart-detail').textContent(),'Restarts Notion');
+assert.equal(await p.locator('.rb-tooltip').textContent(),'Restarts Notion','its cost waits in the tooltip');
 assert.equal(Math.round((await row.boundingBox()).width),Math.round((await start.boundingBox()).width),'the logs button is as wide as the record pill');
 assert.deepEqual(await p.locator('.rb-hover-frame').boundingBox(),nb,'the tint covers the whole hovered window');
 assert.ok(await p.evaluate(()=>{const f=document.querySelector('.rb-hover-frame'),windows=document.querySelector('.rb-desktop-windows');return +getComputedStyle(f).zIndex>+getComputedStyle(windows).zIndex;}),'the tint sits above every window');
@@ -28,7 +28,7 @@ st=await state();assert.deepEqual(st.apps.notion,{debug:'on',declined:false,enab
 await p.evaluate(()=>{JamPlayground.setSurface('recording');JamRecording.updateSettings({camera:false});JamRecording.setMode('window');JamRecording.resetElectronApps();});await hoverNotion();
 await row.click();await p.waitForTimeout(100);
 st=await state();assert.equal(st.alert,null,'no dialog');assert.equal(st.apps.notion.debug,'restarting');assert.equal(await start.getAttribute('aria-disabled'),'true');
-assert.equal(await row.locator('.rb-notch-logs-restart-detail').textContent(),'Logs turn on as it reopens');
+assert.equal(await p.locator('.rb-tooltip').textContent(),'Logs turn on as it reopens');
 await debugIs('on');st=await state();assert.equal(st.stage,'idle');assert.equal(st.target,'notion');assert.equal(st.apps.notion.enabled,true);
 assert.equal(await p.locator('.rb-selection-notch .rb-notch-logs-label').textContent(),'Logs enabled');
 // Recording with logs on hangs a Capturing logs notch under the window

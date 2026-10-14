@@ -39,11 +39,18 @@
       section('window-picker','Window picker',[
         recordingToggle('oneClick','One-click start'),
         select('pickerStart','Start from',()=>R().getSettings().pickerStart,value=>R().updateSettings({pickerStart:value}),[['window','Anywhere on window'],['button','Start button only']]),
-        select('browserLogs','Chrome logs',()=>R().getSettings().browserLogs,value=>R().updateSettings({browserLogs:value}),[['connected','Extension connected'],['unavailable','Extension missing']]),
-        select('safariLogs','Safari logs',()=>R().getSafariLogs(),value=>R().setSafariLogs(value),[['connected','Extension connected'],['unavailable','Extension missing']]),
         select('electronLogs','Notion logs',()=>R().getSettings().electronLogs,value=>R().updateSettings({electronLogs:value}),[['restart','Restart button'],['once','Turn on once'],['ask','Ask on Record']]),
         action('reopen-notion','Reopen Notion',()=>R().reopenElectronApp('notion')),
         action('reset-notion','Reset Notion logs',()=>R().resetElectronApps()),
+      ]),
+      // Picking either browser's extension state shows that browser in the browser window.
+      section('browser','Browser',[
+        select('browserApp','Browser window',()=>R().getBrowserApp(),value=>R().setBrowserApp(value),[['chrome','Chrome'],['safari','Safari']]),
+        select('chromeState','Chrome extension',()=>R().getChromeState(),value=>R().setChromeState(value),[['missing','Not installed'],['connected','Connected']]),
+        select('chromeTab','Chrome tab',()=>R().getChromeTab(),value=>R().setChromeTab(value),[['design','Design system (jam.dev)'],['store','Chrome Web Store']]),
+        select('safariState','Safari extension',()=>R().getSafariState(),value=>R().setSafariState(value),[['off','S4 · Safari not running'],['disabled','S0 · Not installed'],['permission','S1 · Needs permission'],['site','S2 · Not allowed on this site'],['connected','S3 · Connected']]),
+        select('safariTab','Safari tab',()=>R().getSafariTab(),value=>R().setSafariTab(value),[['design','Design system (jam.dev)'],['checkout','Checkout (shop.acme.dev)'],['guide','Finish Safari log capture setup (jam.dev)']]),
+        action('restart-browser-setup','Start setup again',()=>R().restartBrowserSetup()),
       ]),
       section('camera','Camera',[
         action('use-camera','Use Mac camera',()=>R().requestCamera()),
