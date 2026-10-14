@@ -33,13 +33,11 @@ await hover();assert.equal(await p.locator('.rb-selection-notch .rb-notch-logs-l
 // Each browser shows its own pages: Safari's guide tab doesn't blank Chrome's window
 await p.evaluate(()=>{JamRecording.setSafariState('permission');JamRecording.setSafariTab('guide');JamRecording.setBrowserApp('chrome');JamRecording.setChromeTab('design');});
 assert.ok(await p.locator('.rb-browser-content').isVisible());assert.ok(await p.locator('.sf-guide').isHidden());
-// Full screen lists each app with its state, and no switches
+// Full screen's menu lists only what sends logs, with no status and no switches
 await p.evaluate(()=>{JamRecording.setSafariState('connected');JamRecording.setChromeState('missing');JamRecording.setMode('screen');});
 await p.mouse.move(700,420);await p.mouse.move(720,430);await p.waitForTimeout(80);
 await p.locator('.rb-picker-sources').click();
-const item=p.locator('.rb-source[data-source="browser"]');
-assert.equal(await item.getAttribute('aria-disabled'),'true');assert.equal(await item.locator('.rb-source-detail').textContent(),'Not installed');
-assert.equal(await p.locator('.rb-source[data-source="safari"] .rb-source-detail').textContent(),'Logs enabled');
+assert.deepEqual(await p.locator('.rb-source').evaluateAll(rows=>rows.map(row=>row.textContent)),['Safari'],'Chrome without the extension and a Notion needing a restart are left out');
 assert.equal(await p.locator('.rb-sources-menu [role="menuitemcheckbox"]').count(),0,'nothing in the menu switches on or off');
 await p.locator('.rb-picker-sources').click();assert.ok(await p.locator('.rb-sources-menu').isHidden());
 // With nothing sending logs, the row is a ghost button to Jam's docs, which open in a new Chrome tab
@@ -48,6 +46,8 @@ await p.mouse.move(700,420);await p.mouse.move(724,434);await p.waitForTimeout(8
 const sources=p.locator('.rb-picker-sources');
 assert.equal(await p.locator('.rb-picker-sources-label').textContent(),'Logs unavailable');
 assert.equal(await sources.getAttribute('aria-expanded'),null,'it opens no menu');
+assert.ok(await sources.locator('.rb-sf').isVisible(),'it leads with the grey status dot');
+assert.equal(await sources.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)','no fill until hovered');
 await sources.click();
 assert.equal(await p.evaluate(()=>JamRecording.getChromeTab()),'docs');assert.ok(await p.locator('.ch-docs').isVisible());
 assert.equal(await p.locator('.ch-docs h1').textContent(),'Add logs to your recordings');

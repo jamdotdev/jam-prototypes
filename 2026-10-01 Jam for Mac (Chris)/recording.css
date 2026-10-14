@@ -244,10 +244,10 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-picker-sources{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:28px;margin-top:9px;padding:0 16px;border-radius:12px;background:transparent;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;cursor:pointer;transition:background-color 120ms ease,color 120ms ease}
 .rb-picker-sources[hidden]{display:none}
 .rb-picker-sources::before{content:'';position:absolute;top:-9px;left:-8px;right:-8px;height:1px;background:#ffffff1a}
-.rb-picker-sources .rb-sf{display:none;width:11px;height:11px}
-/* With nothing connected the row is a ghost button to Jam's docs: no fill until hovered, and an arrow out */
-.rb-picker-sources[data-connected="false"]{color:#ffffff8c}
-.rb-picker-sources[data-connected="false"] .rb-sf{display:inline-block}
+.rb-picker-sources .rb-sf{display:none;flex:none;width:7px;height:7px;margin:1.5px;opacity:.7}
+/* With nothing connected the row is the window card's grey status, a ghost button to Jam's docs that fills on hover */
+.rb-picker-sources[data-connected="false"]{gap:4px;color:#ffffff8c}
+.rb-picker-sources[data-connected="false"] .rb-sf{display:block}
 .rb-picker-sources[data-connected="false"] .rb-sources-caret{display:none}
 @media(hover:hover) and (pointer:fine){.rb-picker-sources[data-connected="false"]:hover{background:#ffffff12;color:#ffffffd9}}
 .rb-picker-sources:focus-visible{outline:3px solid #0a84ff80;outline-offset:1px}
@@ -264,19 +264,11 @@ body:has(.desktop[data-surface="recording"]){contain:paint}
 .rb-sources-menu.native-menu{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:3;min-width:0;max-width:none;max-height:none;padding:5px;border-radius:12px;cursor:default;animation:rb-sources-in 140ms cubic-bezier(.2,0,0,1)}
 .rb-sources-menu[hidden]{display:none}
 @keyframes rb-sources-in{from{opacity:0;translate:0 -3px}}
-.rb-source.native-menu-item{gap:8px;min-height:32px;padding:4px 8px}
+/* Every listed app sends logs, so a row is just the app: nothing to choose, so nothing highlights */
+.rb-source.native-menu-item{gap:8px;min-height:28px;padding:4px 8px;cursor:default}
 .rb-source.native-menu-item::before{display:none}
-.rb-source.native-menu-item:focus{background:transparent;color:inherit}
-@media(hover:hover) and (pointer:fine){.rb-source.native-menu-item:not([aria-disabled="true"]):hover{background:#0000000d}}
-.rb-source.native-menu-item:focus-visible{outline:2px solid #0068d999;outline-offset:-2px}
 .rb-source .rb-app-icon{width:20px;height:20px;border-radius:6px;box-shadow:0 0 0 .5px #0000002e}
-.rb-source-text{display:flex;flex:1;flex-direction:column;min-width:0;line-height:16px}
-.rb-source-detail{color:#79777d;font-size:11px;line-height:13px}
-.rb-source[aria-disabled="true"] :is(.rb-source-name,.rb-app-icon){opacity:.5}
-/* Without switches, each app's state is its second line: green when it sends logs */
-.rb-source[data-state="connected"] .rb-source-detail{display:flex;align-items:center;gap:5px;color:#248a3d}
-.rb-source[data-state="connected"] .rb-source-detail::before{content:'';width:6px;height:6px;border-radius:50%;background:#34c759}
-.rb-source.native-menu-item:not([data-state="optin"]):not([data-state="restart"]){cursor:default}
+.rb-source-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .rb-belt-logs{position:absolute;top:0;left:0;z-index:11;transform-origin:top left;box-sizing:border-box;height:84px;display:flex;align-items:flex-start;justify-content:center;gap:8px;padding:8px 14px 0;border-radius:20px 20px 26px 26px;background:#1c1c1eb8;-webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8);box-shadow:0 0 1px #00000087,0 20px 25px -5px #0000003d,0 10px 10px -5px #0000001f,inset 0 1px 0 #ffffff1f,inset 0 0 0 .5px #ffffff38;color:#89ff9fcc;font-size:13px;line-height:16px;font-weight:510;white-space:nowrap;pointer-events:none;animation:rb-belt-logs-in 220ms cubic-bezier(.2,0,0,1)}
 .rb-belt-logs[hidden]{display:none}
 .rb-belt-logs .rb-dot-serpent{margin-top:3.75px}
